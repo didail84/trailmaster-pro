@@ -43,6 +43,18 @@ def _emplacement_synchronise_configure():
     return None
 
 
+def dossier_portable():
+    """Version portable (clé USB, Windows) : si un dossier « Donnees » se
+    trouve à côté de TrailMaster Pro.exe, la base et les photos y sont
+    rangées — elles voyagent avec la clé au lieu de rester sur le PC."""
+
+    if getattr(sys, "frozen", False) and sys.platform == "win32":
+        dossier = Path(sys.executable).resolve().parent / "Donnees"
+        if dossier.is_dir():
+            return dossier
+    return None
+
+
 def _obtenir_chemin_bdd():
     """En exécution normale (python3 main.py), la base reste à côté du
     code, comme avant. Une fois empaquetée en vraie application
@@ -55,6 +67,10 @@ def _obtenir_chemin_bdd():
     — c'est ce qui permet à deux installations (Mac et Windows, par
     exemple) de partager la même base via un dossier iCloud Drive/
     Google Drive/OneDrive déjà synchronisé entre les deux machines."""
+
+    portable = dossier_portable()
+    if portable is not None:
+        return portable / "trailmaster.db"
 
     emplacement_sync = _emplacement_synchronise_configure()
     if emplacement_sync is not None:

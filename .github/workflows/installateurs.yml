@@ -77,6 +77,7 @@ jobs:
           path: |
             dist/*.exe
             dist/*.dmg
+            dist/*-portable.zip
           if-no-files-found: error
 
   publier:

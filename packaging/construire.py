@@ -106,6 +106,41 @@ def installateur_windows():
     iscc = shutil.which("iscc") or r"C:\Program Files (x86)\Inno Setup 6\ISCC.exe"
     lancer(iscc, f"/DVersionApp={version()}", "packaging/windows.iss")
     print("Installateur Windows :", RACINE / "dist" / f"TrailMasterPro-{version()}-windows-x64.exe")
+    portable_windows()
+
+
+LISEZ_MOI_PORTABLE = """TrailMaster Pro - version portable (cle USB)
+=============================================
+
+Rien a installer : double-clique sur « TrailMaster Pro.exe ».
+
+Tes donnees (base, photos) sont rangees dans le dossier « Donnees »,
+juste a cote : elles restent sur la cle et te suivent d'un PC a l'autre.
+Ne supprime pas ce dossier et fais-en des copies de temps en temps.
+
+Pour reprendre ta base du Mac : copie le fichier
+~/Library/Application Support/TrailMaster Pro/trailmaster.db
+dans le dossier « Donnees » de la cle (TrailMaster ferme).
+
+Ferme toujours TrailMaster avant de retirer la cle.
+
+Conseil : dezippe ce fichier sur la cle depuis ton Mac ou ton PC
+personnel, puis branche la cle sur l'autre ordinateur.
+"""
+
+
+def portable_windows():
+    import zipfile
+    source = RACINE / "dist" / NOM
+    nom_dossier = f"{NOM} portable"
+    sortie = RACINE / "dist" / f"TrailMasterPro-{version()}-windows-portable.zip"
+    with zipfile.ZipFile(sortie, "w", zipfile.ZIP_DEFLATED, compresslevel=6) as archive:
+        for fichier in sorted(source.rglob("*")):
+            if fichier.is_file():
+                archive.write(fichier, f"{nom_dossier}/{fichier.relative_to(source).as_posix()}")
+        archive.writestr(f"{nom_dossier}/Donnees/", "")
+        archive.writestr(f"{nom_dossier}/LISEZ-MOI.txt", LISEZ_MOI_PORTABLE.replace("\n", "\r\n"))
+    print("Version portable Windows :", sortie)
 
 
 if __name__ == "__main__":

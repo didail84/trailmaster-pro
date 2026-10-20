@@ -128,7 +128,9 @@ def _installateur_pour_cet_ordinateur(actifs):
     depuis les sources, on garde le zip du code."""
     if not appli_installee():
         return None
-    if sys.platform == "win32":
+    if sys.platform == "win32" and (Path(sys.executable).resolve().parent / "Donnees").is_dir():
+        voulu = lambda n: n.endswith(".zip") and "windows-portable" in n
+    elif sys.platform == "win32":
         voulu = lambda n: n.endswith(".exe") and "windows" in n
     elif sys.platform == "darwin":
         arch = "arm64" if platform.machine().lower() in ("arm64", "aarch64") else "x64"
