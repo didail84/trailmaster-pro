@@ -30,7 +30,7 @@ SEP = ";" if sys.platform == "win32" else ":"
 
 
 def lancer(*commande):
-    print("→", " ".join(str(c) for c in commande), flush=True)
+    print(">", " ".join(str(c) for c in commande), flush=True)
     subprocess.run([str(c) for c in commande], check=True, cwd=RACINE)
 
 

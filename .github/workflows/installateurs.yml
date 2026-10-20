@@ -61,7 +61,15 @@ jobs:
         shell: bash
         env:
           BUILD_ID: ${{ github.run_number }}
-        run: python packaging/construire.py
+          PYTHONUTF8: '1'
+          PYTHONIOENCODING: utf-8
+        run: |
+          set -o pipefail
+          python packaging/construire.py 2>&1 | tee fabrication.log || {
+            # en cas d'échec : les dernières lignes deviennent des annotations lisibles sur GitHub
+            tail -n 25 fabrication.log | while IFS= read -r ligne; do echo "::error::$ligne"; done
+            exit 1
+          }
 
       - uses: actions/upload-artifact@v4
         with:
