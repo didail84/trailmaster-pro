@@ -1,4 +1,22 @@
+# Environnement Python et fabrication
 .venv/
 __pycache__/
 *.pyc
+build/
+dist/
+*.spec
+interface/assets/version_build.txt
+
+# Données personnelles : ne JAMAIS publier
+*.db
+*.db-journal
+*.sqlite
+data/photos/
+data/*.json.gz
+*.fit
+*.gpx
+*.xlsx
+export/
+
 .DS_Store
+Thumbs.db

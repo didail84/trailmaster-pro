@@ -1,5 +1,10 @@
 # Historique des versions
 
+## 99
+- Vrais installateurs prêts à l'emploi, fabriqués automatiquement par GitHub : `.exe` pour Windows, `.dmg` pour Mac Intel (compatible macOS 12 Monterey) et pour Mac Apple Silicon. Plus besoin d'installer Python.
+- Mise à jour en un clic depuis l'application installée : le bon installateur est téléchargé puis ouvert ; les données restent en place.
+- Synchronisation Garmin Connect (sorties et santé) ; le code publié ne contient plus aucune donnée personnelle.
+
 ## 98
 Grande version « fluidité, performance et santé » : 42 nouvelles fonctions.
 

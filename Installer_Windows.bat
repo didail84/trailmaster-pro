@@ -47,10 +47,16 @@ pyinstaller ^
     --windowed ^
     --name "TrailMaster Pro" ^
     --add-data "interface/assets;interface/assets" ^
+    --add-data "ressources;ressources" ^
+    --add-data "VERSION;." ^
     --hidden-import "PySide6.QtWebEngineWidgets" ^
     --hidden-import "PySide6.QtWebEngineCore" ^
     --hidden-import "PySide6.QtWebChannel" ^
     --collect-all "PySide6" ^
+    --collect-all "garminconnect" ^
+    --collect-all "curl_cffi" ^
+    --collect-all "ua_generator" ^
+    --hidden-import "keyring.backends.Windows" ^
     --noconfirm ^
     --log-level WARN ^
     main.py

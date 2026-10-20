@@ -1,0 +1,422 @@
+<title>TrailMaster Pro</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=Barlow:wght@400;500&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Mise en page : en-tête + onglets, une section visible à la fois, cartes sobres sur fond forêt */
+:root{
+  --bg:#f3f5f1;--surf:#ffffff;--surf2:#e9eee7;--line:#d3dccf;
+  --ink:#16201a;--ink2:#4a5a4f;--ink3:#74847a;
+  --accent:#2f7d4f;--s1:#1f6fb5;--s2:#c8641a;--s3:#2f7d4f;--s4:#8a4fa8;
+  --good:#2f7d4f;--warn:#b7791f;--bad:#c0392b;
+  --f-disp:'Barlow Semi Condensed','Arial Narrow',sans-serif;--f-body:'Barlow',system-ui,sans-serif;--f-mono:'IBM Plex Mono',ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0f1512;--surf:#17201b;--surf2:#1f2b24;--line:#2b3a31;
+  --ink:#e6ece7;--ink2:#a7b6ac;--ink3:#7b8c81;
+  --accent:#6fcf97;--s1:#5aa9f0;--s2:#f0a04b;--s3:#6fcf97;--s4:#c79bf0;
+  --good:#6fcf97;--warn:#f0c14b;--bad:#f07a6b;color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f1512;--surf:#17201b;--surf2:#1f2b24;--line:#2b3a31;
+  --ink:#e6ece7;--ink2:#a7b6ac;--ink3:#7b8c81;
+  --accent:#6fcf97;--s1:#5aa9f0;--s2:#f0a04b;--s3:#6fcf97;--s4:#c79bf0;
+  --good:#6fcf97;--warn:#f0c14b;--bad:#f07a6b;color-scheme:dark}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.45;padding-inline:16px;padding-block:0 40px}
+*{box-sizing:border-box}
+.wrap{max-width:1040px;margin:0 auto}
+header{padding-block:22px 12px;display:flex;flex-wrap:wrap;gap:6px 16px;align-items:baseline;justify-content:space-between}
+h1{font:700 30px/1 var(--f-disp);letter-spacing:.01em;margin:0}
+h1 span{color:var(--accent)}
+.sub{color:var(--ink2);font-size:13px;min-width:0}
+nav{display:flex;gap:4px;overflow-x:auto;border-bottom:1px solid var(--line);margin-bottom:18px;position:sticky;top:env(safe-area-inset-top,0px);background:var(--bg);z-index:5}
+nav button{font:600 14px var(--f-disp);letter-spacing:.04em;text-transform:uppercase;background:none;border:0;color:var(--ink2);padding:11px 12px;cursor:pointer;border-bottom:3px solid transparent;white-space:nowrap}
+nav button[aria-selected=true]{color:var(--ink);border-bottom-color:var(--accent)}
+nav button:focus-visible,select:focus-visible,.cal button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+section[hidden]{display:none}
+h2{font:600 20px var(--f-disp);margin:0 0 4px;letter-spacing:.01em}
+.lead{color:var(--ink2);font-size:13px;margin:0 0 14px;max-width:70ch}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:22px}
+.kpi{background:var(--surf);border:1px solid var(--line);border-radius:6px;padding:12px 14px;min-width:0}
+.kpi .l{font:500 11px var(--f-body);text-transform:uppercase;letter-spacing:.08em;color:var(--ink3)}
+.kpi .v{font:600 28px/1.15 var(--f-mono);font-variant-numeric:tabular-nums;margin-top:2px}
+.kpi .v small{font-size:13px;color:var(--ink2);font-weight:400}
+.kpi .n{font-size:12px;color:var(--ink2);margin-top:2px}
+.card{background:var(--surf);border:1px solid var(--line);border-radius:6px;padding:14px;margin-bottom:18px;min-width:0}
+.card h3{font:600 16px var(--f-disp);margin:0 0 2px;letter-spacing:.02em}
+.card p.n{margin:0 0 8px;font-size:12px;color:var(--ink2)}
+.ctl{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;align-items:center}
+select{background:var(--surf2);color:var(--ink);border:1px solid var(--line);border-radius:4px;padding:7px 9px;font:14px var(--f-body);max-width:100%}
+.chart{position:relative;width:100%}
+.chart svg{display:block;width:100%;height:auto;overflow:visible}
+.tip{position:absolute;pointer-events:none;background:var(--surf2);border:1px solid var(--line);border-radius:4px;padding:6px 9px;font:12px var(--f-mono);white-space:nowrap;display:none;z-index:3;color:var(--ink)}
+.leg{display:flex;flex-wrap:wrap;gap:4px 16px;font-size:12px;color:var(--ink2);margin-bottom:6px}
+.leg i{display:inline-block;width:14px;height:3px;border-radius:2px;margin-right:6px;vertical-align:middle}
+.tw{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th{font:500 11px var(--f-body);text-transform:uppercase;letter-spacing:.07em;color:var(--ink3);text-align:left;padding:6px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:7px 10px;border-bottom:1px solid var(--line);font-variant-numeric:tabular-nums;vertical-align:top}
+td.m{font-family:var(--f-mono);white-space:nowrap}
+.pill{display:inline-block;border-radius:10px;padding:1px 8px;font-size:11px;background:var(--surf2);border:1px solid var(--line);white-space:nowrap}
+.cal{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:3px}
+.cal .h{font:500 11px var(--f-body);color:var(--ink3);text-transform:uppercase;text-align:center;padding:4px 0}
+.cal .d{min-height:62px;background:var(--surf2);border:1px solid var(--line);border-radius:4px;padding:4px 5px;font-size:11px;min-width:0;overflow:hidden}
+.cal .d.out{background:transparent;border-color:transparent}
+.cal .d.rest{background:transparent;border-style:dashed}
+.cal .d.act{background:var(--surf2)}
+.cal .d b{font:500 11px var(--f-mono);color:var(--ink3);display:block}
+.cal .d .e{display:block;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:11px}
+.cal .d .e::before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--c);margin-right:4px}
+.cal .d .r{color:var(--ink3);font-size:10px;margin-top:6px;display:block}
+.mnav{display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap}
+.mnav button{background:var(--surf2);color:var(--ink);border:1px solid var(--line);border-radius:4px;padding:6px 12px;font:15px var(--f-body);cursor:pointer}
+.mnav strong{font:600 18px var(--f-disp);min-width:140px;text-align:center;text-transform:capitalize}
+.ms{font-size:13px;color:var(--ink2);margin-bottom:10px}
+.foot{margin-top:28px;font-size:12px;color:var(--ink3);max-width:75ch}
+
+.seg{display:flex;border:1px solid var(--line);border-radius:4px;overflow:hidden}
+.seg button{border:0;border-radius:0;border-right:1px solid var(--line)}
+.seg button:last-child{border-right:0}
+.mnav button[aria-pressed=true]{background:var(--accent);color:var(--bg);font-weight:600}
+.chip{display:block;width:100%;text-align:left;background:var(--surf);color:var(--ink);border:0;border-left:4px solid var(--c);border-radius:3px;padding:3px 5px;margin-top:3px;font:11px var(--f-body);cursor:pointer;white-space:normal}
+.chip small{display:block;color:var(--ink2);font-size:11px}
+.chip:hover{background:var(--surf2)}.chip:focus-visible{outline:2px solid var(--accent)}
+.cal.wk .d{min-height:230px}.cal .d.out{min-height:0}
+.yr{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:18px}
+.mm .mt{background:none;border:0;color:var(--ink);font:600 15px var(--f-disp);padding:2px 0;cursor:pointer;text-align:left}
+.mm .mt:hover{color:var(--accent)}.mm .n{font-size:12px;color:var(--ink2);margin-bottom:4px}
+.mg{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+.mg i{font:normal 10px var(--f-mono);color:var(--ink3);text-align:center}
+.sq{aspect-ratio:1.2;border-radius:3px;border:0;font:10px var(--f-mono);color:#10151a;display:flex;align-items:center;justify-content:center;padding:0;cursor:pointer}
+.sq.rs{background:var(--surf2);color:var(--ink3);cursor:default}.sq.fu{color:var(--ink3);opacity:.5;cursor:default}
+@media (max-width:560px){.cal.wk{grid-template-columns:1fr}.cal.wk .h{text-align:left}.cal.wk .d{min-height:0}}
+@media (max-width:560px){.cal .d{min-height:52px;padding:3px}.cal .d .e{font-size:10px}.kpi .v{font-size:24px}}
+</style>
+<div class="wrap">
+<header>
+  <h1>Trail<span>Master</span> Pro</h1>
+  <div class="sub" id="snap"></div>
+</header>
+<nav role="tablist" id="tabs"></nav>
+
+<section id="apercu"></section>
+<section id="calendrier" hidden></section>
+<section id="forme" hidden></section>
+<section id="evolution" hidden></section>
+<section id="vma" hidden></section>
+<section id="poids" hidden></section>
+<section id="sorties" hidden></section>
+<p class="foot">Version en lecture seule, calculée à partir d'une copie de ta base TrailMaster. Pour mettre à jour les chiffres, il faut republier cette page avec une copie plus récente de ta base.</p>
+</div>
+
+<script>
+const D=__DATA__;
+const A=D.acts.map(r=>({d:r[0],t:r[1],km:r[2],dp:r[3],s:r[4],fc:r[5],al:r[6],vo:r[7],n:r[8]}));
+const S=D.suivi.map(r=>({d:r[0],p:r[1],j:r[2],fj:r[3],fg:r[4],n:r[5]}));
+const REF=A[A.length-1].d;                 // dernière date de la base
+const COL={Trail:'var(--s2)',Course:'var(--s1)','Randonnée':'var(--s3)',VTT:'var(--s4)','Vélo':'var(--ink2)',Autre:'var(--ink3)'};
+const $=id=>document.getElementById(id);
+const pad=n=>String(n).padStart(2,'0');
+const iso=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+const P=s=>{const[y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d)};
+const addD=(s,n)=>{const d=P(s);d.setDate(d.getDate()+n);return iso(d)};
+const fr=s=>{const[y,m,d]=s.split('-');return d+'/'+m+'/'+y};
+const nf=(v,d=0)=>v==null?'—':Number(v).toLocaleString('fr-FR',{minimumFractionDigits:d,maximumFractionDigits:d});
+const hm=s=>{const m=Math.round(s/60);return Math.floor(m/60)+'h'+pad(m%60)};
+const MOIS=['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
+$('snap').textContent='Données jusqu\'au '+fr(REF)+' · '+A.length+' activités · TrailMaster Pro';
+
+/* ---------- graphique en courbes (SVG, une seule échelle) ---------- */
+function line(host,o){
+  // o: series[{name,color,v:[...]}], labels[], fmt, yMin, area
+  const W=900,H=o.h||260,L=44,R=12,T=10,B=26,n=o.labels.length;
+  let all=[];o.series.forEach(s=>s.v.forEach(x=>{if(x!=null)all.push(x)}));
+  if(!all.length){host.innerHTML='<p class="n">Pas assez de données.</p>';return}
+  let lo=o.yMin!=null?o.yMin:Math.min(...all),hi=Math.max(...all);
+  if(o.zero&&lo>0)lo=0;
+  if(hi===lo){hi+=1;lo-=1}
+  const pd=(hi-lo)*.08;if(o.yMin==null&&!o.zero){lo-=pd}hi+=pd;
+  const X=i=>L+(n<2?0:i*(W-L-R)/(n-1)),Y=v=>T+(hi-v)*(H-T-B)/(hi-lo);
+  const f=o.fmt||(v=>nf(v,hi-lo<10?1:0));
+  let g='';
+  for(let k=0;k<=4;k++){const v=lo+(hi-lo)*k/4,y=Y(v);
+    g+=`<line x1="${L}" x2="${W-R}" y1="${y}" y2="${y}" stroke="var(--line)" stroke-width="1"/><text x="${L-6}" y="${y+4}" text-anchor="end" font-size="11" fill="var(--ink3)" font-family="var(--f-mono)">${f(v)}</text>`}
+  const tk=Math.min(6,n);const seen=new Set();
+  for(let k=0;k<tk;k++){const i=tk===1?0:Math.round(k*(n-1)/(tk-1));if(seen.has(i))continue;seen.add(i);
+    g+=`<text x="${X(i)}" y="${H-6}" text-anchor="${i===0?'start':i===n-1?'end':'middle'}" font-size="11" fill="var(--ink3)" font-family="var(--f-mono)">${o.labels[i]}</text>`}
+  o.series.forEach((s,si)=>{
+    let d='',pen=false,first=null,last=null;
+    s.v.forEach((v,i)=>{if(v==null){pen=false;return}d+=(pen?'L':'M')+X(i).toFixed(1)+' '+Y(v).toFixed(1);pen=true;if(first==null)first=i;last=i});
+    if(o.area&&si===0&&first!=null)g+=`<path d="${d} L${X(last)} ${Y(lo)} L${X(first)} ${Y(lo)}Z" fill="${s.color}" opacity=".12"/>`;
+    g+=`<path d="${d}" fill="none" stroke="${s.color}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>`;
+    if(o.dots||n<=40)s.v.forEach((v,i)=>{if(v!=null)g+=`<circle cx="${X(i)}" cy="${Y(v)}" r="3.5" fill="${s.color}" stroke="var(--surf)" stroke-width="2"/>`});
+    else if(last!=null)g+=`<circle cx="${X(last)}" cy="${Y(s.v[last])}" r="4" fill="${s.color}" stroke="var(--surf)" stroke-width="2"/>`;
+  });
+  g+=`<line id="cx" y1="${T}" y2="${H-B}" stroke="var(--ink3)" stroke-dasharray="3 3" style="display:none"/>`;
+  const leg=o.series.length>1?`<div class="leg">${o.series.map(s=>`<span><i style="background:${s.color}"></i>${s.name}</span>`).join('')}</div>`:'';
+  host.innerHTML=leg+`<div class="chart"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${o.aria||'Courbe'}">${g}</svg><div class="tip"></div></div>`;
+  const svg=host.querySelector('svg'),tip=host.querySelector('.tip'),cx=svg.querySelector('#cx'),box=host.querySelector('.chart');
+  function mv(e){
+    const r=svg.getBoundingClientRect(),px=(e.clientX-r.left)/r.width*W;
+    let i=Math.round((px-L)/((W-L-R)/Math.max(n-1,1)));i=Math.max(0,Math.min(n-1,i));
+    cx.setAttribute('x1',X(i));cx.setAttribute('x2',X(i));cx.style.display='';
+    tip.innerHTML='<b>'+(o.tipLabels?o.tipLabels[i]:o.labels[i])+'</b><br>'+o.series.map(s=>s.name+' : '+(s.v[i]==null?'—':f(s.v[i])+(o.unit||''))).join('<br>');
+    tip.style.display='block';
+    const bx=box.getBoundingClientRect(),tx=e.clientX-bx.left+14;
+    tip.style.left=Math.min(tx,bx.width-tip.offsetWidth-4)+'px';tip.style.top=Math.max(0,e.clientY-bx.top-50)+'px';
+  }
+  svg.addEventListener('pointermove',mv);svg.addEventListener('pointerdown',mv);
+  svg.addEventListener('pointerleave',()=>{tip.style.display='none';cx.style.display='none'});
+}
+
+/* ---------- charge, forme, fatigue (modèle simplifié) ---------- */
+const chargeJour={};
+A.forEach(a=>{chargeJour[a.d]=(chargeJour[a.d]||0)+a.s/60+a.dp/10});
+const FF=[];
+(function(){let ctl=0,atl=0,d=A[0].d;
+  while(d<=REF){const c=chargeJour[d]||0;ctl+=(c-ctl)/42;atl+=(c-atl)/7;FF.push({d,ctl,atl,tsb:ctl-atl});d=addD(d,1)}})();
+const last=FF[FF.length-1];
+
+/* ---------- VO2max ---------- */
+function vo2Window(end,jours){
+  const st=addD(end,-jours);let best=null;
+  A.forEach(a=>{if(a.vo&&a.d>=st&&a.d<=end&&(!best||a.vo>best.vo))best=a});return best}
+const vo2Rec=vo2Window(REF,180);
+const vo2Max=A.reduce((b,a)=>a.vo&&(!b||a.vo>b.vo)?a:b,null);
+
+/* ---------- onglets ---------- */
+const TABS=[['apercu','Aperçu'],['calendrier','Calendrier'],['forme','Forme & fatigue'],['evolution','Évolution'],['vma','VMA & circuits'],['poids','Poids & fatigue'],['sorties','Sorties']];
+const built={};
+function show(id){
+  TABS.forEach(([k])=>{$(k).hidden=k!==id});
+  document.querySelectorAll('#tabs button').forEach(b=>b.setAttribute('aria-selected',b.dataset.k===id));
+  if(!built[id]){built[id]=1;BUILD[id]()}
+  try{history.replaceState(null,'','#'+id)}catch(e){}
+}
+$('tabs').innerHTML=TABS.map(([k,l])=>`<button role="tab" data-k="${k}">${l}</button>`).join('');
+$('tabs').addEventListener('click',e=>{const b=e.target.closest('button');if(b)show(b.dataset.k)});
+
+const kpi=(l,v,n,u)=>`<div class="kpi"><div class="l">${l}</div><div class="v">${v}${u?` <small>${u}</small>`:''}</div>${n?`<div class="n">${n}</div>`:''}</div>`;
+const tableSorties=(rows)=>`<div class="tw"><table><thead><tr><th>Date</th><th>Sortie</th><th>Type</th><th>km</th><th>D+</th><th>Durée</th><th>FC</th></tr></thead><tbody>`+
+ rows.map(a=>`<tr><td class="m">${fr(a.d)}</td><td>${a.n||'—'}</td><td><span class="pill" style="border-color:${COL[a.t]}">${a.t}</span></td><td class="m">${nf(a.km,1)}</td><td class="m">${nf(a.dp)}</td><td class="m">${hm(a.s)}</td><td class="m">${a.fc?nf(a.fc):'—'}</td></tr>`).join('')+'</tbody></table></div>';
+
+const BUILD={};
+BUILD.apercu=()=>{
+  const st=addD(REF,-29),r=A.filter(a=>a.d>=st);
+  const jours=new Set(r.map(a=>a.d)).size;
+  const km=r.reduce((s,a)=>s+a.km,0),dp=r.reduce((s,a)=>s+a.dp,0),sec=r.reduce((s,a)=>s+a.s,0);
+  const tsb=last.tsb;
+  const etat=tsb>5?['Frais','good']:tsb>-10?['Équilibré','good']:tsb>-25?['Chargé','warn']:['Très fatigué','bad'];
+  const lastS=S.filter(x=>x.p!=null).slice(-1)[0];
+  $('apercu').innerHTML=`<h2>30 derniers jours</h2><p class="lead">Du ${fr(st)} au ${fr(REF)}, dernière date présente dans la base.</p>
+  <div class="grid">${kpi('Sorties',r.length,jours+' jours actifs · '+(30-jours)+' repos')}${kpi('Distance',nf(km),'','km')}${kpi('Dénivelé +',nf(dp),'','m')}${kpi('Temps',hm(sec),'')}</div>
+  <h2>Forme du moment</h2><p class="lead">Modèle simplifié : charge de chaque jour = minutes + D+/10, lissée sur 42 jours (forme) et 7 jours (fatigue).</p>
+  <div class="grid">${kpi('Forme (fitness)',nf(last.ctl,1),'moyenne 42 jours')}${kpi('Fatigue',nf(last.atl,1),'moyenne 7 jours')}${kpi('Fraîcheur',(tsb>0?'+':'')+nf(tsb,1),`<span style="color:var(--${etat[1]})">● ${etat[0]}</span>`)}
+  ${kpi('VO2max récent',vo2Rec?nf(vo2Rec.vo,1):'—',vo2Rec?'meilleur effort des 180 j · '+fr(vo2Rec.d):'aucun effort Trail/Course ≥ 3 km','')}
+  ${kpi('VO2max record',vo2Max?nf(vo2Max.vo,1):'—',vo2Max?'record du '+fr(vo2Max.d)+' (à ne pas prendre pour la forme actuelle)':'','')}
+  ${lastS?kpi('Dernier poids',nf(lastS.p,1),'relevé du '+fr(lastS.d),'kg'):''}</div>
+  <div class="card"><h3>Forme et fatigue sur 6 mois</h3><p class="n">Passe la souris ou le doigt sur la courbe pour lire les valeurs.</p><div id="apF"></div></div>
+  <div class="card"><h3>Dernières sorties</h3>${tableSorties(A.slice(-8).reverse())}</div>`;
+  const z=FF.slice(-180);
+  line($('apF'),{series:[{name:'Forme',color:'var(--s1)',v:z.map(x=>+x.ctl.toFixed(1))},{name:'Fatigue',color:'var(--s2)',v:z.map(x=>+x.atl.toFixed(1))}],labels:z.map(x=>x.d.slice(8)+'/'+x.d.slice(5,7)),tipLabels:z.map(x=>fr(x.d)),zero:true,aria:'Forme et fatigue'});
+};
+
+let cMode='mois',cRef=REF;
+const BYD={};A.forEach((a,i)=>{a.i=i;(BYD[a.d]=BYD[a.d]||[]).push(a)});
+const lundiDe=s=>{const d=P(s);d.setDate(d.getDate()-((d.getDay()+6)%7));return iso(d)};
+const nomJ=['Lun','Mar','Mer','Jeu','Ven','Sam','Dim'];
+const ico={Trail:'⛰️',Course:'🏃','Randonnée':'🥾',VTT:'🚵','Vélo':'🚴'};
+const alTxt=(km,s)=>km>=0.5&&s?(()=>{const x=Math.round(s/km);return Math.floor(x/60)+':'+pad(x%60)+'/km'})():'';
+const chip=(a,det)=>`<button class="chip" data-i="${a.i}" style="--c:${COL[a.t]||'var(--ink3)'}">${ico[a.t]||'•'} ${a.t}${a.km?' · '+nf(a.km,1)+' km':''}${a.s?' · '+hm(a.s):''}${det?`<small>${a.n}${a.dp?'<br>D+ '+nf(a.dp)+' m':''}${alTxt(a.km,a.s)?' · '+alTxt(a.km,a.s):''}${a.fc?' · FC '+a.fc:''}</small>`:''}</button>`;
+function periode(){
+  const p=P(cRef);
+  if(cMode==='semaine'){const l=lundiDe(cRef);return[l,addD(l,6)]}
+  if(cMode==='mois')return[iso(new Date(p.getFullYear(),p.getMonth(),1)),iso(new Date(p.getFullYear(),p.getMonth()+1,0))];
+  return[p.getFullYear()+'-01-01',p.getFullYear()+'-12-31'];
+}
+function cell(d,det){
+  const l=BYD[d]||[],fut=d>REF,n=+d.slice(8);
+  return `<div class="d ${l.length?'act':fut?'out':'rest'}"><b>${n}</b>${l.map(a=>chip(a,det)).join('')}${!l.length&&!fut?'<span class="r">😴 repos</span>':''}</div>`;
+}
+BUILD.calendrier=()=>{
+  $('calendrier').innerHTML=`<h2>Calendrier des sorties et des repos</h2><p class="lead">Un jour sans sortie compte comme repos. Clique une sortie pour voir son détail. Les jours après le ${fr(REF)} ne sont pas dans la base.</p>
+  <div class="mnav"><div class="seg" id="cm">${['semaine','mois','année'].map(m=>`<button data-m="${m}">${m[0].toUpperCase()+m.slice(1)}</button>`).join('')}</div>
+  <button id="cp" aria-label="Période précédente">←</button><strong id="cl"></strong><button id="cn" aria-label="Période suivante">→</button><button id="cj">Fin des données</button></div>
+  <div class="ms" id="cs"></div><div id="cg"></div><div class="card" id="cdet" hidden></div>`;
+  $('cm').onclick=e=>{const b=e.target.closest('button');if(b){cMode=b.dataset.m;drawCal()}};
+  $('cp').onclick=()=>shift(-1);$('cn').onclick=()=>shift(1);$('cj').onclick=()=>{cRef=REF;drawCal()};
+  $('cg').onclick=e=>{
+    const c=e.target.closest('.chip');if(c){showDet(A[+c.dataset.i]);return}
+    const mm=e.target.closest('[data-mois]');if(mm){cRef=mm.dataset.mois+'-01';cMode='mois';drawCal();return}
+    const q=e.target.closest('[data-j]');if(q){const l=BYD[q.dataset.j]||[];if(l.length)showDet(l[0])}};
+  drawCal();
+};
+function shift(s){const p=P(cRef);
+  if(cMode==='semaine')cRef=addD(cRef,7*s);
+  else if(cMode==='mois')cRef=iso(new Date(p.getFullYear(),p.getMonth()+s,1));
+  else cRef=iso(new Date(p.getFullYear()+s,p.getMonth(),1));
+  drawCal()}
+function showDet(a){
+  const x=$('cdet');x.hidden=false;
+  const v=(a.t==='Trail'||a.t==='Course')?vmaEffort(a.km,a.dp,a.s):null;
+  const rows=[['Date',fr(a.d)],['Type',a.t],['Distance',a.km?nf(a.km,2)+' km':'—'],['Dénivelé +',a.dp?nf(a.dp)+' m':'—'],['Durée',a.s?dureeTxt(a.s):'—'],['Allure',alTxt(a.km,a.s)||'—'],['Vitesse',a.km&&a.s?nf(a.km/(a.s/3600),1)+' km/h':'—'],['FC moyenne',a.fc?a.fc+' bpm':'—'],['VMA estimée sur cette sortie',v?nf(v,1)+' km/h':'—']];
+  x.innerHTML=`<h3>${a.n||a.t}</h3><div class="grid" style="margin:10px 0 0">${rows.map(r=>kpi(r[0],`<span style="font-size:18px">${r[1]}</span>`,'')).join('')}</div>`;
+  x.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+function drawCal(){
+  document.querySelectorAll('#cm button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.m===cMode));
+  $('cdet').hidden=true;
+  const[de,fi]=periode(),p=P(cRef);
+  const sor=A.filter(a=>a.d>=de&&a.d<=fi),km=sor.reduce((s,a)=>s+a.km,0),dp=sor.reduce((s,a)=>s+a.dp,0),sec=sor.reduce((s,a)=>s+a.s,0);
+  const fin=fi>REF?REF:fi,tot=de<=REF?Math.round((P(fin)-P(de))/864e5)+1:0,act=new Set(sor.map(a=>a.d)).size;
+  $('cs').textContent=sor.length+' sorties · '+nf(km,1)+' km · D+ '+nf(dp)+' m · '+hm(sec)+' · '+Math.max(tot-act,0)+' jours de repos';
+  let h='';
+  if(cMode==='semaine'){
+    const l=de,n=P(l).getDay();
+    $('cl').textContent='Semaine du '+fr(de)+' au '+fr(fi);
+    h='<div class="cal wk">'+nomJ.map((j,i)=>`<div class="h">${j} ${+addD(l,i).slice(8)}</div>`).join('')+nomJ.map((_,i)=>cell(addD(l,i),true)).join('')+'</div>';
+  }else if(cMode==='mois'){
+    $('cl').textContent=MOIS[p.getMonth()]+' '+p.getFullYear();
+    const off=(new Date(p.getFullYear(),p.getMonth(),1).getDay()+6)%7,nd=new Date(p.getFullYear(),p.getMonth()+1,0).getDate();
+    h='<div class="cal">'+nomJ.map(j=>`<div class="h">${j}</div>`).join('')+'<div class="d out"></div>'.repeat(off)+Array.from({length:nd},(_,i)=>cell(p.getFullYear()+'-'+pad(p.getMonth()+1)+'-'+pad(i+1),false)).join('')+'</div>';
+  }else{
+    const y=p.getFullYear();$('cl').textContent=String(y);
+    h='<div class="yr">';
+    for(let m=0;m<12;m++){
+      const nd=new Date(y,m+1,0).getDate(),off=(new Date(y,m,1).getDay()+6)%7,key=y+'-'+pad(m+1);
+      const sm=sor.filter(a=>a.d.slice(0,7)===key);
+      h+=`<div class="mm"><button class="mt" data-mois="${key}">${MOIS[m]}</button><div class="n">${sm.length?sm.length+' sorties · '+nf(sm.reduce((s,a)=>s+a.km,0))+' km':'—'}</div><div class="mg">${nomJ.map(j=>`<i>${j[0]}</i>`).join('')}${'<span></span>'.repeat(off)}${Array.from({length:nd},(_,i)=>{const d=key+'-'+pad(i+1),l=BYD[d]||[];
+        if(l.length){const a=l.reduce((b,c)=>c.km>b.km?c:b);return `<button class="sq" data-j="${d}" style="background:${COL[a.t]||'var(--ink3)'}" title="${fr(d)} · ${l.map(z=>z.t+' '+nf(z.km,1)+' km').join(', ')}">${i+1}</button>`}
+        return d<=REF?`<span class="sq rs" title="${fr(d)} · repos">${i+1}</span>`:`<span class="sq fu">${i+1}</span>`}).join('')}</div></div>`}
+    h+='</div><div class="leg" style="margin-top:12px">'+Object.keys(ico).map(t=>`<span><i style="background:${COL[t]}"></i>${t}</span>`).join('')+'<span><i style="background:var(--surf2)"></i>Repos</span></div>';
+  }
+  $('cg').innerHTML=h;
+}
+
+BUILD.forme=()=>{
+  $('forme').innerHTML=`<h2>Forme, fatigue et fraîcheur</h2><p class="lead">La forme monte avec les semaines d'entraînement régulières. La fatigue réagit vite après une grosse sortie. La fraîcheur est la forme moins la fatigue : positive quand tu es reposé, négative quand tu es chargé. Un jour de repos compte pour une charge de zéro.</p>
+  <div class="ctl"><select id="fp" aria-label="Période"><option value="90">3 mois</option><option value="180" selected>6 mois</option><option value="365">1 an</option><option value="730">2 ans</option></select></div>
+  <div class="card"><h3>Forme et fatigue</h3><div id="f1"></div></div>
+  <div class="card"><h3>Fraîcheur</h3><p class="n">Au-dessus de zéro : reposé. Sous −25 : très chargé.</p><div id="f2"></div></div>`;
+  const dr=()=>{const z=FF.slice(-(+$('fp').value)),lab=z.map(x=>x.d.slice(8)+'/'+x.d.slice(5,7)+(z.length>200?'/'+x.d.slice(2,4):'')),tl=z.map(x=>fr(x.d));
+    line($('f1'),{series:[{name:'Forme',color:'var(--s1)',v:z.map(x=>+x.ctl.toFixed(1))},{name:'Fatigue',color:'var(--s2)',v:z.map(x=>+x.atl.toFixed(1))}],labels:lab,tipLabels:tl,zero:true,aria:'Forme et fatigue'});
+    line($('f2'),{series:[{name:'Fraîcheur',color:'var(--s3)',v:z.map(x=>+x.tsb.toFixed(1))}],labels:lab,tipLabels:tl,area:true,h:200,aria:'Fraîcheur'})};
+  $('fp').onchange=dr;dr();
+};
+
+const MES={
+  vo2:{l:'VO2max estimé (ml/kg/min)',u:'',n:'Meilleur effort Trail/Course (≥ 3 km) sur une fenêtre glissante de 180 jours. Il suit la forme du moment plutôt qu\'un record ancien.'},
+  fc:{l:'FC moyenne (bpm)',u:' bpm',n:'FC moyenne des sorties avec cardio, par mois.'},
+  al:{l:'Allure moyenne (min/km)',u:' min/km',n:'Allure moyenne des sorties Trail/Course, par mois. Plus bas = plus rapide.'},
+  dp:{l:'Dénivelé D+ cumulé (m)',u:' m',n:'D+ total du mois, tous types de sortie.'},
+  du:{l:'Durée cumulée (h)',u:' h',n:'Temps d\'entraînement total du mois.'},
+  km:{l:'Distance cumulée (km)',u:' km',n:'Distance totale du mois, tous types de sortie.'}
+};
+function serieMois(m,nb){
+  const e=P(REF),out=[];
+  for(let i=nb-1;i>=0;i--){
+    const dt=new Date(e.getFullYear(),e.getMonth()-i,1),y=dt.getFullYear(),mo=dt.getMonth();
+    const a=y+'-'+pad(mo+1)+'-01',b=y+'-'+pad(mo+1)+'-31',inM=A.filter(x=>x.d>=a&&x.d<=b);
+    let v=null;
+    if(m==='vo2'){const end=iso(new Date(y,mo+1,0));const w=vo2Window(end>REF?REF:end,180);v=w?w.vo:null}
+    else if(m==='fc'){const x=inM.filter(q=>q.fc);v=x.length?Math.round(x.reduce((s,q)=>s+q.fc,0)/x.length):null}
+    else if(m==='al'){const x=inM.filter(q=>q.al>=2&&q.al<=20&&(q.t==='Trail'||q.t==='Course'));v=x.length?+(x.reduce((s,q)=>s+q.al,0)/x.length).toFixed(2):null}
+    else if(m==='dp')v=inM.length?inM.reduce((s,q)=>s+q.dp,0):null;
+    else if(m==='du')v=inM.length?+(inM.reduce((s,q)=>s+q.s,0)/3600).toFixed(1):null;
+    else if(m==='km')v=inM.length?+inM.reduce((s,q)=>s+q.km,0).toFixed(0):null;
+    out.push({lab:pad(mo+1)+'/'+String(y).slice(2),tip:MOIS[mo]+' '+y,v});
+  }
+  while(out.length&&out[0].v==null)out.shift();
+  return out;
+}
+BUILD.evolution=()=>{
+  $('evolution').innerHTML=`<h2>Évolution des performances</h2><p class="lead">Une tendance de fond, mois par mois, sur jusqu'à deux ans avant le ${fr(REF)}.</p>
+  <div class="ctl"><select id="em" aria-label="Mesure">${Object.entries(MES).map(([k,v])=>`<option value="${k}">${v.l}</option>`).join('')}</select>
+  <select id="ep" aria-label="Période"><option value="12">12 mois</option><option value="24" selected>24 mois</option></select></div>
+  <div class="card"><h3 id="et"></h3><p class="n" id="en"></p><div id="ec"></div></div>`;
+  const dr=()=>{const m=$('em').value,s=serieMois(m,+$('ep').value);
+    $('et').textContent=MES[m].l;$('en').textContent=MES[m].n;
+    line($('ec'),{series:[{name:MES[m].l,color:'var(--s1)',v:s.map(x=>x.v)}],labels:s.map(x=>x.lab),tipLabels:s.map(x=>x.tip),unit:MES[m].u,area:true,dots:true,zero:m==='dp'||m==='du'||m==='km',aria:MES[m].l,fmt:m==='al'?(v=>nf(v,2)):m==='vo2'||m==='du'?(v=>nf(v,1)):null})};
+  $('em').onchange=dr;$('ep').onchange=dr;dr();
+};
+
+
+/* ---------- VMA & circuits (même méthode que le logiciel v85) ---------- */
+function vmaDeVo2(vo2){const a=0.000104,b=0.182258,c=-4.6-vo2,dl=b*b-4*a*c;return dl<=0?null:(-b+Math.sqrt(dl))/(2*a)*0.06}
+function vo2Perf(km,s){const t=s/60,v=km*1000/t,vo=-4.6+0.182258*v+0.000104*v*v,p=0.8+0.1894393*Math.exp(-0.012778*t)+0.2989558*Math.exp(-0.1932605*t);return vo/p}
+function vmaEffort(km,dp,s){
+  if(!km||km<3||!s||s<=0)return null;
+  const d=Math.min(dp||0,60*km),eq=km+d/125,al=s/60/eq;
+  if(al<3.5||al>9)return null;
+  return vmaDeVo2(vo2Perf(eq,s));
+}
+const EFF=A.filter(a=>(a.t==='Trail'||a.t==='Course')).map(a=>({...a,vma:vmaEffort(a.km,a.dp,a.s)})).filter(a=>a.vma);
+function vmaFen(fin,j=90){const d=addD(fin,-j);const v=EFF.filter(e=>e.d>=d&&e.d<=fin).map(e=>e.vma).sort((a,b)=>b-a);return v.length?v.slice(0,3).reduce((s,x)=>s+x,0)/Math.min(3,v.length):null}
+const allureTxt=kmh=>{if(!kmh)return'—';const s=Math.round(3600/kmh);return Math.floor(s/60)+':'+pad(s%60)+' /km'};
+const dureeTxt=s=>{s=Math.round(s);const h=Math.floor(s/3600),m=Math.floor(s%3600/60),r=s%60;return h?h+'h'+pad(m)+"'"+pad(r):m+"'"+pad(r)};
+const NOMGEN=/^(course à pied (le |dans |en )|morning |afternoon |lunch |evening |night )/i;
+function circuits(){
+  const g={};
+  A.forEach(a=>{if((a.t!=='Trail'&&a.t!=='Course')||a.km<3||!a.s)return;const n=(a.n||'').trim();if(!n||NOMGEN.test(n))return;(g[n]=g[n]||[]).push(a)});
+  const out=[];
+  Object.entries(g).forEach(([nom,ps])=>{
+    const ks=ps.map(p=>p.km).sort((a,b)=>a-b),med=ks.length%2?ks[(ks.length-1)/2]:(ks[ks.length/2-1]+ks[ks.length/2])/2;
+    ps=ps.filter(p=>p.km>=.85*med&&p.km<=1.15*med);if(ps.length<3)return;
+    const m=x=>x.reduce((s,v)=>s+v,0)/x.length,ch=ps.map(p=>p.s);
+    const ev=(a,b)=>(m(a)-m(b))/m(b)*100;
+    out.push({nom,ps,nb:ps.length,km:m(ps.map(p=>p.km)),dp:m(ps.map(p=>p.dp)),moy:m(ch),best:Math.min(...ch),last:ch[ch.length-1],
+      vit:m(ps.map(p=>p.km/(p.s/3600))),
+      er:ch.length>=6?ev(ch.slice(-3),ch.slice(-6,-3)):null,et:ps.length>=6?ev(ch.slice(-3),ch.slice(0,3)):null});
+  });
+  return out.sort((a,b)=>b.nb-a.nb||a.nom.localeCompare(b.nom));
+}
+const evTxt=p=>p==null?'—':Math.abs(p)<1?'= stable':(p<0?'▼ ':'▲ ')+nf(Math.abs(p),1)+' % '+(p<0?'plus rapide':'plus lent');
+const evCol=p=>p==null||Math.abs(p)<1?'var(--ink2)':p<0?'var(--good)':'var(--warn)';
+BUILD.vma=()=>{
+  const now=vmaFen(REF);
+  let rec=null;const f=P(A[0].d);f.setDate(1);
+  for(let d=new Date(f);iso(d)<=REF;d.setMonth(d.getMonth()+1)){const fin=iso(new Date(d.getFullYear(),d.getMonth()+1,0));const e=fin>REF?REF:fin;const v=vmaFen(e);if(v!=null&&(!rec||v>rec.v))rec={v,d:e}}
+  const e=P(REF),ser=[];
+  for(let i=23;i>=0;i--){const dt=new Date(e.getFullYear(),e.getMonth()-i,1),fin=iso(new Date(dt.getFullYear(),dt.getMonth()+1,0));ser.push({lab:pad(dt.getMonth()+1)+'/'+String(dt.getFullYear()).slice(2),tip:MOIS[dt.getMonth()]+' '+dt.getFullYear(),v:vmaFen(fin>REF?REF:fin)})}
+  while(ser.length&&ser[0].v==null)ser.shift();
+  let lv=null;ser.forEach(x=>{if(x.v==null)x.v=lv;else lv=x.v});
+  const best=EFF.filter(x=>x.d>=addD(REF,-90)).sort((a,b)=>b.vma-a.vma).slice(0,3);
+  const C=circuits();
+  $('vma').innerHTML=`<h2>VMA estimée</h2><p class="lead">Chaque sortie Trail ou Course d'au moins 3 km donne une estimation : le D+ est converti en distance à plat (125 m de D+ ≈ 1 km), la formule de Daniels donne le VO2max, puis la vitesse correspondante. Une sortie tranquille sous-estime la VMA, donc la valeur retenue est la moyenne des 3 meilleures sorties des 90 derniers jours.</p>
+  <div class="grid">${kpi('VMA estimée',now?nf(now,1):'—',now?'au '+fr(REF)+' · '+allureTxt(now):'','km/h')}${kpi('Meilleure VMA estimée',rec?nf(rec.v,1):'—',rec?'fenêtre de 90 jours finissant le '+fr(rec.d):'','km/h')}${kpi('Sorties exploitées',EFF.length,'Trail/Course ≥ 3 km')}${kpi('VMA du profil','12,0','valeur saisie dans la fiche athlète','km/h')}</div>
+  <div class="card"><h3>Évolution de la VMA sur 24 mois</h3><p class="n">Un point par mois.</p><div id="vc"></div></div>
+  <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(300px,1fr))">
+  <div class="card"><h3>Allures conseillées</h3><div class="tw"><table><thead><tr><th>Effort</th><th>% VMA</th><th>Allure</th></tr></thead><tbody>${now?[['Endurance fondamentale',65],['Allure marathon',75],['Seuil',85],['Allure 10 km',90],['VMA',100]].map(([n,p])=>`<tr><td>${n}</td><td class="m">${p} %</td><td class="m">${allureTxt(now*p/100)}</td></tr>`).join(''):''}</tbody></table></div></div>
+  <div class="card"><h3>Efforts retenus (90 derniers jours)</h3><div class="tw"><table><thead><tr><th>Date</th><th>Sortie</th><th>km</th><th>D+</th><th>Chrono</th><th>VMA</th></tr></thead><tbody>${best.map(b=>`<tr><td class="m">${fr(b.d)}</td><td>${b.n}</td><td class="m">${nf(b.km,1)}</td><td class="m">${nf(b.dp)}</td><td class="m">${dureeTxt(b.s)}</td><td class="m">${nf(b.vma,1)}</td></tr>`).join('')}</tbody></table></div></div></div>
+  <h2>Évolution par circuit</h2><p class="lead">Sorties du même nom (au moins 3 passages, distance à ±15 % du circuit). « Récente » compare les 3 derniers passages aux 3 précédents, « depuis le début » les 3 derniers aux 3 premiers. Clique sur un circuit pour le détail.</p>
+  <div class="card"><div class="tw"><table id="ct"><thead><tr><th>Circuit</th><th>Passages</th><th>km</th><th>D+</th><th>Chrono moyen</th><th>Meilleur</th><th>Dernier</th><th>Allure</th><th>Vitesse</th><th>Évol. récente</th><th>Depuis le début</th></tr></thead><tbody>${C.map((c,i)=>`<tr data-i="${i}" style="cursor:pointer"><td>${c.nom}</td><td class="m">${c.nb}</td><td class="m">${nf(c.km,1)}</td><td class="m">${nf(c.dp)}</td><td class="m">${dureeTxt(c.moy)}</td><td class="m">${dureeTxt(c.best)}</td><td class="m">${dureeTxt(c.last)}</td><td class="m">${allureTxt(c.vit)}</td><td class="m">${nf(c.vit,1)} km/h</td><td style="color:${evCol(c.er)}">${evTxt(c.er)}</td><td style="color:${evCol(c.et)}">${evTxt(c.et)}</td></tr>`).join('')}</tbody></table></div></div>
+  <div class="card"><h3 id="cdt"></h3><p class="n">Chrono (minutes) à chaque passage</p><div id="cd1"></div><p class="n" style="margin-top:14px">Allure (min/km) à chaque passage. Plus bas = plus rapide.</p><div id="cd2"></div></div>`;
+  line($('vc'),{series:[{name:'VMA estimée',color:'var(--s1)',v:ser.map(x=>x.v&&+x.v.toFixed(1))}],labels:ser.map(x=>x.lab),tipLabels:ser.map(x=>x.tip),unit:' km/h',area:true,dots:true,fmt:v=>nf(v,1),aria:'VMA estimée'});
+  const det=i=>{const c=C[i];if(!c)return;
+    $('cdt').textContent=c.nom+' · '+c.nb+' passages du '+fr(c.ps[0].d)+' au '+fr(c.ps[c.nb-1].d);
+    const lab=c.ps.map(p=>p.d.slice(8)+'/'+p.d.slice(5,7)+'/'+p.d.slice(2,4)),tl=c.ps.map(p=>fr(p.d));
+    line($('cd1'),{series:[{name:'Chrono',color:'var(--s3)',v:c.ps.map(p=>+(p.s/60).toFixed(1))}],labels:lab,tipLabels:tl,unit:' min',h:200,fmt:v=>nf(v,0),aria:'Chrono'});
+    line($('cd2'),{series:[{name:'Allure',color:'var(--s2)',v:c.ps.map(p=>+(p.s/60/p.km).toFixed(2))}],labels:lab,tipLabels:tl,unit:' min/km',h:200,fmt:v=>nf(v,2),aria:'Allure'});
+    document.querySelectorAll('#ct tbody tr').forEach(r=>r.style.background=+r.dataset.i===i?'var(--surf2)':'')};
+  $('ct').addEventListener('click',e=>{const r=e.target.closest('tr[data-i]');if(r)det(+r.dataset.i)});
+  det(0);
+};
+
+BUILD.poids=()=>{
+  const wp=S.filter(x=>x.p!=null);
+  const dif=wp.length>1?wp[wp.length-1].p-wp[0].p:0;
+  $('poids').innerHTML=`<h2>Poids et fatigue</h2><p class="lead">Relevés saisis à la main dans TrailMaster : poids, état des jambes et fatigue de 0 à 10.</p>
+  <div class="grid">${kpi('Premier relevé',wp.length?nf(wp[0].p,1):'—',wp.length?fr(wp[0].d):'','kg')}${kpi('Dernier relevé',wp.length?nf(wp[wp.length-1].p,1):'—',wp.length?fr(wp[wp.length-1].d):'','kg')}${kpi('Évolution',(dif>0?'+':dif<0?'−':'')+nf(Math.abs(dif),1),'sur la période','kg')}</div>
+  <div class="card"><h3>Poids (kg)</h3><div id="pw"></div></div>
+  <div class="card"><h3>Fatigue (0 à 10)</h3><p class="n">Un jour sans valeur n'est pas relié : seuls les relevés saisis sont tracés.</p><div id="pf"></div></div>
+  <div class="card"><h3>Tous les relevés</h3><div class="tw"><table><thead><tr><th>Date</th><th>Poids</th><th>Jambes</th><th>Fatigue jambes</th><th>Fatigue générale</th><th>Notes</th></tr></thead><tbody>${S.slice().reverse().map(x=>`<tr><td class="m">${fr(x.d)}</td><td class="m">${x.p!=null?nf(x.p,1)+' kg':'—'}</td><td>${x.j||'—'}</td><td class="m">${x.fj!=null?x.fj:'—'}</td><td class="m">${x.fg!=null?x.fg:'—'}</td><td>${x.n||''}</td></tr>`).join('')}</tbody></table></div></div>`;
+  const lab=S.map(x=>x.d.slice(8)+'/'+x.d.slice(5,7)),tl=S.map(x=>fr(x.d));
+  line($('pw'),{series:[{name:'Poids',color:'var(--s1)',v:S.map(x=>x.p)}],labels:lab,tipLabels:tl,unit:' kg',dots:true,aria:'Poids',fmt:v=>nf(v,1)});
+  line($('pf'),{series:[{name:'Fatigue générale',color:'var(--s2)',v:S.map(x=>x.fg)},{name:'Fatigue jambes',color:'var(--s4)',v:S.map(x=>x.fj)}],labels:lab,tipLabels:tl,dots:true,yMin:0,aria:'Fatigue',fmt:v=>nf(v,0)});
+};
+
+BUILD.sorties=()=>{
+  $('sorties').innerHTML=`<h2>Sorties</h2><p class="lead">Les 60 sorties les plus récentes.</p><div class="ctl"><select id="st" aria-label="Type"><option value="">Tous les types</option>${[...new Set(A.map(a=>a.t))].map(t=>`<option>${t}</option>`).join('')}</select></div><div class="card" id="sl"></div>`;
+  const dr=()=>{const t=$('st').value;$('sl').innerHTML=tableSorties(A.filter(a=>!t||a.t===t).slice(-60).reverse())};
+  $('st').onchange=dr;dr();
+};
+
+show(location.hash.slice(1) in BUILD?location.hash.slice(1):'apercu');
+</script>

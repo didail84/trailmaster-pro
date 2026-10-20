@@ -1,0 +1,7 @@
+# Mac Intel (dont les MacBook anciens sous macOS 12 Monterey) :
+# dernières versions encore compatibles avec macOS 12 et les processeurs Intel.
+PySide6==6.9.3
+PySide6-Essentials==6.9.3
+PySide6-Addons==6.9.3
+shiboken6==6.9.3
+cryptography<49
