@@ -1,0 +1,1141 @@
+<title>Trail Hub Center</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Mise en page : bandeau du haut + barre des rubriques (à gauche sur ordinateur, en ruban sur téléphone)
+   + contenu en cartes, comme le logiciel de bureau. Sombre par défaut, clair au choix. */
+:root {
+  --fond: #12151A;
+  --fond-2: #14181D;
+  --carte: #1B2126;
+  --carte-haute: #212930;
+  --bordure: #262E34;
+  --texte: #F3F6F7;
+  --texte-2: #9AA7AE;
+  --texte-3: #6B767D;
+  --accent: #2E7D32;
+  --accent-texte: #66BB6A;
+  --accent-doux: rgba(102, 187, 106, .14);
+  --bleu: #4C8DFF;
+  --orange: #DD6B26;
+  --vert: #43A047;
+  --jaune: #F2C230;
+  --rouge: #E5534B;
+  --grille: rgba(154, 167, 174, .14);
+  --ombre: 0 1px 0 rgba(0,0,0,.25);
+  --z1: #1E3A22; --z2: #2C6B33; --z3: #3E9447; --z4: #63B86A; --z5: #A6DCA9;
+  --police-titre: "Sora", "Segoe UI", system-ui, sans-serif;
+  --police-texte: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --police-chiffres: "IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  color-scheme: dark;
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    --fond: #F4F6F7; --fond-2: #ECEFF1; --carte: #FFFFFF; --carte-haute: #F3F5F6; --bordure: #D7DCE0;
+    --texte: #161A1E; --texte-2: #5B656C; --texte-3: #7F8990;
+    --accent: #2E7D32; --accent-texte: #2E7D32; --accent-doux: rgba(46, 125, 50, .10);
+    --bleu: #1976D2; --orange: #E65100; --vert: #2E7D32; --jaune: #B7860B; --rouge: #C62828;
+    --grille: rgba(91, 101, 108, .16); --ombre: 0 1px 2px rgba(22,26,30,.06);
+    --z1: #DDEFDD; --z2: #A9D7AB; --z3: #6DBB72; --z4: #3E9447; --z5: #1F5E25;
+    color-scheme: light;
+  }
+}
+:root[data-theme="light"] {
+  --fond: #F4F6F7; --fond-2: #ECEFF1; --carte: #FFFFFF; --carte-haute: #F3F5F6; --bordure: #D7DCE0;
+  --texte: #161A1E; --texte-2: #5B656C; --texte-3: #7F8990;
+  --accent: #2E7D32; --accent-texte: #2E7D32; --accent-doux: rgba(46, 125, 50, .10);
+  --bleu: #1976D2; --orange: #E65100; --vert: #2E7D32; --jaune: #B7860B; --rouge: #C62828;
+  --grille: rgba(91, 101, 108, .16); --ombre: 0 1px 2px rgba(22,26,30,.06);
+  --z1: #DDEFDD; --z2: #A9D7AB; --z3: #6DBB72; --z4: #3E9447; --z5: #1F5E25;
+  color-scheme: light;
+}
+
+* { box-sizing: border-box; }
+html, body { background: var(--fond); color: var(--texte); }
+body { font-family: var(--police-texte); font-size: 15px; line-height: 1.5; -webkit-font-smoothing: antialiased; }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--fond-2); }
+h1, h2, h3 { font-family: var(--police-titre); text-wrap: balance; margin: 0; letter-spacing: -.01em; }
+h2 { font-size: 1.35rem; font-weight: 700; }
+h3 { font-size: 1rem; font-weight: 600; }
+p { margin: 0; }
+button, select, input, textarea { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--accent-texte); outline-offset: 2px; border-radius: 6px; }
+.chiffre { font-family: var(--police-chiffres); font-variant-numeric: tabular-nums; }
+.discret { color: var(--texte-2); }
+.tres-discret { color: var(--texte-3); }
+.petit { font-size: .82rem; }
+
+/* Bandeau */
+.bandeau { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--fond-2); border-bottom: 1px solid var(--bordure); }
+.bandeau-int { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; padding-block: 10px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.marque { display: flex; align-items: center; gap: 10px; margin-right: auto; min-width: 0; }
+.marque svg { flex: none; }
+.marque-nom { font-family: var(--police-titre); font-weight: 800; font-size: 1.05rem; letter-spacing: -.02em; white-space: nowrap; }
+.marque-mode { font-size: .72rem; text-transform: uppercase; letter-spacing: .08em; color: var(--accent-texte); background: var(--accent-doux); padding: 2px 8px; border-radius: 99px; white-space: nowrap; }
+.commandes { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.bouton { display: inline-flex; align-items: center; gap: 8px; border: 1px solid var(--bordure); background: var(--carte); padding: 7px 12px; border-radius: 8px; cursor: pointer; font-weight: 500; font-size: .9rem; white-space: nowrap; }
+.bouton:hover { border-color: var(--texte-3); }
+.bouton.principal { background: var(--accent); border-color: var(--accent); color: #fff; }
+.bouton.principal:hover { filter: brightness(1.08); }
+.bouton[disabled] { opacity: .55; cursor: default; }
+select.choix { border: 1px solid var(--bordure); background: var(--carte); padding: 7px 10px; border-radius: 8px; max-width: 220px; }
+.bouton-icone { padding: 7px 9px; }
+
+/* Bandeau d'état de la source */
+.source { padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 8px; font-size: .86rem; display: flex; flex-wrap: wrap; gap: 4px 14px; align-items: center; border-bottom: 1px solid var(--bordure); background: var(--fond); }
+.source .pastille { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--jaune); margin-right: 6px; vertical-align: 1px; }
+.source.reelle .pastille { background: var(--vert); }
+.source b { font-weight: 600; }
+
+/* Ossature */
+.ossature { display: grid; grid-template-columns: 210px minmax(0, 1fr); min-height: calc(100vh - 110px); }
+nav.rubriques { border-right: 1px solid var(--bordure); padding: 16px 10px; display: flex; flex-direction: column; gap: 2px; position: sticky; top: calc(env(safe-area-inset-top, 0px) + 58px); align-self: start; }
+nav.rubriques a { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-radius: 8px; color: var(--texte-2); text-decoration: none; font-weight: 500; white-space: nowrap; }
+nav.rubriques a:hover { background: var(--carte); color: var(--texte); }
+nav.rubriques a[aria-current="page"] { background: var(--accent-doux); color: var(--accent-texte); }
+nav.rubriques svg { flex: none; opacity: .9; }
+nav.rubriques .lib-court { display: none; }
+main { padding-block: 22px 60px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); min-width: 0; }
+.vue { display: flex; flex-direction: column; gap: 18px; max-width: 1180px; }
+.entete-vue { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 6px 16px; }
+.entete-vue p { color: var(--texte-2); max-width: 70ch; }
+
+@media (max-width: 820px) {
+  .ossature { grid-template-columns: minmax(0, 1fr); }
+  nav.rubriques { position: static; flex-direction: row; overflow-x: auto; border-right: 0; border-bottom: 1px solid var(--bordure); padding: 8px max(10px, env(safe-area-inset-left, 0px)); scrollbar-width: none; }
+  nav.rubriques a { padding: 7px 11px; }
+  nav.rubriques a .lib-long { display: none; }
+  nav.rubriques a .lib-court { display: inline; }
+  .marque-mode { display: none; }
+}
+
+/* Cartes */
+.grille { display: grid; gap: 14px; }
+.g4 { grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); }
+.g3 { grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); }
+.g2 { grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); }
+@media (max-width: 420px) { .g2, .g3 { grid-template-columns: minmax(0, 1fr); } }
+.carte { background: var(--carte); border: 1px solid var(--bordure); border-radius: 12px; padding: 16px; box-shadow: var(--ombre); min-width: 0; display: flex; flex-direction: column; gap: 10px; }
+.carte > header { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.etiquette { font-size: .74rem; text-transform: uppercase; letter-spacing: .08em; color: var(--texte-2); font-weight: 600; }
+.mesure { display: flex; flex-direction: column; gap: 4px; }
+.mesure .valeur { font-family: var(--police-titre); font-weight: 700; font-size: 1.9rem; line-height: 1.1; font-variant-numeric: tabular-nums; letter-spacing: -.02em; }
+.mesure .valeur small { font-size: .95rem; font-weight: 600; color: var(--texte-2); margin-left: 3px; }
+.mesure .detail { font-size: .85rem; color: var(--texte-2); }
+.etat { align-self: flex-start; display: inline-flex; align-items: center; gap: 6px; font-size: .8rem; font-weight: 600; padding: 2px 9px; border-radius: 99px; border: 1px solid currentColor; white-space: nowrap; }
+.etat::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+.etat.vert { color: var(--vert); } .etat.orange { color: var(--orange); } .etat.rouge { color: var(--rouge); } .etat.jaune { color: var(--jaune); } .etat.neutre { color: var(--texte-2); }
+.vide { color: var(--texte-3); font-size: .9rem; padding: 6px 0; }
+
+/* Listes */
+.liste { display: flex; flex-direction: column; }
+.liste > * + * { border-top: 1px solid var(--bordure); }
+.ligne { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 12px; padding: 9px 0; align-items: center; }
+.ligne > span:first-child { min-width: 0; }
+.ligne .titre { display: block; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ligne .sous { display: block; font-size: .84rem; color: var(--texte-2); }
+.ligne .droite .sous { display: inline; }
+.ligne .droite { text-align: right; font-size: .9rem; }
+button.ligne { background: none; border: 0; width: 100%; text-align: left; cursor: pointer; padding-inline: 6px; border-radius: 6px; }
+button.ligne:hover { background: var(--carte-haute); }
+
+/* Tableaux */
+.tableau-cadre { overflow-x: auto; margin-inline: -4px; }
+table { border-collapse: collapse; width: 100%; font-size: .9rem; }
+th { text-align: left; font-size: .74rem; text-transform: uppercase; letter-spacing: .07em; color: var(--texte-2); font-weight: 600; padding: 8px 8px; border-bottom: 1px solid var(--bordure); white-space: nowrap; }
+td { padding: 8px 8px; border-bottom: 1px solid var(--bordure); white-space: nowrap; }
+td.num, th.num { text-align: right; font-family: var(--police-chiffres); font-variant-numeric: tabular-nums; }
+td.nom { white-space: normal; min-width: 160px; }
+tbody tr.cliquable { cursor: pointer; }
+tbody tr.cliquable:hover td { background: var(--carte-haute); }
+tbody tr.choisie td { background: var(--accent-doux); }
+
+/* Filtres */
+.filtres { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.filtres input[type=search] { border: 1px solid var(--bordure); background: var(--carte); padding: 7px 11px; border-radius: 8px; min-width: 0; flex: 1 1 200px; max-width: 320px; }
+.puces { display: flex; flex-wrap: wrap; gap: 6px; }
+.puce { border: 1px solid var(--bordure); background: var(--carte); border-radius: 99px; padding: 4px 11px; font-size: .84rem; cursor: pointer; }
+.puce[aria-pressed="true"] { background: var(--accent-doux); border-color: var(--accent-texte); color: var(--accent-texte); }
+
+/* Graphiques */
+.graphe { position: relative; width: 100%; }
+.graphe svg { display: block; width: 100%; height: auto; overflow: visible; }
+.graphe text { fill: var(--texte-2); font-family: var(--police-chiffres); font-size: 10.5px; }
+.legende { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: .82rem; color: var(--texte-2); }
+.legende i { display: inline-block; width: 14px; height: 3px; border-radius: 2px; margin-right: 6px; vertical-align: 3px; }
+.bulle { position: absolute; pointer-events: none; background: var(--carte-haute); border: 1px solid var(--bordure); border-radius: 8px; padding: 6px 9px; font-size: .8rem; line-height: 1.35; box-shadow: 0 4px 14px rgba(0,0,0,.25); white-space: nowrap; z-index: 3; color: var(--texte); }
+.bulle b { font-family: var(--police-chiffres); font-weight: 500; }
+
+/* Calendrier annuel */
+.calendrier { overflow-x: auto; padding-bottom: 4px; }
+.calendrier svg { display: block; }
+.calendrier rect { rx: 2px; }
+
+/* Détail d'une sortie */
+.detail-sortie { border-color: var(--accent); }
+.trace-et-profil { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 16px; align-items: start; }
+@media (max-width: 760px) { .trace-et-profil { grid-template-columns: minmax(0, 1fr); } }
+.trace { background: var(--fond-2); border-radius: 10px; border: 1px solid var(--bordure); aspect-ratio: 1 / 1; max-width: 100%; position: relative; overflow: hidden; }
+.trace svg { width: 100%; height: 100%; display: block; }
+.mesures-ligne { display: flex; flex-wrap: wrap; gap: 8px 22px; }
+.mesures-ligne .mesure .valeur { font-size: 1.25rem; }
+.zones { display: flex; height: 12px; border-radius: 6px; overflow: hidden; gap: 2px; }
+.zones span { display: block; height: 100%; }
+
+/* Barres de progression (matériel) */
+.jauge { height: 8px; border-radius: 4px; background: var(--fond-2); border: 1px solid var(--bordure); overflow: hidden; }
+.jauge span { display: block; height: 100%; border-radius: 4px; }
+
+/* Coach */
+.coach-fil { display: flex; flex-direction: column; gap: 12px; }
+.message { padding: 12px 14px; border-radius: 12px; max-width: 72ch; white-space: pre-wrap; overflow-wrap: anywhere; }
+.message.moi { align-self: flex-end; background: var(--accent-doux); border: 1px solid var(--accent); }
+.message.claude { align-self: flex-start; background: var(--carte-haute); border: 1px solid var(--bordure); }
+.message.claude .qui { font-size: .74rem; text-transform: uppercase; letter-spacing: .08em; color: var(--texte-2); font-weight: 600; display: block; margin-bottom: 4px; }
+.saisie { display: flex; gap: 8px; align-items: flex-end; flex-wrap: wrap; }
+.saisie textarea { flex: 1 1 260px; min-height: 64px; resize: vertical; border: 1px solid var(--bordure); background: var(--fond-2); border-radius: 10px; padding: 10px 12px; }
+details.envoye summary { cursor: pointer; color: var(--texte-2); font-size: .86rem; }
+details.envoye pre { white-space: pre-wrap; font-family: var(--police-chiffres); font-size: .78rem; color: var(--texte-2); background: var(--fond-2); border: 1px solid var(--bordure); border-radius: 8px; padding: 10px; max-height: 280px; overflow: auto; margin: 8px 0 0; }
+
+/* Accueil sans base */
+.ouvrir { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 18px; align-items: stretch; }
+@media (max-width: 760px) { .ouvrir { grid-template-columns: minmax(0, 1fr); } }
+.depot { border: 1.5px dashed var(--texte-3); border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 10px; justify-content: center; }
+.depot.survol { border-color: var(--accent-texte); background: var(--accent-doux); }
+ol.etapes { margin: 0; padding-left: 1.2em; display: flex; flex-direction: column; gap: 6px; color: var(--texte-2); }
+ol.etapes b { color: var(--texte); font-weight: 600; }
+.message-erreur { color: var(--rouge); font-weight: 500; }
+.chargement { display: inline-flex; gap: 8px; align-items: center; color: var(--texte-2); }
+.rond { width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--bordure); border-top-color: var(--accent-texte); animation: tourne 0.8s linear infinite; }
+@keyframes tourne { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .rond { animation: none; } }
+.pied { color: var(--texte-3); font-size: .8rem; margin-top: 10px; }
+</style>
+
+<header class="bandeau">
+  <div class="bandeau-int">
+    <div class="marque">
+      <svg width="30" height="30" viewBox="0 0 30 30" aria-hidden="true">
+        <rect width="30" height="30" rx="8" fill="var(--accent)"/>
+        <path d="M4 22 L11 11 L15 16 L19 8 L26 22 Z" fill="none" stroke="#fff" stroke-width="2.2" stroke-linejoin="round"/>
+        <circle cx="19" cy="8" r="1.8" fill="#fff"/>
+      </svg>
+      <span class="marque-nom">Trail Hub Center</span>
+      <span class="marque-mode">Consultation</span>
+    </div>
+    <div class="commandes">
+      <label class="tres-discret petit" for="choix-athlete" id="lib-athlete" hidden>Coureur</label>
+      <select class="choix" id="choix-athlete" hidden></select>
+      <button class="bouton principal" id="bouton-ouvrir" type="button">
+        <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 4.5h4l1.5 1.5H14v6.5a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
+        Ouvrir ma base
+      </button>
+      <input type="file" id="fichier" accept=".db,.sqlite,.sqlite3,application/octet-stream,application/x-sqlite3" hidden>
+      <button class="bouton bouton-icone" id="bouton-theme" type="button" aria-label="Changer de thème" title="Thème clair ou sombre">
+        <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1.5a6.5 6.5 0 1 0 0 13z" fill="currentColor"/><circle cx="8" cy="8" r="6.5" fill="none" stroke="currentColor" stroke-width="1.4"/></svg>
+      </button>
+    </div>
+  </div>
+</header>
+<div class="source" id="source"></div>
+
+<div class="ossature">
+  <nav class="rubriques" id="rubriques" aria-label="Rubriques"></nav>
+  <main id="contenu"></main>
+</div>
+
+<script>
+"use strict";
+/* ================================================================
+   Trail Hub Center — page de consultation (mode réduit)
+   Lit la base trailmaster.db dans le navigateur, en lecture seule.
+   Le fichier ne quitte jamais l'ordinateur ; rien n'est enregistré.
+   Les calculs de charge, forme, fatigue et fraîcheur reprennent
+   exactement ceux du logiciel (noyau/entrainement/coach.py).
+   ================================================================ */
+
+const SQLJS_URL = "https://cdn.jsdelivr.net/npm/sql.js@1.13.0/dist/sql-asm-memory-growth.js";
+const JOUR_MS = 86400000;
+
+/* ---------- petits outils ---------- */
+const $ = (s, r = document) => r.querySelector(s);
+const esc = (t) => String(t ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const nb = (v) => (v === null || v === undefined || v === "" || isNaN(Number(v))) ? null : Number(v);
+function virgule(v, dec = 1) {
+  if (v === null || v === undefined || isNaN(v)) return "—";
+  return Number(v).toLocaleString("fr-FR", { minimumFractionDigits: dec, maximumFractionDigits: dec }).replace("-", "−");
+}
+function entier(v) { return v === null || v === undefined || isNaN(v) ? "—" : Math.round(v).toLocaleString("fr-FR"); }
+function duree(sec) {
+  sec = nb(sec); if (!sec) return "—";
+  const h = Math.floor(sec / 3600), m = Math.round((sec % 3600) / 60);
+  return h ? `${h} h ${String(m).padStart(2, "0")}` : `${m} min`;
+}
+function allure(sec, km) {
+  if (!sec || !km) return "—";
+  const s = sec / km, m = Math.floor(s / 60), r = Math.round(s % 60);
+  return `${m}'${String(r === 60 ? 0 : r).padStart(2, "0")}"/km`;
+}
+const MOIS_FR = { janv: 1, jan: 1, fevr: 2, "févr": 2, fev: 2, "fév": 2, mars: 3, avr: 4, mai: 5, juin: 6, juil: 7, aout: 8, "août": 8, sept: 9, sep: 9, oct: 10, nov: 11, dec: 12, "déc": 12 };
+function parseDate(v) {
+  if (!v) return null;
+  const t = String(v).trim();
+  let m = t.match(/^(\d{4})-(\d{2})-(\d{2})(?:[ T](\d{1,2}):(\d{2})(?::(\d{2}))?)?/);
+  if (m) return new Date(+m[1], +m[2] - 1, +m[3], +(m[4] || 0), +(m[5] || 0), +(m[6] || 0));
+  m = t.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})(?:\s+(\d{1,2}):(\d{2})(?::(\d{2}))?)?/);
+  if (m) return new Date(+m[3], +m[2] - 1, +m[1], +(m[4] || 0), +(m[5] || 0), +(m[6] || 0));
+  m = t.match(/^(\d{1,2})\s+([a-zA-Zéûôàè.]+)\s+(\d{4})/);
+  if (m) { const mo = MOIS_FR[m[2].toLowerCase().replace(/\.$/, "")]; if (mo) return new Date(+m[3], mo - 1, +m[1]); }
+  return null;
+}
+const jour0 = (d) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
+const cleJour = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+const ajouterJours = (d, n) => new Date(d.getFullYear(), d.getMonth(), d.getDate() + n);
+function lundiDe(d) { const j = jour0(d); return ajouterJours(j, -((j.getDay() + 6) % 7)); }
+const fmtJour = (d) => d ? d.toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" }) : "—";
+const fmtJourCourt = (d) => d ? d.toLocaleDateString("fr-FR", { day: "numeric", month: "short" }) : "—";
+const fmtJourLong = (d) => d ? d.toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" }) : "—";
+function ecartJours(a, b) { return Math.round((jour0(a) - jour0(b)) / JOUR_MS); }
+function lireStockage(c) { try { return localStorage.getItem(c); } catch (e) { return null; } }
+function ecrireStockage(c, v) { try { localStorage.setItem(c, v); } catch (e) { /* stockage indisponible : sans effet */ } }
+
+/* ---------- calculs repris du logiciel (coach.py) ---------- */
+const FACTEUR_TYPE = { "Trail": 1.0, "Course": 0.95, "Vélo": 0.6, "VTT": 0.75, "Randonnée": 0.5, "Route": 0.9, "Cardio machine": 0.55, "Autre": 0.8 };
+const facteurType = (t) => FACTEUR_TYPE[(t || "").trim()] ?? FACTEUR_TYPE.Autre;
+const arrondi1 = (x) => Math.round(x * 10) / 10;
+function chargeActivite(a, ath) {
+  const dureeMin = (nb(a.duree) || 0) / 60, fc = nb(a.frequence_cardiaque_moyenne) || 0, dist = nb(a.distance) || 0;
+  const fr = nb(ath?.fc_repos), fm = nb(ath?.fc_max);
+  if (dureeMin > 0 && fc > 0 && fr && fm && fm > fr) {
+    const r = Math.max(0, Math.min(1, (fc - fr) / (fm - fr)));
+    const femme = String(ath.sexe || "").toLowerCase().startsWith("f");
+    return { charge: arrondi1(femme ? dureeMin * r * 0.86 * Math.exp(1.67 * r) : dureeMin * r * 0.64 * Math.exp(1.92 * r)), methode: "trimp" };
+  }
+  if (dureeMin > 0) return { charge: arrondi1(dureeMin * facteurType(a.type)), methode: "duree" };
+  if (dist > 0) return { charge: arrondi1(dist * facteurType(a.type) * 10), methode: "distance" };
+  return { charge: 0, methode: "aucune" };
+}
+function chargeMusculation(s, ath) {
+  if (s.type_seance === "Cardio machine") {
+    return chargeActivite({ type: "Cardio machine", distance: nb(s.distance_km) || 0, duree: (nb(s.duree_min) || 0) * 60, frequence_cardiaque_moyenne: nb(s.fc_moyenne) || 0 }, ath).charge;
+  }
+  let d = nb(s.duree_min) || 0;
+  if (d <= 0) { const se = nb(s.series) || 0; d = se ? Math.max(se * 4, 15) : 20; }
+  let rpe = nb(s.rpe); const f = rpe === null ? 0.5 : 0.35 + (Math.max(6, Math.min(10, rpe)) - 6) * 0.15;
+  return arrondi1(d * f);
+}
+function chargesJournalieres(donnees, nbJours) {
+  const auj = jour0(new Date()), debut = ajouterJours(auj, -(nbJours - 1));
+  const parJour = new Map();
+  const ajouter = (d, c) => { if (!d) return; const j = jour0(d); if (j < debut || j > auj) return; const k = cleJour(j); parJour.set(k, (parJour.get(k) || 0) + c); };
+  for (const a of donnees.activites) ajouter(a._date, chargeActivite(a, donnees.athlete).charge);
+  for (const s of donnees.musculation) ajouter(parseDate(s.date), chargeMusculation(s, donnees.athlete));
+  const r = [];
+  for (let i = 0; i < nbJours; i++) { const j = ajouterJours(debut, i); r.push({ date: j, charge: arrondi1(parJour.get(cleJour(j)) || 0) }); }
+  return r;
+}
+function serieForme(donnees, nbJours = 180) {
+  let fit = 0, fat = 0;
+  return chargesJournalieres(donnees, nbJours).map(({ date, charge }) => {
+    fit += (charge - fit) / 42; fat += (charge - fat) / 7;
+    return { date, charge, fitness: arrondi1(fit), fatigue: arrondi1(fat), forme: arrondi1(fit - fat) };
+  });
+}
+function etatFraicheur(v) {
+  if (v > 5) return ["Frais", "vert"];
+  if (v > -10) return ["Équilibré", "vert"];
+  if (v > -25) return ["Chargé", "orange"];
+  return ["Très fatigué", "rouge"];
+}
+function distanceKm(lat1, lon1, lat2, lon2) {
+  const R = 6371, toR = Math.PI / 180, dLa = (lat2 - lat1) * toR, dLo = (lon2 - lon1) * toR;
+  const h = Math.sin(dLa / 2) ** 2 + Math.cos(lat1 * toR) * Math.cos(lat2 * toR) * Math.sin(dLo / 2) ** 2;
+  return 2 * R * Math.asin(Math.min(1, Math.sqrt(h)));
+}
+
+/* ================================================================
+   Données d'exemple (affichées tant qu'aucune base n'est ouverte)
+   ================================================================ */
+function aleatoire(graine) { let s = graine >>> 0 || 1; return () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; }; }
+function donneesExemple() {
+  const r = aleatoire(84), auj = jour0(new Date()), iso = (d, h = 8) => `${cleJour(d)} ${String(h).padStart(2, "0")}:00:00`;
+  const athlete = { id: 1, prenom: "Coureur", nom: "Exemple", age: 42, sexe: "H", poids: 72, fc_repos: 52, fc_max: 182, vma: 13.5, vo2max: 49 };
+  const activites = []; let id = 1;
+  for (let i = 200; i >= 0; i--) {
+    const d = ajouterJours(auj, -i), js = d.getDay();
+    if (r() < 0.13) continue;
+    let a = null;
+    if (js === 2) a = { nom: "Footing vallée", type: "Course", distance: 9 + r() * 3, d: 60 + r() * 60, pace: 330 + r() * 25, fc: 142 + r() * 8 };
+    if (js === 4) a = { nom: "Fractionné 6 × 1000 m", type: "Course", distance: 8 + r() * 2, d: 40 + r() * 40, pace: 305 + r() * 20, fc: 152 + r() * 8 };
+    if (js === 6) a = { nom: "Sortie longue en colline", type: "Trail", distance: 16 + r() * 12, d: 600 + r() * 800, pace: 430 + r() * 60, fc: 138 + r() * 10 };
+    if (js === 0 && r() < 0.5) a = { nom: "Randonnée en famille", type: "Randonnée", distance: 8 + r() * 6, d: 250 + r() * 400, pace: 720 + r() * 120, fc: 108 + r() * 10 };
+    if (!a) continue;
+    const dist = Math.round(a.distance * 10) / 10, dur = Math.round(dist * a.pace + a.d * 1.2);
+    const z = [0.12, 0.38, 0.32, 0.14, 0.04].map((p) => Math.round(dur * p * (0.8 + r() * 0.4)));
+    activites.push({ id: id++, date: iso(d, js === 6 ? 7 : 18), nom: a.nom, type: a.type, distance: dist, denivele: Math.round(a.d), denivele_negatif: Math.round(a.d), duree: dur,
+      frequence_cardiaque_moyenne: Math.round(a.fc), frequence_cardiaque_max: Math.round(a.fc + 18 + r() * 8), calories: Math.round(dist * 68), vo2max: 49,
+      temps_zone_1: z[0], temps_zone_2: z[1], temps_zone_3: z[2], temps_zone_4: z[3], temps_zone_5: z[4], cadence_moyenne: 82 + Math.round(r() * 5), source: "Exemple" });
+  }
+  const suivi = [], sommeil = [], recup = [];
+  for (let i = 120; i >= 0; i--) {
+    const d = ajouterJours(auj, -i);
+    if (i % 2 === 0) suivi.push({ date: cleJour(d), poids_kg: Math.round((73.6 - (120 - i) * 0.014 + (r() - 0.5) * 0.7) * 10) / 10, moment: "matin", fatigue_generale: Math.round(2 + r() * 4) });
+    if (i <= 60) {
+      sommeil.push({ date: cleJour(d), duree_heures: Math.round((6.4 + r() * 1.6) * 100) / 100, heure_coucher: "22:45", heure_lever: "06:20", qualite: 3 + Math.round(r() * 2) });
+      recup.push({ date: cleJour(d), fc_repos: Math.round(50 + r() * 5), hrv_nuit_ms: Math.round(46 + r() * 14), body_battery_max: Math.round(70 + r() * 25) });
+    }
+  }
+  const blessures = [
+    { id: 1, date_debut: cleJour(ajouterJours(auj, -6)), date_fin: null, zone_corporelle: "Mollet droit", type_blessure: "Contracture", gravite: "Légère", statut: "En cours", cause: "Descente rapide" },
+    { id: 2, date_debut: cleJour(ajouterJours(auj, -95)), date_fin: cleJour(ajouterJours(auj, -80)), zone_corporelle: "Cheville gauche", type_blessure: "Entorse", gravite: "Modérée", statut: "Guérie", cause: "Pierre instable" },
+  ];
+  const soins = [
+    { date: cleJour(ajouterJours(auj, -4)), type_soin: "Kinésithérapie", motif: "Blessure", praticien: "Cabinet du village", blessure_id: 1 },
+    { date: cleJour(ajouterJours(auj, -88)), type_soin: "Kinésithérapie", motif: "Blessure", praticien: "Cabinet du village", blessure_id: 2 },
+  ];
+  const courses = [
+    { id: 1, nom: "Trail des collines", date: cleJour(ajouterJours(auj, 38)), lieu: "Exemple-sur-Sorgue", distance_km: 24, denivele_m: 900, type_terrain: "Technique" },
+    { id: 2, nom: "Ultra du grand mont", date: cleJour(ajouterJours(auj, 124)), lieu: "Exemple-Village", distance_km: 46, denivele_m: 2600, type_terrain: "Montagne" },
+  ];
+  const resultats = [
+    { nom_course: "Trail d'automne", date: cleJour(ajouterJours(auj, -48)), distance: 21, denivele: 750, temps: "2:24:10", classement_general: "84/312", classement_categorie: "12/58", objectif_atteint: 1 },
+    { nom_course: "Corrida du printemps", date: cleJour(ajouterJours(auj, -170)), distance: 10, denivele: 60, temps: "0:47:32", classement_general: "141/520", classement_categorie: "20/74", objectif_atteint: 0 },
+  ];
+  const objectifs = [
+    { titre: "Finir le Trail des collines sous 3 h", date_cible: courses[0].date, type_objectif: "Course", statut: "En cours", priorite: "Haute" },
+    { titre: "1 500 km dans l'année", date_cible: `${auj.getFullYear()}-12-31`, type_objectif: "Volume", statut: "En cours", priorite: "Moyenne" },
+  ];
+  const materiel = [
+    { nom: "Chaussures de trail (paire 1)", type: "Chaussures", km_actuels: 612, km_max_recommande: 800, statut: "Actif", date_achat: cleJour(ajouterJours(auj, -240)) },
+    { nom: "Chaussures de route", type: "Chaussures", km_actuels: 280, km_max_recommande: 700, statut: "Actif" },
+    { nom: "Sac d'hydratation 5 L", type: "Sac", km_actuels: 410, km_max_recommande: null, statut: "Actif" },
+  ];
+  const seances = [
+    { nom: "Footing récupération 45 min", type_seance: "Endurance", date_prevue: cleJour(ajouterJours(auj, 1)), statut: "Prévue" },
+    { nom: "Côtes 8 × 1 min", type_seance: "Fractionné", date_prevue: cleJour(ajouterJours(auj, 3)), statut: "Prévue" },
+    { nom: "Sortie longue 2 h en colline", type_seance: "Sortie longue", date_prevue: cleJour(ajouterJours(auj, 5)), statut: "Prévue" },
+  ];
+  const traces = new Map(activites.filter((a) => a.type !== "Randonnée").map((a) => [a.id, { id: a.id, activite_id: a.id }]));
+  return { athletes: [athlete], athleteId: 1, tables: { athlete, activites, suivi, sommeil, recup, garmin: [], blessures, soins, courses, resultats, objectifs, materiel, seances, plans: [], musculation: [], traces } };
+}
+function traceExemple(a) {
+  const r = aleatoire(a.id * 7919), n = Math.max(80, Math.round(a.distance * 30));
+  const lat0 = 44.0 + r() * 0.05, lon0 = 5.1 + r() * 0.05, rayon = a.distance / (2 * Math.PI) / 111, pts = [];
+  const bosses = 1 + Math.floor(r() * 3), alt0 = 220 + r() * 120, haut = Math.max(30, (a.denivele || 100) / bosses / 1.1);
+  let bruit = 0;
+  for (let i = 0; i <= n; i++) {
+    const t = i / n, ang = t * 2 * Math.PI;
+    bruit = bruit * 0.92 + (r() - 0.5) * 0.08;
+    const ray = rayon * (1 + 0.35 * Math.sin(ang * 3 + 1) + bruit);
+    const lat = lat0 + ray * Math.sin(ang) * 1.0, lon = lon0 + ray * Math.cos(ang) * 1.6 * (0.8 + 0.2 * Math.sin(ang * 2));
+    const alt = alt0 + haut * (0.5 - 0.5 * Math.cos(2 * Math.PI * bosses * t)) + (r() - 0.5) * 4;
+    pts.push([lat, lon, Math.round(alt), Math.round(t * a.duree), Math.round((a.frequence_cardiaque_moyenne || 140) + 12 * Math.sin(2 * Math.PI * bosses * t - 0.4))]);
+  }
+  return pts;
+}
+
+/* ================================================================
+   Lecture de la base trailmaster.db (sql.js, lecture seule)
+   ================================================================ */
+let SQL = null;
+function chargerSqlJs() {
+  if (SQL) return Promise.resolve(SQL);
+  return new Promise((ok, ko) => {
+    const s = document.createElement("script");
+    s.src = SQLJS_URL; s.async = true;
+    s.onload = () => { window.initSqlJs().then((m) => { SQL = m; ok(m); }).catch(ko); };
+    s.onerror = () => ko(new Error("Le lecteur de base n'a pas pu être chargé. Vérifie la connexion à Internet puis réessaie."));
+    document.head.appendChild(s);
+  });
+}
+const Base = {
+  db: null, tablesPresentes: new Set(), colonnes: new Map(),
+  ouvrir(octets) {
+    if (this.db) { try { this.db.close(); } catch (e) {} }
+    this.db = new SQL.Database(octets);
+    this.tablesPresentes = new Set(this.tous("SELECT name FROM sqlite_master WHERE type='table'").map((l) => l.name));
+    this.colonnes = new Map();
+  },
+  tous(sql, params = []) {
+    const st = this.db.prepare(sql); const r = [];
+    try { st.bind(params); while (st.step()) r.push(st.getAsObject()); } finally { st.free(); }
+    return r;
+  },
+  cols(table) {
+    if (!this.colonnes.has(table)) this.colonnes.set(table, this.tablesPresentes.has(table) ? this.tous(`PRAGMA table_info(${table})`).map((c) => c.name) : []);
+    return this.colonnes.get(table);
+  },
+  /* Lignes d'un athlète ; table ou colonne absente (ancienne version) → liste vide. */
+  athlete(table, idAth, ordre = "", sans = []) {
+    const cols = this.cols(table);
+    if (!cols.length) return [];
+    const choisies = cols.filter((c) => !sans.includes(c)).map((c) => `"${c}"`).join(", ");
+    const filtre = cols.includes("athlete_id") ? " WHERE athlete_id = ?" : "";
+    try { return this.tous(`SELECT ${choisies} FROM ${table}${filtre}${ordre ? " ORDER BY " + ordre : ""}`, filtre ? [idAth] : []); }
+    catch (e) { return []; }
+  },
+  version() {
+    if (!this.tablesPresentes.has("schema_version")) return 0;
+    try { return this.tous("SELECT MAX(version) AS v FROM schema_version")[0].v || 0; } catch (e) { return 0; }
+  },
+};
+function lireAthlete(idAth) {
+  const t = (n, o, s) => Base.athlete(n, idAth, o, s);
+  const athlete = Base.tous("SELECT * FROM athletes WHERE id = ?", [idAth])[0] || { id: idAth };
+  const traces = new Map();
+  for (const p of t("parcours_gpx", "id", ["trace_json"])) if (p.activite_id !== null && p.activite_id !== undefined && !traces.has(p.activite_id)) traces.set(p.activite_id, p);
+  return {
+    athlete, activites: t("activites", "date DESC"), suivi: t("suivi_corporel", "date"), sommeil: t("sommeil", "date"),
+    recup: t("recuperation_quotidienne", "date"), garmin: t("garmin_quotidien", "date"), blessures: t("blessures", "date_debut DESC"),
+    soins: t("soins", "date DESC"), courses: t("courses_calendrier", "date"), resultats: t("resultats_courses", "date DESC"),
+    objectifs: t("objectifs", "date_cible"), materiel: t("materiel", "id"), seances: t("seances_structurees", "date_prevue"),
+    plans: t("plans_entrainement", "date_debut DESC"), musculation: t("musculation_suivi", "date"), traces,
+  };
+}
+function traceDe(a) {
+  if (etat.source === "exemple") return etat.donnees.traces.has(a.id) ? traceExemple(a) : null;
+  const p = etat.donnees.traces.get(a.id);
+  if (!p) return null;
+  try {
+    const l = Base.tous("SELECT trace_json FROM parcours_gpx WHERE id = ?", [p.id])[0];
+    const pts = JSON.parse(l?.trace_json || "[]");
+    return Array.isArray(pts) && pts.length > 1 ? pts.filter((q) => Array.isArray(q) && q.length >= 2 && isFinite(q[0]) && isFinite(q[1])) : null;
+  } catch (e) { return null; }
+}
+
+/* ================================================================
+   État de la page
+   ================================================================ */
+const etat = { source: "exemple", nomFichier: "", tailleFichier: 0, versionBase: null, athletes: [], athleteId: null, donnees: null, sortieChoisie: null, filtreType: "Tous", recherche: "", annee: "Toutes", fil: [], erreur: "" };
+
+function preparer(d) {
+  d.activites = d.activites.map((a) => ({ ...a, _date: parseDate(a.date) })).filter((a) => a._date).sort((x, y) => y._date - x._date);
+  d.forme = serieForme(d, 180);
+  return d;
+}
+function utiliserExemple() {
+  const ex = donneesExemple();
+  etat.source = "exemple"; etat.athletes = ex.athletes; etat.athleteId = ex.athleteId; etat.donnees = preparer(ex.tables);
+  etat.nomFichier = ""; etat.versionBase = null; etat.sortieChoisie = null;
+}
+function choisirAthlete(id) {
+  etat.athleteId = id; etat.sortieChoisie = null; etat.fil = [];
+  etat.donnees = preparer(lireAthlete(id));
+  ecrireStockage("thc-athlete", String(id));
+}
+
+async function ouvrirFichier(f) {
+  if (!f) return;
+  etat.erreur = "";
+  afficherChargement(`Lecture de ${f.name} (${(f.size / 1048576).toLocaleString("fr-FR", { maximumFractionDigits: 1 })} Mo)…`);
+  try {
+    await chargerSqlJs();
+    const octets = new Uint8Array(await f.arrayBuffer());
+    const entete = new TextDecoder().decode(octets.slice(0, 15));
+    if (entete !== "SQLite format 3") throw new Error("Ce fichier n'est pas une base TrailMaster. Choisis le fichier .db créé par « Sauvegarder maintenant » dans Réglages.");
+    Base.ouvrir(octets);
+    if (!Base.tablesPresentes.has("athletes") || !Base.tablesPresentes.has("activites")) throw new Error("Cette base ne contient pas les tables de TrailMaster (athlètes, activités).");
+    const aths = Base.tous("SELECT a.id, a.prenom, a.nom, (SELECT COUNT(*) FROM activites s WHERE s.athlete_id = a.id) AS nb FROM athletes a ORDER BY a.id");
+    if (!aths.length) throw new Error("Cette base ne contient encore aucun coureur.");
+    etat.source = "fichier"; etat.nomFichier = f.name; etat.tailleFichier = f.size; etat.versionBase = Base.version(); etat.athletes = aths;
+    const memo = Number(lireStockage("thc-athlete"));
+    const parDefaut = aths.find((a) => a.id === memo) || aths.slice().sort((x, y) => y.nb - x.nb)[0];
+    choisirAthlete(parDefaut.id);
+    if (!location.hash || location.hash === "#ouvrir") location.hash = "aujourdhui";
+  } catch (e) {
+    etat.erreur = e?.message || String(e);
+    if (etat.source !== "fichier") utiliserExemple();
+  }
+  rendreTout();
+}
+
+/* ================================================================
+   Graphiques (SVG, à l'échelle, avec bulle au survol)
+   ================================================================ */
+function graduations(min, max, n = 4) {
+  if (min === max) { min -= 1; max += 1; }
+  const brut = (max - min) / n, p = Math.pow(10, Math.floor(Math.log10(brut))), f = brut / p;
+  const pas = (f < 1.5 ? 1 : f < 3 ? 2 : f < 7 ? 5 : 10) * p;
+  const debut = Math.floor(min / pas) * pas, fin = Math.ceil(max / pas) * pas, r = [];
+  for (let v = debut; v <= fin + pas / 2; v += pas) r.push(Math.round(v * 1e6) / 1e6);
+  return r;
+}
+function bulle(cadre) {
+  let b = cadre.querySelector(".bulle");
+  if (!b) { b = document.createElement("div"); b.className = "bulle"; b.hidden = true; cadre.appendChild(b); }
+  return b;
+}
+function placerBulle(cadre, b, xPx, yPx) {
+  const l = cadre.clientWidth; b.hidden = false;
+  const w = b.offsetWidth; let x = xPx + 12; if (x + w > l) x = xPx - w - 12; if (x < 0) x = 0;
+  b.style.left = x + "px"; b.style.top = Math.max(0, yPx - 10) + "px";
+}
+/* Courbes : series = [{nom, couleur, points:[{x, y}]}] partageant le même axe X. */
+function courbe(cadre, { series, hauteur = 220, xDates = true, fmtX, fmtY = (v) => virgule(v, Number.isInteger(v) ? 0 : 1), zero = false, aire = false, surSurvol, marqueurs = false, yMin, yMax }) {
+  const L = Math.max(280, cadre.clientWidth || 640), H = hauteur, g = 44, d = 12, h = 12, b = 24;
+  const tous = series.flatMap((s) => s.points.filter((p) => p.y !== null && p.y !== undefined));
+  if (tous.length < 2) { cadre.innerHTML = `<p class="vide">Pas assez de relevés pour tracer cette courbe.</p>`; return; }
+  const xs = tous.map((p) => +p.x), ys = tous.map((p) => p.y);
+  const x0 = Math.min(...xs), x1 = Math.max(...xs);
+  let y0 = yMin ?? Math.min(...ys), y1 = yMax ?? Math.max(...ys);
+  if (zero) { y0 = Math.min(0, y0); y1 = Math.max(0, y1); }
+  const ticks = graduations(y0, y1, 4); y0 = ticks[0]; y1 = ticks[ticks.length - 1];
+  const X = (v) => g + ((+v - x0) / (x1 - x0 || 1)) * (L - g - d), Y = (v) => h + (1 - (v - y0) / (y1 - y0 || 1)) * (H - h - b);
+  const fx = fmtX || (xDates ? (v) => fmtJourCourt(new Date(v)) : (v) => virgule(v, 0));
+  let svg = `<svg viewBox="0 0 ${L} ${H}" width="${L}" height="${H}" role="img">`;
+  for (const t of ticks) svg += `<line x1="${g}" x2="${L - d}" y1="${Y(t)}" y2="${Y(t)}" stroke="var(--grille)" stroke-width="1"/><text x="${g - 6}" y="${Y(t) + 3.5}" text-anchor="end">${esc(fmtY(t))}</text>`;
+  if (zero && y0 < 0) svg += `<line x1="${g}" x2="${L - d}" y1="${Y(0)}" y2="${Y(0)}" stroke="var(--texte-3)" stroke-width="1"/>`;
+  const nX = Math.max(2, Math.min(6, Math.floor((L - g) / 110)));
+  for (let i = 0; i <= nX; i++) { const v = x0 + (x1 - x0) * i / nX; svg += `<text x="${X(v)}" y="${H - 6}" text-anchor="${i === 0 ? "start" : i === nX ? "end" : "middle"}">${esc(fx(v))}</text>`; }
+  for (const s of series) {
+    const pts = s.points.filter((p) => p.y !== null && p.y !== undefined);
+    if (!pts.length) continue;
+    const chemin = pts.map((p, i) => `${i ? "L" : "M"}${X(p.x).toFixed(1)},${Y(p.y).toFixed(1)}`).join("");
+    if (aire) svg += `<path d="${chemin}L${X(pts[pts.length - 1].x).toFixed(1)},${Y(Math.max(y0, 0))}L${X(pts[0].x).toFixed(1)},${Y(Math.max(y0, 0))}Z" fill="${s.couleur}" fill-opacity=".16" stroke="none"/>`;
+    svg += `<path d="${chemin}" fill="none" stroke="${s.couleur}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>`;
+    if (marqueurs && pts.length < 70) for (const p of pts) svg += `<circle cx="${X(p.x)}" cy="${Y(p.y)}" r="2.6" fill="${s.couleur}"/>`;
+    const fin = pts[pts.length - 1];
+    svg += `<circle cx="${X(fin.x)}" cy="${Y(fin.y)}" r="4" fill="${s.couleur}" stroke="var(--carte)" stroke-width="2"/>`;
+  }
+  svg += `<line class="viseur" y1="${h}" y2="${H - b}" stroke="var(--texte-3)" stroke-width="1" stroke-dasharray="3 3" visibility="hidden"/>`;
+  svg += series.map((s, i) => `<circle class="point-survol" data-i="${i}" r="4.5" fill="${s.couleur}" stroke="var(--carte)" stroke-width="2" visibility="hidden"/>`).join("");
+  svg += `<rect class="zone-survol" x="${g}" y="${h}" width="${L - g - d}" height="${H - h - b}" fill="transparent"/></svg>`;
+  cadre.innerHTML = svg;
+  const el = cadre.querySelector("svg"), viseur = el.querySelector(".viseur"), ronds = el.querySelectorAll(".point-survol"), bl = bulle(cadre);
+  const ref = series[0].points;
+  const deplacer = (ev) => {
+    const r = el.getBoundingClientRect(), xv = x0 + ((ev.clientX - r.left) * (L / r.width) - g) / (L - g - d) * (x1 - x0);
+    let i = 0, best = Infinity; for (let k = 0; k < ref.length; k++) { const e = Math.abs(+ref[k].x - xv); if (e < best) { best = e; i = k; } }
+    const p = ref[i], xp = X(p.x);
+    viseur.setAttribute("x1", xp); viseur.setAttribute("x2", xp); viseur.setAttribute("visibility", "visible");
+    let txt = `<div class="tres-discret">${esc(fx(p.x))}</div>`;
+    series.forEach((s, k) => { const q = s.points[i]; const c = ronds[k]; if (q && q.y !== null && q.y !== undefined) { c.setAttribute("cx", X(q.x)); c.setAttribute("cy", Y(q.y)); c.setAttribute("visibility", "visible"); txt += `<div>${esc(s.nom)} : <b>${esc(s.fmtBulle ? s.fmtBulle(q.y) : fmtY(q.y))}</b></div>`; } else c.setAttribute("visibility", "hidden"); });
+    bl.innerHTML = txt; placerBulle(cadre, bl, xp * (r.width / L), Y(series[0].points[i]?.y ?? y1) * (r.height / H));
+    if (surSurvol) surSurvol(i);
+  };
+  const sortir = () => { viseur.setAttribute("visibility", "hidden"); ronds.forEach((c) => c.setAttribute("visibility", "hidden")); bl.hidden = true; if (surSurvol) surSurvol(null); };
+  const zone = el.querySelector(".zone-survol");
+  zone.addEventListener("pointermove", deplacer); zone.addEventListener("pointerdown", deplacer); zone.addEventListener("pointerleave", sortir);
+}
+/* Barres : items = [{lib, v, bulle}] */
+function barres(cadre, { items, hauteur = 200, couleur = "var(--accent-texte)", fmtY = (v) => virgule(v, 0), libEvery = 1, derniereEnCours = false }) {
+  const L = Math.max(280, cadre.clientWidth || 640), H = hauteur, g = 40, d = 8, h = 10, b = 24;
+  if (!items.length) { cadre.innerHTML = `<p class="vide">Aucune donnée sur la période.</p>`; return; }
+  const ticks = graduations(0, Math.max(1, ...items.map((i) => i.v || 0)), 4), y1 = ticks[ticks.length - 1];
+  const Y = (v) => h + (1 - v / y1) * (H - h - b), pas = (L - g - d) / items.length, larg = Math.max(2, Math.min(28, pas - 2));
+  let svg = `<svg viewBox="0 0 ${L} ${H}" width="${L}" height="${H}" role="img">`;
+  for (const t of ticks) svg += `<line x1="${g}" x2="${L - d}" y1="${Y(t)}" y2="${Y(t)}" stroke="var(--grille)"/><text x="${g - 6}" y="${Y(t) + 3.5}" text-anchor="end">${esc(fmtY(t))}</text>`;
+  items.forEach((it, i) => {
+    const x = g + i * pas + (pas - larg) / 2, y = Y(it.v || 0), hh = Y(0) - y, rr = Math.min(4, larg / 2, hh);
+    const enCours = derniereEnCours && i === items.length - 1;
+    if (hh > 0.5) svg += `<path d="M${x},${Y(0)}V${y + rr}Q${x},${y} ${x + rr},${y}H${x + larg - rr}Q${x + larg},${y} ${x + larg},${y + rr}V${Y(0)}Z" fill="${couleur}" fill-opacity="${enCours ? 0.45 : 1}"/>`;
+    if (i % libEvery === 0) svg += `<text x="${x + larg / 2}" y="${H - 6}" text-anchor="middle">${esc(it.lib)}</text>`;
+    svg += `<rect class="cible" data-i="${i}" x="${g + i * pas}" y="${h}" width="${pas}" height="${H - h - b}" fill="transparent"/>`;
+  });
+  svg += `</svg>`;
+  cadre.innerHTML = svg;
+  const el = cadre.querySelector("svg"), bl = bulle(cadre);
+  el.querySelectorAll(".cible").forEach((c) => {
+    const montrer = () => { const it = items[+c.dataset.i], r = el.getBoundingClientRect(); bl.innerHTML = it.bulle; placerBulle(cadre, bl, (+c.getAttribute("x") + pas / 2) * (r.width / L), Y(it.v || 0) * (r.height / H)); };
+    c.addEventListener("pointerenter", montrer); c.addEventListener("pointerdown", montrer);
+    c.addEventListener("pointerleave", () => { bl.hidden = true; });
+  });
+}
+
+/* ================================================================
+   Calculs d'affichage
+   ================================================================ */
+function semaines(acts, nbSem) {
+  const lundi = lundiDe(new Date()), r = [];
+  for (let i = nbSem - 1; i >= 0; i--) r.push({ debut: ajouterJours(lundi, -7 * i), km: 0, dplus: 0, sec: 0, n: 0 });
+  const premier = r[0].debut;
+  for (const a of acts) {
+    if (a._date < premier) break;
+    const k = Math.floor((jour0(a._date) - premier) / (7 * JOUR_MS)); const s = r[k]; if (!s) continue;
+    s.km += nb(a.distance) || 0; s.dplus += nb(a.denivele) || 0; s.sec += nb(a.duree) || 0; s.n++;
+  }
+  return r;
+}
+function poidsSerie(d) {
+  const parJour = new Map();
+  for (const l of d.suivi) {
+    const p = nb(l.poids_kg); if (!p || p <= 0) continue;
+    const m = (l.moment || "matin").toLowerCase(), dt = parseDate(l.date); if (!dt) continue;
+    const k = cleJour(dt), prio = m === "matin" ? 0 : 1, ex = parJour.get(k);
+    if (!ex || prio < ex.prio) parJour.set(k, { x: jour0(dt), y: p, prio });
+  }
+  for (const l of d.garmin) { const p = nb(l.poids_kg), dt = parseDate(l.date); if (p && p > 0 && dt && !parJour.has(cleJour(dt))) parJour.set(cleJour(dt), { x: jour0(dt), y: p, prio: 2 }); }
+  return [...parJour.values()].sort((a, b) => a.x - b.x);
+}
+function sommeilSerie(d) {
+  const m = new Map();
+  for (const l of d.sommeil) { const v = nb(l.duree_heures), dt = parseDate(l.date); if (v && dt) m.set(cleJour(dt), { x: jour0(dt), y: v }); }
+  for (const l of d.recup) { const v = nb(l.sommeil_duree_h), dt = parseDate(l.date); if (v && dt && !m.has(cleJour(dt))) m.set(cleJour(dt), { x: jour0(dt), y: v }); }
+  return [...m.values()].sort((a, b) => a.x - b.x);
+}
+const blessuresEnCours = (d) => d.blessures.filter((b) => (b.statut || "") !== "Guérie");
+function prochainesCourses(d) { const auj = jour0(new Date()); return d.courses.map((c) => ({ ...c, _date: parseDate(c.date) })).filter((c) => c._date && c._date >= auj).sort((a, b) => a._date - b._date); }
+function seancesAVenir(d, jours = 7) { const auj = jour0(new Date()), fin = ajouterJours(auj, jours); return d.seances.map((s) => ({ ...s, _date: parseDate(s.date_prevue) })).filter((s) => s._date && s._date >= auj && s._date <= fin && (s.statut || "Prévue") === "Prévue").sort((a, b) => a._date - b._date); }
+function nomAthlete(a) { return [a?.prenom, a?.nom].filter(Boolean).join(" ") || `Coureur n° ${a?.id ?? ""}`; }
+
+/* ================================================================
+   Rubriques
+   ================================================================ */
+const ICONES = {
+  aujourdhui: '<path d="M8 1.5v2M8 12.5v2M1.5 8h2M12.5 8h2M3.4 3.4l1.4 1.4M11.2 11.2l1.4 1.4M3.4 12.6l1.4-1.4M11.2 4.8l1.4-1.4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><circle cx="8" cy="8" r="2.6" fill="none" stroke="currentColor" stroke-width="1.4"/>',
+  sorties: '<path d="M2 13 L6 6 L9 10 L11 7 L14 13 Z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/>',
+  forme: '<path d="M1.5 11 L5 7.5 L8 9.5 L14.5 3" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M10.5 3h4v4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>',
+  sante: '<path d="M8 14s-5.5-3.4-5.5-7.3A3 3 0 0 1 8 4.6a3 3 0 0 1 5.5 2.1C13.5 10.6 8 14 8 14z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/>',
+  courses: '<path d="M3 14V2.5M3 3h8.5l-1.8 2.6L11.5 8H3" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round"/>',
+  blessures: '<rect x="2" y="5.5" width="12" height="5" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.4" transform="rotate(-35 8 8)"/><circle cx="8" cy="8" r=".9" fill="currentColor"/>',
+  materiel: '<path d="M2 11.5c2.5 0 3.5-1 4.5-3l1-2 2 1.5c1 .8 2.5 1.3 4.5 1.5v2.5H2z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/>',
+  coach: '<path d="M2.5 3.5h11v7h-6l-3 2.5v-2.5h-2z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="M5.5 6.5h5M5.5 8.5h3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>',
+};
+const RUBRIQUES = [
+  ["aujourdhui", "Aujourd'hui", "Aujourd'hui"], ["sorties", "Sorties", "Sorties"], ["forme", "Forme et charge", "Forme"],
+  ["sante", "Poids et sommeil", "Santé"], ["courses", "Courses et objectifs", "Courses"], ["blessures", "Blessures et soins", "Blessures"],
+  ["materiel", "Matériel", "Matériel"], ["coach", "Demander à Claude", "Claude"],
+];
+const icone = (k) => `<svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">${ICONES[k]}</svg>`;
+function rubriqueCourante() { const h = location.hash.replace("#", ""); return RUBRIQUES.some((r) => r[0] === h) ? h : (h === "ouvrir" ? "ouvrir" : "aujourdhui"); }
+
+function rendreNav() {
+  const c = rubriqueCourante();
+  $("#rubriques").innerHTML = RUBRIQUES.map(([k, long, court]) => `<a href="#${k}" ${c === k ? 'aria-current="page"' : ""}>${icone(k)}<span class="lib-long">${esc(long)}</span><span class="lib-court">${esc(court)}</span></a>`).join("");
+}
+function rendreSource() {
+  const s = $("#source");
+  if (etat.source === "fichier") {
+    s.className = "source reelle";
+    s.innerHTML = `<span><span class="pastille"></span><b>${esc(etat.nomFichier)}</b> ouverte en lecture seule</span><span class="discret">${entier(etat.donnees.activites.length)} sorties · base version ${etat.versionBase} · le fichier reste sur cet ordinateur et n'est enregistré nulle part</span>`;
+  } else {
+    s.className = "source";
+    s.innerHTML = `<span><span class="pastille"></span><b>Données d'exemple</b> : aucune base ouverte</span><span class="discret">Ouvre ta sauvegarde pour voir tes propres sorties. <a href="#ouvrir" style="color:var(--accent-texte)">Comment faire</a></span>`;
+  }
+  const sel = $("#choix-athlete"), lib = $("#lib-athlete");
+  const plusieurs = etat.source === "fichier" && etat.athletes.length > 1;
+  sel.hidden = !plusieurs; lib.hidden = !plusieurs;
+  if (plusieurs) sel.innerHTML = etat.athletes.map((a) => `<option value="${a.id}" ${a.id === etat.athleteId ? "selected" : ""}>${esc(nomAthlete(a))} (${a.nb} sorties)</option>`).join("");
+}
+function afficherChargement(txt) {
+  $("#contenu").innerHTML = `<div class="vue"><p class="chargement"><span class="rond"></span>${esc(txt)}</p></div>`;
+}
+
+function carteMesure(etiq, valeur, unite, detail, pastille = "") {
+  return `<div class="carte mesure"><span class="etiquette">${esc(etiq)}</span><span class="valeur">${valeur}${unite ? `<small>${esc(unite)}</small>` : ""}</span><span class="detail">${detail || "&nbsp;"}</span>${pastille}</div>`;
+}
+function ligneSortie(a) {
+  return `<button class="ligne" type="button" data-sortie="${a.id}"><span><span class="titre">${esc(a.nom || a.type || "Sortie")}</span><span class="sous">${esc(fmtJourLong(a._date))} · ${esc(a.type || "")}</span></span><span class="droite"><span class="chiffre">${virgule(nb(a.distance), 1)} km</span><br><span class="sous chiffre">${nb(a.denivele) ? "+" + entier(a.denivele) + " m · " : ""}${duree(a.duree)}</span></span></button>`;
+}
+
+/* ---------- Aujourd'hui ---------- */
+function vueAujourdhui() {
+  const d = etat.donnees, f = d.forme[d.forme.length - 1], [lib, coul] = etatFraicheur(f.forme);
+  const sem = semaines(d.activites, 5), cour = sem[4], moy = (sem[0].km + sem[1].km + sem[2].km + sem[3].km) / 4;
+  const poids = poidsSerie(d), dernierPoids = poids[poids.length - 1];
+  const som = sommeilSerie(d).filter((p) => p.x >= ajouterJours(jour0(new Date()), -7)), somMoy = som.length ? som.reduce((s, p) => s + p.y, 0) / som.length : null;
+  const bl = blessuresEnCours(d), cr = prochainesCourses(d), se = seancesAVenir(d, 7), der = d.activites[0];
+  const ilYa = der ? ecartJours(new Date(), der._date) : null;
+  const saut = ilYa !== null && ilYa > 30 ? `<div class="carte"><p><span class="etat orange">Ancienne base</span> La dernière sortie de cette base date du ${esc(fmtJour(der._date))}. La forme et la fatigue du jour sont donc proches de zéro : ouvre une sauvegarde plus récente pour un état à jour.</p></div>` : "";
+  return `<section class="vue">
+    <div class="entete-vue"><h2>${esc(fmtJourLong(new Date()).replace(/^./, (c) => c.toUpperCase()))}</h2><p>${esc(nomAthlete(d.athlete))}${der ? ` · dernière sortie ${ilYa === 0 ? "aujourd'hui" : ilYa === 1 ? "hier" : `il y a ${ilYa} jours`}` : ""}</p></div>
+    ${saut}
+    <div class="grille g4">
+      ${carteMesure("Fraîcheur", (f.forme > 0 ? "+" : "") + virgule(f.forme), "", "forme moins fatigue", `<span class="etat ${coul}">${lib}</span>`)}
+      ${carteMesure("Forme (fitness)", virgule(f.fitness), "", "moyenne sur 42 jours")}
+      ${carteMesure("Fatigue", virgule(f.fatigue), "", "moyenne sur 7 jours")}
+      ${carteMesure("Cette semaine", virgule(cour.km, 1), "km", `${cour.n} sortie${cour.n > 1 ? "s" : ""} · +${entier(cour.dplus)} m · ${duree(cour.sec)}<br>moyenne des 4 semaines d'avant : ${virgule(moy, 1)} km`)}
+    </div>
+    <div class="grille g3">
+      <div class="carte"><header><h3>Prochaine course</h3><a class="petit" style="color:var(--accent-texte)" href="#courses">Toutes</a></header>
+        ${cr.length ? `<div class="mesure"><span class="valeur">J−${ecartJours(cr[0]._date, new Date())}</span><span class="detail"><b style="color:var(--texte)">${esc(cr[0].nom)}</b><br>${esc(fmtJour(cr[0]._date))}${cr[0].lieu ? " · " + esc(cr[0].lieu) : ""}<br><span class="chiffre">${virgule(nb(cr[0].distance_km), 0)} km · +${entier(cr[0].denivele_m)} m</span></span></div>` : `<p class="vide">Aucune course à venir dans le calendrier.</p>`}
+      </div>
+      <div class="carte"><header><h3>Séances prévues (7 jours)</h3></header>
+        ${se.length ? `<div class="liste">${se.map((s) => `<div class="ligne"><span><span class="titre">${esc(s.nom || s.type_seance)}</span><span class="sous">${esc(s.type_seance || "")}</span></span><span class="droite sous">${esc(fmtJourLong(s._date))}</span></div>`).join("")}</div>` : `<p class="vide">Aucune séance prévue cette semaine.</p>`}
+      </div>
+      <div class="carte"><header><h3>Corps et récupération</h3><a class="petit" style="color:var(--accent-texte)" href="#sante">Détails</a></header>
+        <div class="liste">
+          <div class="ligne"><span class="sous">Dernier poids</span><span class="droite chiffre">${dernierPoids ? `${virgule(dernierPoids.y, 1)} kg <span class="tres-discret">(${esc(fmtJourCourt(dernierPoids.x))})</span>` : "—"}</span></div>
+          <div class="ligne"><span class="sous">Sommeil moyen (7 nuits)</span><span class="droite chiffre">${somMoy ? virgule(somMoy, 1) + " h" : "—"}</span></div>
+          <div class="ligne"><span class="sous">Blessures en cours</span><span class="droite">${bl.length ? bl.map((b) => `<span class="etat orange">${esc(b.zone_corporelle || "")}${b.type_blessure ? " · " + esc(b.type_blessure) : ""}</span>`).join(" ") : `<span class="etat vert">Aucune</span>`}</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="carte"><header><h3>Dernières sorties</h3><a class="petit" style="color:var(--accent-texte)" href="#sorties">Toutes les sorties</a></header>
+      ${d.activites.length ? `<div class="liste">${d.activites.slice(0, 6).map(ligneSortie).join("")}</div>` : `<p class="vide">Aucune sortie enregistrée.</p>`}
+    </div>
+  </section>`;
+}
+
+/* ---------- Sorties ---------- */
+function sortiesFiltrees() {
+  const d = etat.donnees, q = etat.recherche.trim().toLowerCase();
+  return d.activites.filter((a) => (etat.filtreType === "Tous" || (a.type || "Autre") === etat.filtreType)
+    && (etat.annee === "Toutes" || String(a._date.getFullYear()) === etat.annee)
+    && (!q || `${a.nom || ""} ${a.type || ""} ${a.notes || ""}`.toLowerCase().includes(q)));
+}
+function vueSorties() {
+  const d = etat.donnees, types = ["Tous", ...new Set(d.activites.map((a) => a.type || "Autre"))];
+  const annees = ["Toutes", ...new Set(d.activites.map((a) => String(a._date.getFullYear())))];
+  const liste = sortiesFiltrees(), tot = liste.reduce((s, a) => ({ km: s.km + (nb(a.distance) || 0), dp: s.dp + (nb(a.denivele) || 0), sec: s.sec + (nb(a.duree) || 0) }), { km: 0, dp: 0, sec: 0 });
+  const limite = 300, affichees = liste.slice(0, limite);
+  return `<section class="vue">
+    <div class="entete-vue"><h2>Sorties</h2><p>Choisis une sortie pour voir son tracé et son profil.</p></div>
+    <div id="emplacement-detail"></div>
+    <div class="carte"><header><h3>Calendrier des 12 derniers mois</h3><span class="petit discret">kilomètres par jour</span></header><div class="calendrier" id="calendrier"></div></div>
+    <div class="carte">
+      <div class="filtres">
+        <input type="search" id="recherche" placeholder="Rechercher une sortie" value="${esc(etat.recherche)}" aria-label="Rechercher une sortie">
+        <select class="choix" id="filtre-annee" aria-label="Année">${annees.map((a) => `<option ${a === etat.annee ? "selected" : ""}>${esc(a)}</option>`).join("")}</select>
+        <div class="puces">${types.map((t) => `<button type="button" class="puce" data-type="${esc(t)}" aria-pressed="${t === etat.filtreType}">${esc(t)}</button>`).join("")}</div>
+      </div>
+      <p class="petit discret">${entier(liste.length)} sortie${liste.length > 1 ? "s" : ""} · <span class="chiffre">${virgule(tot.km, 0)} km · +${entier(tot.dp)} m · ${duree(tot.sec)}</span>${liste.length > limite ? ` · les ${limite} plus récentes sont affichées, affine la recherche pour les autres` : ""}</p>
+      <div class="tableau-cadre"><table>
+        <thead><tr><th>Date</th><th>Sortie</th><th>Type</th><th class="num">Distance</th><th class="num">D+</th><th class="num">Durée</th><th class="num">Allure</th><th class="num">FC moy.</th></tr></thead>
+        <tbody>${affichees.map((a) => `<tr class="cliquable ${a.id === etat.sortieChoisie ? "choisie" : ""}" data-sortie="${a.id}" tabindex="0"><td>${esc(fmtJour(a._date))}</td><td class="nom">${esc(a.nom || "")}</td><td>${esc(a.type || "")}</td><td class="num">${virgule(nb(a.distance), 1)} km</td><td class="num">${nb(a.denivele) ? entier(a.denivele) + " m" : "—"}</td><td class="num">${duree(a.duree)}</td><td class="num">${allure(nb(a.duree), nb(a.distance))}</td><td class="num">${nb(a.frequence_cardiaque_moyenne) ? entier(a.frequence_cardiaque_moyenne) : "—"}</td></tr>`).join("") || `<tr><td colspan="8" class="vide">Aucune sortie ne correspond.</td></tr>`}</tbody>
+      </table></div>
+    </div>
+  </section>`;
+}
+function dessinerCalendrier() {
+  const cadre = $("#calendrier"); if (!cadre) return;
+  const auj = jour0(new Date()), debut = ajouterJours(lundiDe(auj), -51 * 7), km = new Map();
+  for (const a of etat.donnees.activites) { if (a._date < debut) break; const k = cleJour(a._date); km.set(k, (km.get(k) || 0) + (nb(a.distance) || 0)); }
+  const c = 12, e = 3, g = 26, hTxt = 16, cols = 52;
+  const niveau = (v) => v <= 0 ? null : v < 6 ? 1 : v < 11 ? 2 : v < 17 ? 3 : v < 25 ? 4 : 5;
+  let svg = `<svg width="${g + cols * (c + e)}" height="${hTxt + 7 * (c + e) + 22}" role="img" aria-label="Kilomètres par jour sur un an">`;
+  ["L", "", "M", "", "V", "", "D"].forEach((l, i) => { if (l) svg += `<text x="0" y="${hTxt + i * (c + e) + 10}" style="fill:var(--texte-3);font-size:10px;font-family:var(--police-chiffres)">${l}</text>`; });
+  let moisPrec = -1;
+  for (let s = 0; s < cols; s++) for (let j = 0; j < 7; j++) {
+    const dt = ajouterJours(debut, s * 7 + j); if (dt > auj) continue;
+    if (j === 0 && dt.getMonth() !== moisPrec) { moisPrec = dt.getMonth(); svg += `<text x="${g + s * (c + e)}" y="11" style="fill:var(--texte-3);font-size:10px;font-family:var(--police-chiffres)">${esc(dt.toLocaleDateString("fr-FR", { month: "short" }))}</text>`; }
+    const v = km.get(cleJour(dt)) || 0, n = niveau(v);
+    svg += `<rect data-j="${cleJour(dt)}" data-v="${v}" x="${g + s * (c + e)}" y="${hTxt + j * (c + e)}" width="${c}" height="${c}" rx="2" fill="${n ? `var(--z${n})` : "var(--fond-2)"}" stroke="${n ? "none" : "var(--bordure)"}"/>`;
+  }
+  const yL = hTxt + 7 * (c + e) + 8;
+  svg += `<text x="${g}" y="${yL + 9}" style="fill:var(--texte-3);font-size:10px;font-family:var(--police-chiffres)">0</text>`;
+  [1, 2, 3, 4, 5].forEach((n, i) => { svg += `<rect x="${g + 14 + i * 15}" y="${yL}" width="12" height="12" rx="2" fill="var(--z${n})"/>`; });
+  svg += `<text x="${g + 14 + 5 * 15 + 4}" y="${yL + 9}" style="fill:var(--texte-3);font-size:10px;font-family:var(--police-chiffres)">25 km et plus</text></svg>`;
+  cadre.innerHTML = svg;
+  const bl = bulle(cadre.parentElement);
+  cadre.querySelectorAll("rect[data-j]").forEach((r) => {
+    const montrer = () => { const dt = parseDate(r.dataset.j), v = +r.dataset.v, br = cadre.parentElement.getBoundingClientRect(), rr = r.getBoundingClientRect(); bl.innerHTML = `${esc(fmtJourLong(dt))}<br><b>${v ? virgule(v, 1) + " km" : "repos"}</b>`; placerBulle(cadre.parentElement, bl, rr.left - br.left, rr.top - br.top); };
+    r.addEventListener("pointerenter", montrer); r.addEventListener("pointerdown", montrer); r.addEventListener("pointerleave", () => { bl.hidden = true; });
+  });
+}
+function rendreDetailSortie() {
+  const place = $("#emplacement-detail"); if (!place) return;
+  const a = etat.donnees.activites.find((x) => x.id === etat.sortieChoisie);
+  if (!a) { place.innerHTML = ""; return; }
+  const pts = traceDe(a), ch = chargeActivite(a, etat.donnees.athlete);
+  const zones = [1, 2, 3, 4, 5].map((z) => nb(a[`temps_zone_${z}`]) || 0), totZ = zones.reduce((s, v) => s + v, 0);
+  const champs = [
+    ["Distance", virgule(nb(a.distance), 2), "km"], ["Dénivelé +", entier(a.denivele), "m"], ["Durée", duree(a.duree), ""], ["Allure", allure(nb(a.duree), nb(a.distance)), ""],
+    ["FC moyenne", nb(a.frequence_cardiaque_moyenne) ? entier(a.frequence_cardiaque_moyenne) : "—", "bpm"], ["FC max", nb(a.frequence_cardiaque_max) ? entier(a.frequence_cardiaque_max) : "—", "bpm"],
+    ["Charge", virgule(ch.charge, 0), ""], ["Calories", nb(a.calories) ? entier(a.calories) : "—", "kcal"],
+  ];
+  const plus = [["Cadence", a.cadence_moyenne, "pas/min"], ["Effet aérobie", a.te_aerobie, ""], ["Effet anaérobie", a.te_anaerobie, ""], ["VO2max montre", a.vo2max, ""], ["Puissance", a.puissance_moyenne, "W"], ["Température", a.temperature_moyenne, "°C"], ["Effort perçu", a.effort_percu, "/10"]].filter((c) => nb(c[1]));
+  place.innerHTML = `<div class="carte detail-sortie">
+    <header><div><h3>${esc(a.nom || a.type || "Sortie")}</h3><p class="petit discret">${esc(fmtJourLong(a._date))} à ${esc(a._date.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }))} · ${esc(a.type || "")}${a.source ? " · " + esc(a.source) : ""}</p></div><button class="bouton" type="button" id="fermer-detail">Fermer</button></header>
+    <div class="mesures-ligne">${champs.map(([e, v, u]) => `<div class="mesure"><span class="etiquette">${e}</span><span class="valeur">${v}${u && v !== "—" ? `<small>${u}</small>` : ""}</span></div>`).join("")}</div>
+    <p class="petit tres-discret">Charge calculée comme dans le logiciel (${ch.methode === "trimp" ? "TRIMP, à partir de la fréquence cardiaque" : ch.methode === "duree" ? "estimation par la durée" : ch.methode === "distance" ? "estimation par la distance" : "pas assez de données"}).</p>
+    ${totZ ? `<div><span class="etiquette">Temps par zone cardiaque</span><div class="zones" style="margin-top:6px">${zones.map((z, i) => z ? `<span style="width:${z / totZ * 100}%;background:var(--z${i + 1})" title="Zone ${i + 1} : ${duree(z)}"></span>` : "").join("")}</div><div class="legende" style="margin-top:6px">${zones.map((z, i) => `<span><i style="background:var(--z${i + 1});height:8px;width:8px;border-radius:2px"></i>Z${i + 1} ${duree(z)}</span>`).join("")}</div></div>` : ""}
+    ${pts ? `<div class="trace-et-profil"><div class="trace" id="trace"></div><div><span class="etiquette">Profil</span><div class="graphe" id="profil"></div><p class="petit tres-discret" id="trace-info"></p></div></div>` : `<p class="vide">Pas de tracé GPS enregistré pour cette sortie.</p>`}
+    ${plus.length ? `<div class="mesures-ligne">${plus.map(([e, v, u]) => `<div class="mesure"><span class="etiquette">${e}</span><span class="valeur" style="font-size:1rem">${virgule(nb(v), Number.isInteger(nb(v)) ? 0 : 1)}${u ? `<small>${u}</small>` : ""}</span></div>`).join("")}</div>` : ""}
+    ${a.notes ? `<p class="discret" style="white-space:pre-wrap">${esc(a.notes)}</p>` : ""}
+  </div>`;
+  $("#fermer-detail").onclick = () => { etat.sortieChoisie = null; rendreDetailSortie(); document.querySelectorAll("tr.choisie").forEach((t) => t.classList.remove("choisie")); };
+  if (pts) dessinerTrace(pts);
+}
+function dessinerTrace(pts) {
+  const cadre = $("#trace"), lat = pts.map((p) => +p[0]), lon = pts.map((p) => +p[1]);
+  const la0 = Math.min(...lat), la1 = Math.max(...lat), lo0 = Math.min(...lon), lo1 = Math.max(...lon), k = Math.cos((la0 + la1) / 2 * Math.PI / 180);
+  const W = 400, m = 24, w = Math.max((lo1 - lo0) * k, 1e-9), h = Math.max(la1 - la0, 1e-9), ech = (W - 2 * m) / Math.max(w, h);
+  const ox = (W - w * ech) / 2, oy = (W - h * ech) / 2, X = (p) => ox + (p[1] - lo0) * k * ech, Y = (p) => W - oy - (p[0] - la0) * ech;
+  const pas = Math.max(1, Math.floor(pts.length / 1500)), chemin = pts.filter((_, i) => i % pas === 0 || i === pts.length - 1).map((p, i) => `${i ? "L" : "M"}${X(p).toFixed(1)},${Y(p).toFixed(1)}`).join("");
+  const pxParKm = ech / 111.195, barre = [0.5, 1, 2, 5, 10, 20].find((v) => v * pxParKm >= 50) || 20;
+  cadre.innerHTML = `<svg viewBox="0 0 ${W} ${W}" role="img" aria-label="Tracé de la sortie">
+    <path d="${chemin}" fill="none" stroke="var(--fond)" stroke-width="6" stroke-linejoin="round" stroke-linecap="round"/>
+    <path d="${chemin}" fill="none" stroke="var(--accent-texte)" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+    <circle cx="${X(pts[pts.length - 1])}" cy="${Y(pts[pts.length - 1])}" r="5.5" fill="var(--rouge)" stroke="var(--carte)" stroke-width="2"/>
+    <circle cx="${X(pts[0])}" cy="${Y(pts[0])}" r="5.5" fill="var(--vert)" stroke="var(--carte)" stroke-width="2"/>
+    <circle id="curseur-trace" r="6" fill="var(--bleu)" stroke="var(--carte)" stroke-width="2" visibility="hidden"/>
+    <line x1="${m}" x2="${m + barre * pxParKm}" y1="${W - 12}" y2="${W - 12}" stroke="var(--texte-2)" stroke-width="2"/>
+    <text x="${m}" y="${W - 17}" style="fill:var(--texte-2);font-size:11px;font-family:var(--police-chiffres)">${virgule(barre, barre < 1 ? 1 : 0)} km</text>
+    <text x="${W - m}" y="${W - 12}" text-anchor="end" style="fill:var(--texte-3);font-size:11px;font-family:var(--police-texte)"><tspan style="fill:var(--vert)">●</tspan> départ  <tspan style="fill:var(--rouge)">●</tspan> arrivée · nord en haut</text>
+  </svg>`;
+  let cumul = 0; const prof = []; let dplus = 0, altPrec = null;
+  pts.forEach((p, i) => { if (i) cumul += distanceKm(pts[i - 1][0], pts[i - 1][1], p[0], p[1]); const alt = nb(p[2]); if (alt !== null) { if (altPrec !== null && alt > altPrec) dplus += alt - altPrec; altPrec = alt; } prof.push({ x: cumul, y: alt, i }); });
+  const avecAlt = prof.filter((p) => p.y !== null);
+  const pasP = Math.max(1, Math.floor(avecAlt.length / 600)), echant = avecAlt.filter((_, i) => i % pasP === 0 || i === avecAlt.length - 1);
+  const curseur = $("#curseur-trace");
+  if (echant.length > 1) {
+    courbe($("#profil"), { series: [{ nom: "Altitude", couleur: "var(--accent-texte)", points: echant, fmtBulle: (v) => entier(v) + " m" }], xDates: false, fmtX: (v) => virgule(v, 1) + " km", fmtY: (v) => entier(v) + " m", aire: true, hauteur: 210,
+      surSurvol: (i) => { if (i === null) { curseur.setAttribute("visibility", "hidden"); return; } const p = pts[echant[i].i]; curseur.setAttribute("cx", X(p)); curseur.setAttribute("cy", Y(p)); curseur.setAttribute("visibility", "visible"); } });
+    const alts = avecAlt.map((p) => p.y);
+    $("#trace-info").textContent = `Mesuré sur le tracé : ${virgule(cumul, 2)} km, altitude ${entier(Math.min(...alts))} à ${entier(Math.max(...alts))} m, ${pts.length.toLocaleString("fr-FR")} points GPS. Le dénivelé additionné point par point sur le tracé (+${entier(dplus)} m) est souvent plus fort que celui de la montre, qui est lissé.`;
+  } else {
+    $("#profil").innerHTML = `<p class="vide">Le tracé ne contient pas d'altitude.</p>`;
+  }
+}
+
+/* ---------- Forme et charge ---------- */
+function vueForme() {
+  return `<section class="vue">
+    <div class="entete-vue"><h2>Forme et charge</h2><p>La forme monte avec les semaines d'entraînement régulières. La fatigue réagit vite après une grosse sortie. La fraîcheur est la forme moins la fatigue : positive quand tu es reposé, négative quand tu es chargé.</p></div>
+    <div class="carte"><header><h3>Forme et fatigue, 6 mois</h3><div class="legende"><span><i style="background:var(--bleu)"></i>Forme (42 jours)</span><span><i style="background:var(--orange)"></i>Fatigue (7 jours)</span></div></header><div class="graphe" id="g-forme"></div></div>
+    <div class="carte"><header><h3>Fraîcheur</h3><span class="petit discret">Au-dessus de zéro : reposé. Sous −25 : très chargé.</span></header><div class="graphe" id="g-fraicheur"></div></div>
+    <div class="carte"><header><h3>Kilomètres par semaine</h3><span class="petit discret">26 dernières semaines, la semaine en cours en clair</span></header><div class="graphe" id="g-semaines"></div></div>
+    <div class="carte"><header><h3>Bilan par année</h3></header><div class="tableau-cadre" id="t-annees"></div></div>
+  </section>`;
+}
+function dessinerForme() {
+  const s = etat.donnees.forme;
+  courbe($("#g-forme"), { series: [
+    { nom: "Forme", couleur: "var(--bleu)", points: s.map((j) => ({ x: j.date, y: j.fitness })) },
+    { nom: "Fatigue", couleur: "var(--orange)", points: s.map((j) => ({ x: j.date, y: j.fatigue })) },
+  ], hauteur: 240, fmtY: (v) => virgule(v, 0), yMin: 0 });
+  courbe($("#g-fraicheur"), { series: [{ nom: "Fraîcheur", couleur: "var(--accent-texte)", points: s.map((j) => ({ x: j.date, y: j.forme })), fmtBulle: (v) => `${v > 0 ? "+" : ""}${virgule(v)} · ${etatFraicheur(v)[0]}` }], hauteur: 180, zero: true, aire: true });
+  const sem = semaines(etat.donnees.activites, 26);
+  barres($("#g-semaines"), { items: sem.map((w) => ({ lib: fmtJourCourt(w.debut).replace(/\.$/, ""), v: Math.round(w.km * 10) / 10, bulle: `Semaine du ${esc(fmtJourCourt(w.debut))}<br><b>${virgule(w.km, 1)} km</b> · +${entier(w.dplus)} m<br>${w.n} sortie${w.n > 1 ? "s" : ""} · ${duree(w.sec)}` })), libEvery: $("#g-semaines").clientWidth < 600 ? 6 : 3, fmtY: (v) => entier(v), derniereEnCours: true });
+  const parAn = new Map();
+  for (const a of etat.donnees.activites) { const y = a._date.getFullYear(); const e = parAn.get(y) || { n: 0, km: 0, dp: 0, sec: 0, plusLongue: 0 }; e.n++; e.km += nb(a.distance) || 0; e.dp += nb(a.denivele) || 0; e.sec += nb(a.duree) || 0; e.plusLongue = Math.max(e.plusLongue, nb(a.distance) || 0); parAn.set(y, e); }
+  $("#t-annees").innerHTML = parAn.size ? `<table><thead><tr><th>Année</th><th class="num">Sorties</th><th class="num">Distance</th><th class="num">D+</th><th class="num">Temps</th><th class="num">Plus longue</th></tr></thead><tbody>${[...parAn.entries()].sort((a, b) => b[0] - a[0]).map(([y, e]) => `<tr><td>${y}</td><td class="num">${e.n}</td><td class="num">${virgule(e.km, 0)} km</td><td class="num">${entier(e.dp)} m</td><td class="num">${duree(e.sec)}</td><td class="num">${virgule(e.plusLongue, 1)} km</td></tr>`).join("")}</tbody></table>` : `<p class="vide">Aucune sortie.</p>`;
+}
+
+/* ---------- Poids et sommeil ---------- */
+function vueSante() {
+  return `<section class="vue">
+    <div class="entete-vue"><h2>Poids et sommeil</h2><p>Relevés du suivi corporel, du sommeil et des données de récupération importées de la montre.</p></div>
+    <div class="grille g2">
+      <div class="carte"><header><h3>Poids</h3><span class="petit discret" id="poids-resume"></span></header><div class="graphe" id="g-poids"></div></div>
+      <div class="carte"><header><h3>Sommeil, 30 dernières nuits</h3><span class="petit discret" id="sommeil-resume"></span></header><div class="graphe" id="g-sommeil"></div></div>
+      <div class="carte"><header><h3>FC au repos</h3><span class="petit discret">battements par minute</span></header><div class="graphe" id="g-fcrepos"></div></div>
+      <div class="carte"><header><h3>Variabilité cardiaque (VFC) la nuit</h3><span class="petit discret">millisecondes</span></header><div class="graphe" id="g-hrv"></div></div>
+    </div>
+  </section>`;
+}
+function dessinerSante() {
+  const d = etat.donnees, p = poidsSerie(d).filter((q) => q.x >= ajouterJours(jour0(new Date()), -365));
+  courbe($("#g-poids"), { series: [{ nom: "Poids", couleur: "var(--accent-texte)", points: p, fmtBulle: (v) => virgule(v, 1) + " kg" }], hauteur: 200, fmtY: (v) => virgule(v, Number.isInteger(v) ? 0 : 1) + " kg", marqueurs: true });
+  if (p.length > 1) $("#poids-resume").textContent = `${virgule(p[p.length - 1].y, 1)} kg · ${p[p.length - 1].y - p[0].y >= 0 ? "+" : "−"}${virgule(Math.abs(p[p.length - 1].y - p[0].y), 1)} kg depuis le ${fmtJourCourt(p[0].x)}`;
+  const auj = jour0(new Date()), s = sommeilSerie(d), m = new Map(s.map((q) => [cleJour(q.x), q.y])), items = [];
+  for (let i = 29; i >= 0; i--) { const j = ajouterJours(auj, -i), v = m.get(cleJour(j)); items.push({ lib: String(j.getDate()), v: v || 0, bulle: `Nuit du ${esc(fmtJourCourt(ajouterJours(j, -1)))} au ${esc(fmtJourCourt(j))}<br><b>${v ? virgule(v, 1) + " h" : "pas de relevé"}</b>` }); }
+  const ok = items.filter((i) => i.v);
+  if (ok.length) { barres($("#g-sommeil"), { items, hauteur: 200, couleur: "var(--bleu)", fmtY: (v) => entier(v) + " h", libEvery: 5 }); $("#sommeil-resume").textContent = `moyenne ${virgule(ok.reduce((a, b) => a + b.v, 0) / ok.length, 1)} h sur ${ok.length} nuits`; }
+  else $("#g-sommeil").innerHTML = `<p class="vide">Aucun relevé de sommeil sur les 30 derniers jours.</p>`;
+  const depuis = ajouterJours(auj, -180);
+  const serieR = (col) => d.recup.map((l) => ({ x: parseDate(l.date), y: nb(l[col]) })).filter((q) => q.x && q.y && q.x >= depuis).map((q) => ({ x: jour0(q.x), y: q.y }));
+  courbe($("#g-fcrepos"), { series: [{ nom: "FC repos", couleur: "var(--rouge)", points: serieR("fc_repos"), fmtBulle: (v) => entier(v) + " bpm" }], hauteur: 180 });
+  courbe($("#g-hrv"), { series: [{ nom: "VFC", couleur: "var(--bleu)", points: serieR("hrv_nuit_ms"), fmtBulle: (v) => entier(v) + " ms" }], hauteur: 180 });
+}
+
+/* ---------- Courses et objectifs ---------- */
+function vueCourses() {
+  const d = etat.donnees, cr = prochainesCourses(d);
+  const sansDate = d.courses.filter((c) => !parseDate(c.date));
+  const pill = (s) => { const t = (s || "").toLowerCase(); return t.includes("atteint") ? "vert" : t.includes("abandon") || t.includes("manqu") ? "rouge" : t.includes("cours") ? "jaune" : "neutre"; };
+  return `<section class="vue">
+    <div class="entete-vue"><h2>Courses et objectifs</h2><p>Calendrier, résultats et objectifs enregistrés dans le logiciel.</p></div>
+    <div class="carte"><header><h3>Courses à venir</h3></header>
+      ${cr.length || sansDate.length ? `<div class="tableau-cadre"><table><thead><tr><th class="num">Dans</th><th>Date</th><th>Course</th><th>Lieu</th><th class="num">Distance</th><th class="num">D+</th><th>Terrain</th></tr></thead><tbody>
+      ${cr.map((c) => `<tr><td class="num"><b>J−${ecartJours(c._date, new Date())}</b></td><td>${esc(fmtJour(c._date))}</td><td class="nom">${esc(c.nom)}</td><td>${esc(c.lieu || c.region || "")}</td><td class="num">${virgule(nb(c.distance_km), 0)} km</td><td class="num">${entier(c.denivele_m)} m</td><td>${esc(c.type_terrain || "")}</td></tr>`).join("")}
+      ${sansDate.map((c) => `<tr><td class="num tres-discret">—</td><td class="tres-discret">date à fixer</td><td class="nom">${esc(c.nom)}</td><td>${esc(c.lieu || c.region || "")}</td><td class="num">${virgule(nb(c.distance_km), 0)} km</td><td class="num">${entier(c.denivele_m)} m</td><td>${esc(c.type_terrain || "")}</td></tr>`).join("")}
+      </tbody></table></div>` : `<p class="vide">Aucune course à venir.</p>`}
+    </div>
+    <div class="carte"><header><h3>Objectifs</h3></header>
+      ${d.objectifs.length ? `<div class="liste">${d.objectifs.map((o) => `<div class="ligne"><span><span class="titre" style="white-space:normal">${esc(o.titre)}</span><span class="sous">${esc(o.type_objectif || "")}${o.date_cible ? " · pour le " + esc(fmtJour(parseDate(o.date_cible))) : ""}${o.priorite ? " · priorité " + esc(String(o.priorite).toLowerCase()) : ""}</span></span><span class="droite"><span class="etat ${pill(o.statut)}">${esc(o.statut || "—")}</span></span></div>`).join("")}</div>` : `<p class="vide">Aucun objectif enregistré.</p>`}
+    </div>
+    <div class="carte"><header><h3>Résultats</h3></header>
+      ${d.resultats.length ? `<div class="tableau-cadre"><table><thead><tr><th>Date</th><th>Course</th><th class="num">Distance</th><th class="num">D+</th><th class="num">Temps</th><th class="num">Général</th><th class="num">Catégorie</th><th>Objectif</th></tr></thead><tbody>${d.resultats.map((r) => `<tr><td>${esc(fmtJour(parseDate(r.date)))}</td><td class="nom">${esc(r.nom_course)}</td><td class="num">${virgule(nb(r.distance), 1)} km</td><td class="num">${entier(r.denivele)} m</td><td class="num">${esc(r.temps || "—")}</td><td class="num">${esc(r.classement_general || "—")}</td><td class="num">${esc(r.classement_categorie || "—")}</td><td>${nb(r.objectif_atteint) === 1 ? '<span class="etat vert">Atteint</span>' : nb(r.objectif_atteint) === 0 ? '<span class="etat neutre">Non</span>' : ""}</td></tr>`).join("")}</tbody></table></div>` : `<p class="vide">Aucun résultat enregistré.</p>`}
+    </div>
+    ${d.plans.length ? `<div class="carte"><header><h3>Plans d'entraînement</h3></header><div class="liste">${d.plans.map((p) => `<div class="ligne"><span><span class="titre">${esc(p.nom)}</span><span class="sous">${esc(p.distance_cible || "")} · ${esc(p.nb_semaines || "?")} semaines · ${esc(p.jours_par_semaine || "?")} jours par semaine</span></span><span class="droite sous">${p.date_course ? "course le " + esc(fmtJour(parseDate(p.date_course))) : ""}</span></div>`).join("")}</div></div>` : ""}
+  </section>`;
+}
+
+/* ---------- Blessures et soins ---------- */
+function vueBlessures() {
+  const d = etat.donnees, enc = blessuresEnCours(d), parId = new Map(d.blessures.map((b) => [b.id, b]));
+  return `<section class="vue">
+    <div class="entete-vue"><h2>Blessures et soins</h2><p>Historique tel qu'enregistré dans le logiciel.</p></div>
+    <div class="grille g3">${enc.length ? enc.map((b) => { const dd = parseDate(b.date_debut); return `<div class="carte"><span class="etat orange">En cours depuis ${dd ? ecartJours(new Date(), dd) : "?"} jours</span><h3>${esc(b.zone_corporelle || "")}</h3><p class="discret">${esc(b.type_blessure || "")}${b.gravite ? " · " + esc(b.gravite) : ""}${b.cause ? "<br>Cause : " + esc(b.cause) : ""}</p></div>`; }).join("") : `<div class="carte"><span class="etat vert">Aucune blessure en cours</span></div>`}</div>
+    <div class="carte"><header><h3>Toutes les blessures</h3></header>
+      ${d.blessures.length ? `<div class="tableau-cadre"><table><thead><tr><th>Début</th><th>Fin</th><th>Zone</th><th>Type</th><th>Gravité</th><th>Statut</th><th class="num">Durée</th></tr></thead><tbody>${d.blessures.map((b) => { const a = parseDate(b.date_debut), f = parseDate(b.date_fin); return `<tr><td>${esc(fmtJour(a))}</td><td>${f ? esc(fmtJour(f)) : "—"}</td><td class="nom">${esc(b.zone_corporelle || "")}</td><td>${esc(b.type_blessure || "")}</td><td>${esc(b.gravite || "")}</td><td>${(b.statut || "") === "Guérie" ? '<span class="etat vert">Guérie</span>' : `<span class="etat orange">${esc(b.statut || "En cours")}</span>`}</td><td class="num">${a ? ecartJours(f || new Date(), a) + " j" : "—"}</td></tr>`; }).join("")}</tbody></table></div>` : `<p class="vide">Aucune blessure enregistrée.</p>`}
+    </div>
+    <div class="carte"><header><h3>Soins</h3></header>
+      ${d.soins.length ? `<div class="tableau-cadre"><table><thead><tr><th>Date</th><th>Soin</th><th>Motif</th><th>Praticien</th><th>Blessure liée</th></tr></thead><tbody>${d.soins.map((s) => { const b = parId.get(s.blessure_id); return `<tr><td>${esc(fmtJour(parseDate(s.date)))}</td><td>${esc(s.type_soin || "")}</td><td>${esc(s.motif || "")}</td><td>${esc(s.praticien || "")}</td><td class="nom">${b ? esc(`${b.zone_corporelle || ""} · ${b.type_blessure || ""}`) : "—"}</td></tr>`; }).join("")}</tbody></table></div>` : `<p class="vide">Aucun soin enregistré.</p>`}
+    </div>
+  </section>`;
+}
+
+/* ---------- Matériel ---------- */
+function vueMateriel() {
+  const d = etat.donnees;
+  return `<section class="vue">
+    <div class="entete-vue"><h2>Matériel</h2><p>Kilomètres parcourus avec chaque équipement, comparés à l'usure conseillée.</p></div>
+    <div class="grille g3">${d.materiel.length ? d.materiel.map((m) => {
+      const km = nb(m.km_actuels) || 0, max = nb(m.km_max_recommande), pc = max ? km / max * 100 : null;
+      const c = pc === null ? "var(--bleu)" : pc >= 100 ? "var(--rouge)" : pc >= 80 ? "var(--orange)" : "var(--vert)";
+      const lib = pc === null ? "" : pc >= 100 ? '<span class="etat rouge">À remplacer</span>' : pc >= 80 ? '<span class="etat orange">Bientôt usé</span>' : '<span class="etat vert">En forme</span>';
+      return `<div class="carte"><header><h3>${esc(m.nom)}</h3>${lib}</header><p class="petit discret">${esc(m.type || "")}${m.statut ? " · " + esc(m.statut) : ""}${m.date_achat ? " · acheté le " + esc(fmtJour(parseDate(m.date_achat))) : ""}</p>
+        <div class="mesure"><span class="valeur">${entier(km)}<small>km</small></span><span class="detail">${max ? `sur ${entier(max)} km conseillés (${entier(pc)} %)` : "pas de limite d'usure renseignée"}</span></div>
+        ${max ? `<div class="jauge"><span style="width:${Math.min(100, pc)}%;background:${c}"></span></div>` : ""}</div>`;
+    }).join("") : `<div class="carte"><p class="vide">Aucun matériel enregistré.</p></div>`}</div>
+  </section>`;
+}
+
+/* ---------- Demander à Claude ---------- */
+let echantillon = null, echantillonPret = false, controle = null;
+function resumePourClaude() {
+  const d = etat.donnees, a = d.athlete, f = d.forme[d.forme.length - 1], sem = semaines(d.activites, 8);
+  const l = [];
+  l.push(`Date du jour : ${cleJour(new Date())}.`);
+  l.push(`Coureur : ${a.age ? a.age + " ans" : "âge non renseigné"}, ${a.sexe || "sexe non renseigné"}, FC repos ${a.fc_repos ?? "?"}, FC max ${a.fc_max ?? "?"}${a.vma ? ", VMA " + a.vma + " km/h" : ""}${a.vo2max ? ", VO2max " + a.vo2max : ""}.`);
+  l.push(`Charge (calcul du logiciel, méthode CTL/ATL) : forme ${f.fitness}, fatigue ${f.fatigue}, fraîcheur ${f.forme} (${etatFraicheur(f.forme)[0]}).`);
+  l.push("Volume des 8 dernières semaines (la dernière est en cours) :");
+  for (const w of sem) l.push(`- semaine du ${cleJour(w.debut)} : ${w.n} sorties, ${w.km.toFixed(1)} km, +${Math.round(w.dplus)} m, ${(w.sec / 3600).toFixed(1)} h`);
+  l.push("15 dernières sorties :");
+  for (const s of d.activites.slice(0, 15)) l.push(`- ${cleJour(s._date)} ${s.type || ""} « ${s.nom || ""} » : ${nb(s.distance) ?? "?"} km, +${nb(s.denivele) ?? 0} m, ${duree(s.duree)}, FC moy ${nb(s.frequence_cardiaque_moyenne) ?? "?"}, charge ${chargeActivite(s, a).charge}`);
+  const p = poidsSerie(d).slice(-10); if (p.length) l.push(`Poids récents : ${p.map((q) => `${cleJour(q.x)} ${q.y} kg`).join(" ; ")}.`);
+  const so = sommeilSerie(d).slice(-10); if (so.length) l.push(`Sommeil récent : ${so.map((q) => `${cleJour(q.x)} ${q.y.toFixed(1)} h`).join(" ; ")}.`);
+  const rc = d.recup.slice(-7).filter((r) => r.fc_repos || r.hrv_nuit_ms); if (rc.length) l.push(`Récupération (montre) : ${rc.map((r) => `${r.date} FC repos ${r.fc_repos ?? "?"}, VFC ${r.hrv_nuit_ms ?? "?"} ms`).join(" ; ")}.`);
+  const bl = blessuresEnCours(d); l.push(bl.length ? `Blessures en cours : ${bl.map((b) => `${b.zone_corporelle || ""} ${b.type_blessure || ""} depuis le ${b.date_debut}${b.gravite ? ", " + b.gravite : ""}`).join(" ; ")}.` : "Aucune blessure en cours.");
+  const cr = prochainesCourses(d).slice(0, 3); if (cr.length) l.push(`Courses à venir : ${cr.map((c) => `${c.nom} le ${c.date} (${c.distance_km ?? "?"} km, +${c.denivele_m ?? "?"} m)`).join(" ; ")}.`);
+  const se = seancesAVenir(d, 10); if (se.length) l.push(`Séances prévues : ${se.map((s) => `${s.date_prevue} ${s.nom}`).join(" ; ")}.`);
+  return l.join("\n");
+}
+const CONSIGNE = "Tu es le coach de trail et de course à pied intégré à Trail Hub Center. Réponds en français, simplement, en quelques paragraphes courts, sans tableau. Appuie-toi uniquement sur les données ci-dessous ; si une donnée manque, dis-le. Distingue ce qui vient des données (fiable) de tes estimations et conseils. En cas de douleur qui dure ou s'aggrave, conseille de consulter un professionnel de santé.";
+function vueCoach() {
+  return `<section class="vue">
+    <div class="entete-vue"><h2>Demander à Claude</h2><p>Pose une question sur ton entraînement. Claude lit un résumé de la base ouverte et répond avec ton compte Claude. Ses conseils sont des estimations, pas des mesures.</p></div>
+    <div class="carte">
+      <div class="puces" id="suggestions">${["Comment se passe ma semaine ?", "Suis-je prêt pour ma prochaine course ?", "Que me conseilles-tu pour demain ?", "Mon volume augmente-t-il trop vite ?"].map((q) => `<button type="button" class="puce" data-q="${esc(q)}">${esc(q)}</button>`).join("")}</div>
+      <div class="coach-fil" id="fil">${etat.fil.map((m) => `<div class="message ${m.role === "user" ? "moi" : "claude"}">${m.role === "user" ? "" : '<span class="qui">Claude · estimation</span>'}${esc(m.content)}</div>`).join("")}</div>
+      <form class="saisie" id="form-coach"><textarea id="question" placeholder="Par exemple : dois-je lever le pied cette semaine ?" aria-label="Ta question"></textarea>
+        <div style="display:flex;gap:8px"><button class="bouton principal" type="submit" id="envoyer">Demander</button><button class="bouton" type="button" id="arreter" hidden>Arrêter</button></div></form>
+      <p class="petit discret" id="coach-etat">${echantillonPret ? (echantillon ? "" : "Cette fonction marche quand la page est ouverte dans Claude, connecté à ton compte. Ici, elle n'est pas disponible.") : "Connexion à Claude…"}</p>
+      <details class="envoye"><summary>Voir le résumé envoyé à Claude</summary><pre id="resume-envoye"></pre></details>
+    </div>
+  </section>`;
+}
+function brancherCoach() {
+  $("#resume-envoye").textContent = resumePourClaude();
+  const form = $("#form-coach"), q = $("#question"), envoyer = $("#envoyer"), stop = $("#arreter"), etatTxt = $("#coach-etat"), fil = $("#fil");
+  envoyer.disabled = !echantillon;
+  document.querySelectorAll("#suggestions .puce").forEach((b) => b.onclick = () => { q.value = b.dataset.q; if (echantillon) form.requestSubmit(); });
+  stop.onclick = () => controle?.abort();
+  form.onsubmit = async (ev) => {
+    ev.preventDefault();
+    const texte = q.value.trim(); if (!texte || !echantillon) return;
+    etat.fil.push({ role: "user", content: texte }); q.value = "";
+    fil.insertAdjacentHTML("beforeend", `<div class="message moi">${esc(texte)}</div><div class="message claude"><span class="qui">Claude · estimation</span><span class="corps">Réflexion…</span></div>`);
+    const corps = fil.lastElementChild.querySelector(".corps");
+    envoyer.disabled = true; stop.hidden = false; etatTxt.textContent = "";
+    controle = new AbortController();
+    const tours = [{ role: "user", content: `${CONSIGNE}\n\nDonnées de Trail Hub Center :\n${resumePourClaude()}` }, ...etat.fil.slice(-10)];
+    try {
+      const { text, truncated } = await echantillon(tours, { cache: false, signal: controle.signal, onText: ({ text }) => { corps.textContent = text; } });
+      corps.textContent = text; etat.fil.push({ role: "assistant", content: text });
+      if (truncated) etatTxt.textContent = "Réponse coupée : pose une question plus courte.";
+    } catch (e) {
+      corps.textContent = e?.text || "";
+      const msg = { cancelled: "Réponse arrêtée.", not_granted: "Claude n'a pas été autorisé pour cette page.", sampling_disabled: "Claude n'est pas disponible pour ce compte.", rate_limited: "Trop de questions d'un coup : réessaie dans un moment.", session_expired: "Reconnecte-toi à Claude puis réessaie.", refused: "Claude n'a pas pu répondre à cette question. Reformule-la." }[e?.code] || "La réponse n'a pas pu arriver. Réessaie.";
+      etatTxt.textContent = msg;
+      if (!corps.textContent) corps.parentElement.remove(); else etat.fil.push({ role: "assistant", content: corps.textContent });
+      if (e?.code === "not_granted" || e?.code === "sampling_disabled") { echantillon = null; }
+    } finally {
+      envoyer.disabled = !echantillon; stop.hidden = true; controle = null;
+    }
+  };
+}
+
+/* ---------- Ouvrir sa base ---------- */
+function vueOuvrir() {
+  return `<section class="vue">
+    <div class="entete-vue"><h2>Ouvrir ta base TrailMaster</h2><p>Cette page lit la sauvegarde de ton logiciel directement dans le navigateur, sans rien installer. Rien n'est envoyé sur Internet et rien n'est modifié : c'est une consultation.</p></div>
+    ${etat.erreur ? `<div class="carte"><p class="message-erreur">${esc(etat.erreur)}</p></div>` : ""}
+    <div class="ouvrir">
+      <div class="carte"><h3>Sur l'ordinateur où le logiciel est installé</h3>
+        <ol class="etapes">
+          <li>Ouvre <b>Réglages</b> dans TrailMaster.</li>
+          <li>Clique sur <b>« Sauvegarder maintenant »</b> et enregistre le fichier <b>trailmaster_sauvegarde_….db</b> sur une clé USB, dans ta messagerie ou ton Drive.</li>
+          <li>Sur le PC de travail, ouvre cette page puis choisis ce fichier.</li>
+        </ol>
+        <p class="petit tres-discret">Les bases d'avant et d'après la mise à jour Trail Hub Center s'ouvrent toutes les deux. Une grosse base (plus de 100 Mo) peut demander une dizaine de secondes.</p>
+      </div>
+      <div class="depot" id="depot">
+        <h3>Choisir le fichier</h3>
+        <p class="discret">Glisse le fichier .db ici, ou</p>
+        <div><button class="bouton principal" type="button" id="bouton-ouvrir-2">Choisir ma sauvegarde</button></div>
+        <p class="petit tres-discret">Ce que tu verras ensuite reste dans cet onglet ; le fermer efface tout.</p>
+      </div>
+    </div>
+    <div class="carte"><h3>Ce que fait la page, et ce qu'elle ne fait pas</h3>
+      <div class="grille g2">
+        <p class="discret"><b style="color:var(--texte)">Disponible :</b> tableau du jour, sorties avec tracé et profil, calendrier, forme, fatigue et fraîcheur (même calcul que le logiciel), poids, sommeil, récupération, courses, objectifs, résultats, blessures, soins, matériel, et des questions à Claude.</p>
+        <p class="discret"><b style="color:var(--texte)">Seulement dans le logiciel :</b> ajouter ou modifier des données, synchroniser Garmin et Strava, importer des fichiers FIT ou GPX, cartes avec fond de carte, météo, plans et roadbooks à créer, impression et export PDF.</p>
+      </div>
+    </div>
+  </section>`;
+}
+
+/* ================================================================
+   Assemblage
+   ================================================================ */
+function rendreTout() {
+  rendreSource(); rendreNav();
+  const r = rubriqueCourante(), c = $("#contenu");
+  const vues = { aujourdhui: vueAujourdhui, sorties: vueSorties, forme: vueForme, sante: vueSante, courses: vueCourses, blessures: vueBlessures, materiel: vueMateriel, coach: vueCoach, ouvrir: vueOuvrir };
+  c.innerHTML = vues[r]() + `<p class="pied">Trail Hub Center · page de consultation · les données affichées viennent de ${etat.source === "fichier" ? "ta base" : "l'exemple intégré"}.</p>`;
+  if (r === "sorties") { dessinerCalendrier(); rendreDetailSortie(); brancherSorties(); }
+  if (r === "forme") dessinerForme();
+  if (r === "sante") dessinerSante();
+  if (r === "coach") brancherCoach();
+  if (r === "ouvrir") brancherDepot();
+  c.querySelectorAll("button.ligne[data-sortie]").forEach((b) => b.onclick = () => { etat.sortieChoisie = +b.dataset.sortie; location.hash = "sorties"; if (rubriqueCourante() === "sorties") rendreTout(); });
+}
+function brancherSorties() {
+  const rech = $("#recherche");
+  rech.oninput = () => { etat.recherche = rech.value; const pos = rech.selectionStart; rendreTout(); const n = $("#recherche"); n.focus(); n.setSelectionRange(pos, pos); };
+  $("#filtre-annee").onchange = (e) => { etat.annee = e.target.value; rendreTout(); };
+  document.querySelectorAll(".puce[data-type]").forEach((b) => b.onclick = () => { etat.filtreType = b.dataset.type; rendreTout(); });
+  document.querySelectorAll("tr[data-sortie]").forEach((tr) => {
+    const choisir = () => { etat.sortieChoisie = +tr.dataset.sortie; document.querySelectorAll("tr.choisie").forEach((t) => t.classList.remove("choisie")); tr.classList.add("choisie"); rendreDetailSortie(); $("#emplacement-detail").scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" }); };
+    tr.onclick = choisir; tr.onkeydown = (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); choisir(); } };
+  });
+}
+function brancherDepot() {
+  const z = $("#depot");
+  $("#bouton-ouvrir-2").onclick = () => $("#fichier").click();
+  z.ondragover = (e) => { e.preventDefault(); z.classList.add("survol"); };
+  z.ondragleave = () => z.classList.remove("survol");
+  z.ondrop = (e) => { e.preventDefault(); z.classList.remove("survol"); ouvrirFichier(e.dataTransfer.files[0]); };
+}
+
+/* thème : celui de l'appareil par défaut, ou le choix mémorisé */
+function appliquerTheme(t) { if (t === "dark" || t === "light") document.documentElement.setAttribute("data-theme", t); }
+appliquerTheme(lireStockage("thc-theme"));
+$("#bouton-theme").onclick = () => {
+  const actuel = document.documentElement.getAttribute("data-theme") || (matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark");
+  const t = actuel === "dark" ? "light" : "dark"; appliquerTheme(t); ecrireStockage("thc-theme", t); rendreTout();
+};
+$("#bouton-ouvrir").onclick = () => $("#fichier").click();
+$("#fichier").onchange = (e) => { ouvrirFichier(e.target.files[0]); e.target.value = ""; };
+$("#choix-athlete").onchange = (e) => { choisirAthlete(+e.target.value); rendreTout(); };
+window.addEventListener("hashchange", () => { rendreTout(); window.scrollTo(0, 0); });
+document.addEventListener("dragover", (e) => e.preventDefault());
+document.addEventListener("drop", (e) => { e.preventDefault(); if (e.dataTransfer?.files?.[0]) ouvrirFichier(e.dataTransfer.files[0]); });
+let largeurPrec = window.innerWidth;
+window.addEventListener("resize", () => { if (Math.abs(window.innerWidth - largeurPrec) > 40) { largeurPrec = window.innerWidth; const r = rubriqueCourante(); if (r === "forme") dessinerForme(); if (r === "sante") dessinerSante(); if (r === "sorties") rendreDetailSortie(); } });
+
+utiliserExemple();
+rendreTout();
+
+/* Claude, quand la page est ouverte dans Claude */
+(async () => {
+  try { echantillon = window.claude?.use ? await window.claude.use("sample") : null; } catch (e) { echantillon = null; }
+  echantillonPret = true;
+  if (rubriqueCourante() === "coach") { const etatTxt = $("#coach-etat"), env = $("#envoyer"); if (etatTxt) etatTxt.textContent = echantillon ? "" : "Cette fonction marche quand la page est ouverte dans Claude, connecté à ton compte. Ici, elle n'est pas disponible."; if (env) env.disabled = !echantillon; }
+})();
+</script>

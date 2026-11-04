@@ -1,5 +1,11 @@
 # Historique des versions
 
+## Trail Hub Center — page Claude (consultation sans installation)
+- Nouveau fichier `page_claude/trail_hub_center.html` : la page Claude du logiciel, en mode réduit. Elle ouvre la sauvegarde `.db` faite par « Sauvegarder maintenant » (Réglages) directement dans le navigateur, en lecture seule : le fichier n'est ni envoyé ni enregistré.
+- Rubriques : Aujourd'hui, Sorties (calendrier sur un an, liste, tracé et profil d'altitude), Forme et charge, Poids et sommeil, Courses et objectifs, Blessures et soins, Matériel, Demander à Claude.
+- Forme, fatigue, fraîcheur et charge par sortie : même calcul que le logiciel, au jour près (vérifié sur 180 jours).
+- Ouvre les bases d'avant (version 0) et d'après (version 1) l'étape 2.1. Sans base ouverte, la page montre des données d'exemple signalées comme telles.
+
 ## Trail Hub Center — étape 2.1 (migrations numérotées et identifiants universels)
 - La base a désormais un numéro de version (table `schema_version`) et évolue par migrations numérotées (`data/migrations.py`), appliquées une seule fois, dans l'ordre, au démarrage.
 - Avant toute conversion d'une base qui contient des données, une copie complète est faite automatiquement dans le dossier `sauvegardes` à côté de la base. Chaque migration est « tout ou rien » : en cas d'erreur, la base reste dans sa version précédente. Une base plus récente que le logiciel n'est jamais touchée.
