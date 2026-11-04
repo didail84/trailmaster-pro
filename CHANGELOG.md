@@ -1,5 +1,8 @@
 # Historique des versions
 
+## Trail Hub Center — confidentialité
+- Retrait du fichier `data/suivi_corporel_initial.py`, qui contenait en clair des relevés personnels de poids et de fatigue (septembre-octobre 2026). Ces relevés avaient déjà été importés une fois pour toutes dans la base de l'utilisateur : rien n'est perdu, l'écran « Poids & récupération » les affiche toujours.
+
 ## Trail Hub Center — étape 1.3 (réorganisation interne, aucune nouveauté visible)
 - Tous les calculs (coach, plans, replanification, traces GPX/FIT, roadbook, ravitaillement, imports Strava/Garmin, IA…) sont rangés dans un nouveau dossier `noyau/`, indépendant de l'interface : 63 fichiers, en 8 familles (outils, traces, entraînement, santé, course, imports, IA, services).
 - Les calculs de « VMA & circuits » et de l'import montre USB sont séparés de leur écran.

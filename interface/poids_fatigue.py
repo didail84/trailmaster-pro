@@ -34,7 +34,6 @@ from noyau.sante.mensurations import MESURES, serie_mesure, resume_mesures
 COLONNES_MESURES = list(MESURES)
 from interface.ecran_liste import EcranListe, Champ, obtenir_style_ecran
 from interface.courbe_multiligne import CourbeMultiLignes
-from data.suivi_corporel_initial import importer_historique_initial
 
 
 ETATS_JAMBES = ["Normales", "Lourdes", "Fatiguées", "Courbatures", "Douloureuses"]
@@ -308,9 +307,6 @@ def nettoyer_cases_vides():
 class PoidsFatigue(EcranListe):
 
     def __init__(self, athlete_id_initial=None):
-        # Import unique de l'historique relevé à la main (voir le module).
-        importer_historique_initial()
-
         champs = [
             Champ("date", "Date", "date", obligatoire=True),
             Champ("moment", "Moment", "choix", choix=MOMENTS),
