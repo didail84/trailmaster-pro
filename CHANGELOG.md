@@ -1,5 +1,12 @@
 # Historique des versions
 
+## Trail Hub Center — étape 2.1 (migrations numérotées et identifiants universels)
+- La base a désormais un numéro de version (table `schema_version`) et évolue par migrations numérotées (`data/migrations.py`), appliquées une seule fois, dans l'ordre, au démarrage.
+- Avant toute conversion d'une base qui contient des données, une copie complète est faite automatiquement dans le dossier `sauvegardes` à côté de la base. Chaque migration est « tout ou rien » : en cas d'erreur, la base reste dans sa version précédente. Une base plus récente que le logiciel n'est jamais touchée.
+- Migration n° 1 : chaque donnée (athlètes, sorties, traces, photos, séances, plans, roadbooks, courses, résultats, objectifs, blessures, soins, matériel, segments et passages, poids, sommeil, nutrition, musculation, zones) reçoit un identifiant universel (UUID), indispensable pour échanger avec un club, un serveur ou un autre ordinateur sans doublon. Les nouvelles lignes le reçoivent automatiquement, quel que soit l'écran ou l'import qui les crée.
+- Compatibilité : la v108 fonctionne normalement sur une base convertie (vérifié sur tous les écrans de la série 1.4).
+- Tests : 221 ; correction d'un plantage de Qt à la fermeture des tests (déjà présent en v108), qui pouvait faire échouer la fabrication des installateurs.
+
 ## Trail Hub Center — étape 1.4c (dernières requêtes : plus aucun SQL dans les écrans)
 - `noyau/donnees/` s'enrichit de `sante` (poids, jambes, fatigue, sommeil, récupération, santé Garmin), `blessures` (blessures et soins), `courses` (courses à venir, résultats, objectifs) et `listes` (écran de liste commun). 45 requêtes ont quitté 21 écrans.
 - Étape 1.4 terminée : 157 requêtes dans les écrans en v108, 0 aujourd'hui. Un test interdit désormais toute requête dans un écran.

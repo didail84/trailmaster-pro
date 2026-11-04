@@ -52,3 +52,24 @@ def distance_m(lat1, lon1, lat2, lon2):
 
 
 __all__ = ["ligne_droite", "connecter", "distance_m", "DEG_LAT_PAR_M", "math"]
+
+
+def pytest_sessionfinish(session, exitstatus):
+    """Ferme proprement les fenêtres Qt créées par les tests d'écran avant
+    que Python ne quitte : sinon Qt détruit parfois ses objets dans le
+    désordre et le processus plante APRÈS des tests tous réussis (déjà le
+    cas en v108), ce qui ferait échouer la fabrication sur GitHub."""
+    import gc
+    try:
+        from PySide6.QtWidgets import QApplication
+    except ImportError:
+        return
+    app = QApplication.instance()
+    if app is None:
+        return
+    for fenetre in app.topLevelWidgets():
+        fenetre.close()
+        fenetre.deleteLater()
+    app.processEvents()
+    gc.collect()
+    app.processEvents()

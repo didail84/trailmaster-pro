@@ -1235,6 +1235,11 @@ def creer_base_de_donnees():
     conn.commit()
     conn.close()
 
+    # Évolutions numérotées de la base depuis la v108 (voir data/migrations.py) :
+    # copie de sécurité automatique avant toute conversion, tout ou rien.
+    from data.migrations import appliquer_migrations
+    appliquer_migrations(CHEMIN_BDD)
+
 def ajouter_athlete(
         nom,
         prenom,
