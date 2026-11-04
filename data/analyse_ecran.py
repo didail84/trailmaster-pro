@@ -13,7 +13,7 @@ import json
 import statistics
 from datetime import date, timedelta
 
-import data.metriques as met
+import noyau.entrainement.metriques as met
 from data.database import connexion
 
 VERSION_PROMPT = "v106-1"
@@ -86,7 +86,7 @@ def _moyennes_7j(points):
 
 def _forme(a):
     try:
-        from interface.coach import calculer_serie_forme
+        from noyau.entrainement.coach import calculer_serie_forme
         s = calculer_serie_forme(a, 60)
         if s:
             return {k: s[-1][k] for k in ("fitness", "fatigue", "forme")}
@@ -127,7 +127,7 @@ def dossier_poids(a):
     except Exception:
         pass
     try:
-        from data.mensurations import resume_mesures
+        from noyau.sante.mensurations import resume_mesures
         m = resume_mesures(a)
         if m:
             d["mensurations"] = {v["libelle"]: {"derniere": v["derniere"], "unite": v["unite"],
@@ -149,7 +149,7 @@ def dossier_poids(a):
 def dossier_vma(a):
     d = {}
     try:
-        from interface.vma import calculer_vma
+        from noyau.entrainement.vma import calculer_vma
         v = calculer_vma(a)
         if v:
             d["vma_estimee_kmh"] = v["actuelle"]
@@ -158,7 +158,7 @@ def dossier_vma(a):
             d["nb_efforts"] = v["nb_efforts"]
             d["efforts_retenus"] = [{"date": e["date"], "km": e["km"], "dplus": e["dp"], "vma": e["vma"]}
                                     for e in v["meilleurs"]]
-        from interface.estimations_basses import serie_estimations, evolution_pct
+        from noyau.entrainement.estimations_basses import serie_estimations, evolution_pct
         s = serie_estimations(a)
         if s:
             for cle in ("vma", "vo2max", "efficacite"):
@@ -186,7 +186,7 @@ def dossier_efforts(efforts, cs):
 
 
 def dossier_conditions(a):
-    from data import impact_conditions as ic
+    from noyau.entrainement import impact_conditions as ic
     d = {"temperature": ic.impact_temperature(a), "sommeil_nuit": ic.impact_sommeil(a),
          "polarisation_6_semaines": ic.polarisation(a)}
     return _nettoyer(d)
@@ -196,7 +196,7 @@ def dossier_courses(a):
     d = {"forme": _forme(a), "courses_a_venir": []}
     vo2 = None
     try:
-        from data import predictions_course as pc
+        from noyau.course import predictions_course as pc
         vo2 = pc.vo2max_de_reference(a)
         d["vo2max_estime"] = vo2
     except Exception:
@@ -208,7 +208,7 @@ def dossier_courses(a):
             fiche["preparation"] = {k: f[k] for k in ("score", "niveau", "conseil", "semaines_restantes")}
             fiche["criteres"] = [{k: x[k] for k in ("nom", "valeur", "cible", "unite")} for x in f["criteres"]]
             if vo2:
-                from data import predictions_course as pc
+                from noyau.course import predictions_course as pc
                 t = pc.predire(vo2, c["distance_km"], c["denivele_m"] or 0)
                 fiche["chrono_predit_estimation_basse"] = pc.texte_duree(t) if t else None
         except Exception:
@@ -307,7 +307,7 @@ def _enregistrer(athlete_id, sujet, dossier, texte):
 
 
 def construire_prompt(sujet, dossier):
-    from interface.ia_coach import CONSIGNES_COMMUNES
+    from noyau.ia.ia_coach import CONSIGNES_COMMUNES
     instruction = INSTRUCTIONS.get(sujet, INSTRUCTIONS["courbe"])
     return ("Tu es un entraîneur de trail et de course à pied, précis et technique.\n"
             f"MISSION : {instruction}\n\n{CONSIGNES_COMMUNES}\n{FORMAT_REPONSE}\n"
@@ -353,7 +353,7 @@ def resume_local(sujet, dossier):
 
 def cle_ia_disponible():
     try:
-        from interface.ia_coach import cle_api_configuree, cle_api_groq_configuree
+        from noyau.ia.ia_coach import cle_api_configuree, cle_api_groq_configuree
         return bool(cle_api_configuree() or cle_api_groq_configuree())
     except Exception:
         return False
@@ -371,7 +371,7 @@ def analyser(athlete_id, sujet, dossier, forcer=False, appeler=None):
     if appeler is None and not cle_ia_disponible():
         return resume_local(sujet, dossier), "local"
     if appeler is None:
-        from interface.ia_coach import _appeler_ia as appeler
+        from noyau.ia.ia_coach import _appeler_ia as appeler
     texte = (appeler(construire_prompt(sujet, dossier)) or "").strip()
     if not texte:
         return resume_local(sujet, dossier), "local"

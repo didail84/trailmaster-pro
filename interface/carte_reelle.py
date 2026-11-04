@@ -31,7 +31,7 @@ from PySide6.QtWebEngineCore import QWebEngineSettings
 
 from data.database import connexion, creer_base_de_donnees, obtenir_athletes
 from interface.ecran_liste import obtenir_style_ecran
-from interface.secteurs_utils import regrouper_en_secteurs
+from noyau.traces.secteurs_utils import regrouper_en_secteurs
 
 
 PAS_SOUS_ECHANTILLONNAGE = 3

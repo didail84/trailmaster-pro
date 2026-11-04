@@ -19,10 +19,10 @@ from PySide6.QtWidgets import (
     QListWidget, QListWidgetItem, QFileDialog, QMessageBox, QAbstractItemView,
 )
 
-import data.roadbook as rbk
-import data.metriques as met
+import noyau.course.roadbook as rbk
+import noyau.entrainement.metriques as met
 from data.database import connexion
-from interface.conformite import parser_allure
+from noyau.entrainement.conformite import parser_allure
 from interface.ecran_liste import configurer_table_redimensionnable
 from interface.forme_evolution import _EcranAthlete
 from interface.theme import PALETTE

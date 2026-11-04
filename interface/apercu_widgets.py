@@ -17,10 +17,10 @@ from PySide6.QtWidgets import (
 )
 
 from data.database import connexion
-from interface.coach import calculer_serie_forme
+from noyau.entrainement.coach import calculer_serie_forme
 from interface.courbe_multiligne import CourbeMultiLignes
 from interface.theme import PALETTE
-from interface.vo2max import estimer_vo2max, estimer_vo2max_recent
+from noyau.entrainement.vo2max import estimer_vo2max, estimer_vo2max_recent
 
 COULEURS_TYPE = {
     "Trail": "#F9A825", "Course": "#42A5F5", "Randonnée": "#66BB6A",

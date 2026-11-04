@@ -26,10 +26,10 @@ from PySide6.QtWidgets import (
     QInputDialog,
 )
 
-import data.metriques as met
+import noyau.entrainement.metriques as met
 from data.database import connexion
-from data.import_suivi_excel import MOMENTS
-from data.mensurations import MESURES, serie_mesure, resume_mesures
+from noyau.imports.import_suivi_excel import MOMENTS
+from noyau.sante.mensurations import MESURES, serie_mesure, resume_mesures
 
 COLONNES_MESURES = list(MESURES)
 from interface.ecran_liste import EcranListe, Champ, obtenir_style_ecran
@@ -253,7 +253,7 @@ def _fixer_depart(ecran):
 def _importer_excel(ecran):
     """Importe un classeur Excel (.xlsx) ou CSV de suivi poids/jambes/RPE
     dans la liste — voir data/import_suivi_excel.py pour le format."""
-    from data.import_suivi_excel import importer_fichier
+    from noyau.imports.import_suivi_excel import importer_fichier
 
     athlete_id = _athlete_requis(ecran, "importer son suivi")
     if athlete_id is None:

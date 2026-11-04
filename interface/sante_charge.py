@@ -16,7 +16,7 @@ from PySide6.QtWidgets import (
     QHBoxLayout, QLabel, QPushButton, QProgressDialog, QInputDialog, QApplication, QMessageBox,
 )
 
-import data.metriques as met
+import noyau.entrainement.metriques as met
 from interface.forme_evolution import _EcranAthlete
 from interface.apercu_widgets import virgule
 from interface.courbe_widget import CourbeBarres

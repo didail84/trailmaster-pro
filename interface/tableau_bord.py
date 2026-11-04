@@ -45,7 +45,7 @@ from interface.verification_maj import texte_version, VerificationMajThread, pro
 from interface.outils_ui import notifier, PaletteCommandes, installer_raccourcis, AIDE_RACCOURCIS
 from interface.courbe_widget import CourbeBarres
 from interface.courbe_multiligne import CourbeMultiLignes
-from interface.coach import (
+from noyau.entrainement.coach import (
     calculer_acwr,
     calculer_score_forme_jour,
     calculer_serie_forme,
@@ -1439,7 +1439,7 @@ class TableauBord(QMainWindow):
         """v99 — synchro Garmin Connect automatique, une fois par jour, si activée.
         Silencieuse en cas d'échec (pas d'Internet, session expirée...)."""
         try:
-            from data import garmin_connect as gc
+            from noyau.imports import garmin_connect as gc
             if not gc.synchro_auto_due():
                 return
             gc.marquer_synchro_auto()
@@ -1470,7 +1470,7 @@ class TableauBord(QMainWindow):
     def _ajustement_matin(self):
         """E3 — ajustement automatique du plan, une fois par jour."""
         try:
-            from interface.ajustement_matinal import ajustement_du_jour
+            from noyau.entrainement.ajustement_matinal import ajustement_du_jour
             _res, message = ajustement_du_jour()
         except Exception:
             return

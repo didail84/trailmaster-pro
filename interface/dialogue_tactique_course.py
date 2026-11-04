@@ -25,12 +25,12 @@ from PySide6.QtWidgets import (
 
 from data.database import connexion
 from interface.ecran_liste import obtenir_style_ecran
-from interface.date_utils import parser_date_flexible
+from noyau.outils.date_utils import parser_date_flexible
 from interface.tache_ia import TacheAnalyseIA
-from interface.tactique_course import (
+from noyau.course.tactique_course import (
     analyser_tactique_course, enregistrer_analyse_course, derniere_analyse_course,
 )
-from interface.ia_coach import cle_api_configuree
+from noyau.ia.ia_coach import cle_api_configuree
 
 
 TYPES_TERRAIN = ["Trail", "Sentier technique", "Route", "Mixte", "Piste"]

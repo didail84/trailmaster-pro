@@ -14,7 +14,7 @@ from PySide6.QtWidgets import (
     QDateEdit, QGridLayout,
 )
 
-import data.metriques as met
+import noyau.entrainement.metriques as met
 from interface.cockpit import JaugeBarre, couleur_score
 from interface.courbe_widget import CourbeBarres
 from interface.forme_evolution import _EcranAthlete

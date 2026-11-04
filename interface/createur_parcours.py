@@ -40,8 +40,8 @@ from PySide6.QtWebEngineCore import QWebEngineSettings
 
 from data.database import connexion, creer_base_de_donnees, obtenir_athletes
 from interface.ecran_liste import obtenir_style_ecran
-from interface.elevation import obtenir_altitudes
-from interface.export_gpx import exporter_gpx
+from noyau.traces.elevation import obtenir_altitudes
+from noyau.traces.export_gpx import exporter_gpx
 
 
 DOSSIER_LEAFLET = Path(__file__).parent / "assets" / "leaflet"
@@ -468,7 +468,7 @@ class CreateurParcours(QMainWindow):
         self._recuperer_points(suite)
 
     def _distance_totale(self, points):
-        from interface.gpx_utils import _distance_haversine_km
+        from noyau.traces.gpx_utils import _distance_haversine_km
 
         total = 0.0
         for i in range(1, len(points)):

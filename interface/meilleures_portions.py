@@ -28,7 +28,7 @@ from PySide6.QtWidgets import (
     QTableWidget, QTableWidgetItem, QHeaderView, QPushButton, QAbstractItemView,
 )
 
-from interface.gpx_utils import _distance_haversine_km
+from noyau.traces.gpx_utils import _distance_haversine_km
 from interface.survol_graphique import dessiner_infobulle
 
 ECART_MAX_S = 30                       # au-delà : pause / coupure, non comptée

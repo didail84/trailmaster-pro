@@ -141,7 +141,7 @@ def lecture_du_jour(athlete_id):
     nuits = [l["sommeil_duree_h"] for l in lignes if l.get("sommeil_duree_h")][-3:]
     if nuits:
         try:
-            from interface.coach import obtenir_objectif_sommeil_heures
+            from noyau.entrainement.coach import obtenir_objectif_sommeil_heures
             objectif = obtenir_objectif_sommeil_heures()
         except Exception:
             objectif = 7.5
@@ -283,7 +283,7 @@ def repartition_intensite(athlete_id, nb_semaines=12):
 def derives_cardiaques(athlete_id, nb_jours=365, limite=40):
     """Dérive cardiaque (découplage) des sorties dont la trace contient la FC.
     [(date, nom, km, decouplage_pct, interpretation)] du plus récent au plus ancien."""
-    from interface.dynamique_course import calculer_decouplage_cardiaque
+    from noyau.traces.dynamique_course import calculer_decouplage_cardiaque
     debut = (date.today() - timedelta(days=nb_jours)).isoformat()
     conn = connexion()
     cur = conn.cursor()

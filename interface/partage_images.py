@@ -19,8 +19,8 @@ from PySide6.QtGui import (
     QPageLayout, QImageReader, QGuiApplication, QRadialGradient,
 )
 
-import data.analyse_traces as at
-import data.metriques as met
+import noyau.traces.analyse_traces as at
+import noyau.entrainement.metriques as met
 import data.photos_sorties as ph
 from data.database import connexion
 from interface.theme import obtenir_couleur_accent as _accent_brut, eclaircir, POLICE_TITRE, POLICE_TEXTE

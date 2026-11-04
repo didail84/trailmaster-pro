@@ -3,10 +3,10 @@ from datetime import date as _date
 from PySide6.QtWidgets import QFileDialog, QMessageBox, QInputDialog
 
 from interface.ecran_liste import EcranListe, Champ
-from interface.fit_utils import extraire_signaux_recuperation
+from noyau.traces.fit_utils import extraire_signaux_recuperation
 from interface.calendrier_sommeil import ouvrir_calendrier_sommeil
 from data.database import enregistrer_signal_recuperation, obtenir_signaux_recuperation_recents
-from data.sommeil_auto import combler_sommeil_manquant
+from noyau.sante.sommeil_auto import combler_sommeil_manquant
 
 
 def _importer_signaux_recuperation(ecran):

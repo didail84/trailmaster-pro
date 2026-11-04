@@ -26,13 +26,13 @@ from PySide6.QtWidgets import (
 
 from data.database import connexion, creer_base_de_donnees, obtenir_athletes
 from interface.ecran_liste import obtenir_style_ecran, configurer_table_redimensionnable
-from interface.conformite import (
+from noyau.entrainement.conformite import (
     calculer_score_conformite,
     distance_totale_prevue_km,
     duree_totale_prevue_min,
 )
 from interface.carte_reelle import CarteReelle
-from interface.comparaison_courses import (
+from noyau.entrainement.comparaison_courses import (
     comparer_seance_realisee, enregistrer_comparaison, tendance_ecart_allure,
 )
 
@@ -432,7 +432,7 @@ class Seances(QMainWindow):
         montre si on la trouve, sinon dossier choisi)."""
         from pathlib import Path
         from PySide6.QtWidgets import QFileDialog
-        from data.export_fit_seance import encoder_seance, nom_fichier
+        from noyau.entrainement.export_fit_seance import encoder_seance, nom_fichier
         from interface.outils_ui import notifier
         ligne = self.table_seances.currentRow()
         if ligne < 0:

@@ -42,30 +42,30 @@ from interface.dashboard_widgets import (
     obtenir_configuration_dashboard,
     definir_configuration_dashboard,
 )
-from interface.ia_coach import (
+from noyau.ia.ia_coach import (
     obtenir_cle_api, definir_cle_api, cle_api_configuree,
     obtenir_cle_api_groq, definir_cle_api_groq, cle_api_groq_configuree,
 )
-from interface.rythme_vie import (
+from noyau.sante.rythme_vie import (
     obtenir_rythme_vie, definir_rythme_vie, amplitude_journee_minutes,
     obtenir_exceptions_rythme_vie, ajouter_exception_rythme_vie, supprimer_exception_rythme_vie,
     obtenir_seuil_journee_longue_min, definir_seuil_journee_longue_min,
 )
-from interface.serveur_local import (
+from noyau.services.serveur_local import (
     demarrer_serveur_local, arreter_serveur_local, serveur_actif, adresse_ip_locale, PORT_DEFAUT,
     obtenir_port_configure, definir_port_configure,
 )
 from interface.suivi_direct import obtenir_port_suivi_configure, definir_port_suivi_configure
-from interface.coach import (
+from noyau.entrainement.coach import (
     obtenir_objectif_sommeil_heures, definir_objectif_sommeil_heures,
     obtenir_sensibilite_alertes, definir_sensibilite_alertes, SEUILS_SENSIBILITE_ALERTES,
 )
-from interface.export_ics import (
+from noyau.entrainement.export_ics import (
     obtenir_heure_debut_defaut, definir_heure_debut_defaut,
     obtenir_duree_defaut_min, definir_duree_defaut_min,
 )
 from interface.recherche_globale import obtenir_nb_resultats_max, definir_nb_resultats_max
-from interface.allure_critique import obtenir_tolerance as obtenir_tolerance_allure_critique, definir_tolerance as definir_tolerance_allure_critique
+from noyau.entrainement.allure_critique import obtenir_tolerance as obtenir_tolerance_allure_critique, definir_tolerance as definir_tolerance_allure_critique
 
 
 class Reglages(QMainWindow):

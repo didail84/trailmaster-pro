@@ -19,7 +19,7 @@ from PySide6.QtWidgets import (
     QScrollArea, QFrame, QTabWidget, QPushButton,
 )
 
-from data.reference_alimentation import FICHES_FRUITS_LEGUMES, ALIMENTS_COURSE, SAISONS
+from noyau.course.reference_alimentation import FICHES_FRUITS_LEGUMES, ALIMENTS_COURSE, SAISONS
 from interface.theme import (
     PALETTE, POLICE_TITRE, POLICE_TEXTE, POLICE_TEXTE_DEMI, charger_polices,
     obtenir_couleur_accent, obtenir_couleur_accent_douce,

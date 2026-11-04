@@ -17,7 +17,7 @@ from data.database import obtenir_athletes
 from interface.ecran_liste import obtenir_style_ecran, configurer_table_redimensionnable
 from interface.courbe_widget import CourbeBarres
 from interface.courbe_multiligne import CourbeMultiLignes
-from interface.coach import (
+from noyau.entrainement.coach import (
     calculer_acwr,
     generer_alertes,
     obtenir_charges_journalieres,
@@ -30,10 +30,10 @@ from interface.coach import (
     repartition_par_sport,
     PERIODES_DISPONIBLES,
 )
-from interface.records import calculer_records, calculer_predictions, DISTANCES_REFERENCE
-from interface.vo2max import estimer_vo2max_depuis_records, estimer_vo2max_recent
-from interface.allure_critique import calculer_courbe_allure_critique
-from interface.evolution_performance import MESURES_EVOLUTION, serie_evolution_mensuelle
+from noyau.entrainement.records import calculer_records, calculer_predictions, DISTANCES_REFERENCE
+from noyau.entrainement.vo2max import estimer_vo2max_depuis_records, estimer_vo2max_recent
+from noyau.entrainement.allure_critique import calculer_courbe_allure_critique
+from noyau.entrainement.evolution_performance import MESURES_EVOLUTION, serie_evolution_mensuelle
 
 
 COULEUR_NIVEAU = {

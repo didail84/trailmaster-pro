@@ -1,7 +1,7 @@
 import sys
 
 # Avant toute connexion internet : évite les erreurs « certificats SSL » sur Mac.
-from interface.certificats_ssl import configurer_certificats_ssl
+from noyau.outils.certificats_ssl import configurer_certificats_ssl
 configurer_certificats_ssl()
 
 from PySide6.QtCore import Qt, QCoreApplication

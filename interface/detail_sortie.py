@@ -33,13 +33,13 @@ from PySide6.QtWidgets import (
 
 from data.database import connexion, supprimer_activite
 from interface.ecran_liste import obtenir_style_ecran, configurer_table_redimensionnable
-from interface.date_utils import parser_date_flexible
-from interface.coach import charge_activite_pour_athlete
-from interface.vo2max import estimer_vo2max
+from noyau.outils.date_utils import parser_date_flexible
+from noyau.entrainement.coach import charge_activite_pour_athlete
+from noyau.entrainement.vo2max import estimer_vo2max
 from interface.trace_widget import TraceCanvas
 from interface.photos_ecran import PhotosSortie
 from data import photos_sorties
-from interface.ia_coach import analyser_sortie, cle_api_configuree
+from noyau.ia.ia_coach import analyser_sortie, cle_api_configuree
 from interface.tache_ia import TacheAnalyseIA
 
 
@@ -551,7 +551,7 @@ class DialogueDetailSortie(QDialog):
         """À l'ouverture : montre l'analyse déjà générée, sans rien
         télécharger (la génération ne part que sur clic, pour ne pas
         consommer le quota gratuit de l'IA à chaque sortie ouverte)."""
-        from interface.ia_coach import _analyse_en_cache
+        from noyau.ia.ia_coach import _analyse_en_cache
         trouve = _analyse_en_cache(self.activite_id)
         if trouve:
             self._analyse_ia_reussie((trouve[0], True))
@@ -721,7 +721,7 @@ class DialogueDetailSortie(QDialog):
             parcours = self._charger_parcours_lie()
             if parcours:
                 import json as _json
-                from interface.dynamique_course import calculer_decouplage_cardiaque
+                from noyau.traces.dynamique_course import calculer_decouplage_cardiaque
                 dec = calculer_decouplage_cardiaque(_json.loads(parcours["trace_json"]))
                 if dec:
                     infos.append(("Dérive cardiaque", f"{dec['decouplage_pct']:+.1f} % — {dec['interpretation']}"))

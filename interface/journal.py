@@ -13,7 +13,7 @@ from PySide6.QtWidgets import (
     QFrame, QHBoxLayout, QLabel, QPushButton, QVBoxLayout, QWidget, QButtonGroup,
 )
 
-import data.metriques as met
+import noyau.entrainement.metriques as met
 from data import photos_sorties
 from data.database import connexion
 from interface.forme_evolution import _EcranAthlete

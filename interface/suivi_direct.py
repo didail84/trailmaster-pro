@@ -391,7 +391,7 @@ def terminer_session(nom_sortie=None):
     conn.close()
 
     try:
-        from interface.coach import invalider_cache_coach
+        from noyau.entrainement.coach import invalider_cache_coach
         invalider_cache_coach()
     except ImportError:
         pass

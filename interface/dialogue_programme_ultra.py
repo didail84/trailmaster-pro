@@ -28,8 +28,8 @@ from PySide6.QtWidgets import (
 
 from data.database import connexion
 from interface.ecran_liste import obtenir_style_ecran, configurer_table_redimensionnable
-from interface.generateur_plan import FACTEUR_NIVEAU, date_seance
-from interface.generateur_ultra import generer_programme_ultra
+from noyau.entrainement.generateur_plan import FACTEUR_NIVEAU, date_seance
+from noyau.entrainement.generateur_ultra import generer_programme_ultra
 
 
 JOURS_SEMAINE = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"]

@@ -14,7 +14,7 @@ from PySide6.QtWidgets import QFrame, QGridLayout, QLabel, QPushButton, QVBoxLay
 from data.database import connexion
 from interface.forme_evolution import _EcranAthlete
 from interface.outils_ui import notifier
-import data.metriques as met
+import noyau.entrainement.metriques as met
 
 MIME = "application/x-trailmaster-seance"
 MOIS = ["Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"]

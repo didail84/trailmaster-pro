@@ -26,7 +26,7 @@ class TacheAnalyseIA(QThread):
         self._fonction_analyse = fonction_analyse
 
     def run(self):
-        from interface.ia_coach import ErreurAnalyseIA
+        from noyau.ia.ia_coach import ErreurAnalyseIA
         try:
             resultat = self._fonction_analyse()
         except ErreurAnalyseIA as erreur:

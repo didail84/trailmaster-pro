@@ -22,7 +22,7 @@ MODELE = Path(__file__).with_name("modele_suivi_telephone.html")
 
 
 def generer_page(athlete_id):
-    from interface.vo2max import estimer_vo2max
+    from noyau.entrainement.vo2max import estimer_vo2max
     conn = connexion()
     cur = conn.cursor()
     cur.execute("SELECT date, nom, type, distance, denivele, duree, frequence_cardiaque_moyenne, allure_moyenne, vo2max "

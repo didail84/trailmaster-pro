@@ -12,7 +12,7 @@ from PySide6.QtWidgets import (
     QFrame, QGridLayout, QHBoxLayout, QLabel, QPushButton, QScrollArea, QVBoxLayout, QWidget, QComboBox,
 )
 
-import data.metriques as met
+import noyau.entrainement.metriques as met
 from interface import arriere_plan
 from interface.cockpit import Anneau, JaugeBarre, couleur_score
 from interface.theme import PALETTE, obtenir_couleur_accent

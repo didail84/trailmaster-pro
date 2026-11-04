@@ -17,9 +17,9 @@ from PySide6.QtWidgets import (
 )
 
 from data.database import connexion, obtenir_athletes
-from data import coach_du_jour as cdj
-from data import predictions_course as pred
-from data import ravitaillement as rav
+from noyau.entrainement import coach_du_jour as cdj
+from noyau.course import predictions_course as pred
+from noyau.course import ravitaillement as rav
 from interface.ecran_liste import obtenir_style_ecran
 from interface.vma import _table, _remplir, duree_texte
 
@@ -197,7 +197,7 @@ class CoachDuJour(QMainWindow):
         if not d or not d["etapes"]:
             return
         from datetime import date
-        from data import garmin_connect as gc
+        from noyau.imports import garmin_connect as gc
         if not gc.est_connecte():
             QMessageBox.information(self, "Garmin non connecté",
                                     "Connecte-toi d'abord dans Import & synchro > Garmin Connect (auto).")

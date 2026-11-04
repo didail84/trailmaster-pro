@@ -10,7 +10,7 @@ from datetime import date, timedelta
 
 from PySide6.QtWidgets import QTextBrowser, QLineEdit, QPushButton, QHBoxLayout, QLabel
 
-import data.metriques as met
+import noyau.entrainement.metriques as met
 from interface.forme_evolution import _EcranAthlete
 from interface.tache_ia import TacheAnalyseIA
 
@@ -25,7 +25,7 @@ QUESTIONS_TYPES = [
 
 def contexte_local(athlete_id):
     """Synthèse textuelle de la situation de l'athlète (aucun nom, aucune donnée brute)."""
-    from interface.coach import calculer_serie_forme, generer_alertes
+    from noyau.entrainement.coach import calculer_serie_forme, generer_alertes
     L = []
     a = met._athlete(athlete_id)
     L.append(f"Athlète : {a.get('age', '?')} ans, FC max {a.get('fc_max')}, FC repos {a.get('fc_repos')}, VMA {a.get('vma')}.")
@@ -51,7 +51,7 @@ def contexte_local(athlete_id):
         pass
     try:
         import json
-        from interface.analyse_technique import dossier_periode
+        from noyau.ia.analyse_technique import dossier_periode
         d = dossier_periode(athlete_id, date.today() - timedelta(days=27), date.today())
         garde = {k: d[k] for k in ("repartition_intensite", "tendance_efficacite", "semaines_recentes",
                                    "charge_et_fraicheur_fin_de_periode", "recuperation_fin_de_periode",
@@ -129,7 +129,7 @@ class QuestionsCoach(_EcranAthlete):
         self._ajouter("Toi", question)
         self.bouton.setEnabled(False)
         prompt = construire_prompt(question, contexte_local(a))
-        from interface.ia_coach import _appeler_ia
+        from noyau.ia.ia_coach import _appeler_ia
         self._tache = TacheAnalyseIA(fonction or (lambda: _appeler_ia(prompt)), self)
         self._tache.reussite.connect(self._reponse)
         self._tache.echec.connect(self._echec)

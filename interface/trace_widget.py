@@ -52,7 +52,7 @@ class TraceCanvas(QWidget):
     def _distances_cumulees(self):
         """Distance cumulée (km) à chaque point, calculée une fois."""
         if getattr(self, "_distances", None) is None:
-            from interface.gpx_utils import _distance_haversine_km
+            from noyau.traces.gpx_utils import _distance_haversine_km
             cumul, d = [0.0], 0.0
             for a, b in zip(self.points, self.points[1:]):
                 d += _distance_haversine_km(a[0], a[1], b[0], b[1])

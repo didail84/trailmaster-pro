@@ -18,7 +18,7 @@ from PySide6.QtWidgets import (
 
 from data.database import obtenir_athletes
 from interface.ecran_liste import obtenir_style_ecran, configurer_table_redimensionnable
-from interface.doublons import detecter_doublons, supprimer_doublons, fusionner_groupe
+from noyau.traces.doublons import detecter_doublons, supprimer_doublons, fusionner_groupe
 
 
 class NettoyageDoublons(QMainWindow):

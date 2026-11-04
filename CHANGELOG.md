@@ -1,5 +1,12 @@
 # Historique des versions
 
+## Trail Hub Center — étape 1.3 (réorganisation interne, aucune nouveauté visible)
+- Tous les calculs (coach, plans, replanification, traces GPX/FIT, roadbook, ravitaillement, imports Strava/Garmin, IA…) sont rangés dans un nouveau dossier `noyau/`, indépendant de l'interface : 63 fichiers, en 8 familles (outils, traces, entraînement, santé, course, imports, IA, services).
+- Les calculs de « VMA & circuits » et de l'import montre USB sont séparés de leur écran.
+- Les anciens chemins (`interface.coach`, `data.metriques`…) continuent de fonctionner à l'identique.
+- La base de données ne dépend plus de l'interface : elle annonce ses modifications par un événement interne, que le coach et les écrans écoutent pour vider leurs caches.
+- Tests : 173 (dont 65 qui vérifient ces règles d'architecture) ; les installateurs embarquent le dossier `noyau`.
+
 ## 108
 - Nouveau : **Roadbook course** (Analyses > Performance > 🗺️ Roadbook, et bouton « 🗺️ Roadbook de cette course » dans Courses à venir) pour préparer une course précise, en complément de l'entraînement.
 - Import du GPX (ou d'un parcours déjà importé) : profil altimétrique, points nommés du GPX repris, temps de passage estimés selon ton niveau (VO₂max « estimation basse », allure sur le plat, ou temps visé) avec le même calcul de pente que le pacing existant.

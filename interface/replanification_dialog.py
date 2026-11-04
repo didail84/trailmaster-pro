@@ -19,12 +19,12 @@ from PySide6.QtWidgets import (
 )
 
 from interface.ecran_liste import obtenir_style_ecran
-from interface.replanification import (
+from noyau.entrainement.replanification import (
     proposer_replanification,
     appliquer_replanification,
     historique_replanifications,
 )
-from interface.ia_coach import commenter_replanification, cle_api_configuree, ErreurAnalyseIA
+from noyau.ia.ia_coach import commenter_replanification, cle_api_configuree, ErreurAnalyseIA
 from interface.tache_ia import TacheAnalyseIA
 
 

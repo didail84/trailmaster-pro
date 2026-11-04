@@ -13,7 +13,7 @@ from PySide6.QtWidgets import (
     QTableWidget, QTableWidgetItem,
 )
 
-from data import garmin_connect as gc
+from noyau.imports import garmin_connect as gc
 from data.database import connexion, obtenir_athletes, obtenir_parametre, definir_parametre
 from interface import arriere_plan
 from interface.ecran_liste import obtenir_style_ecran, configurer_table_redimensionnable

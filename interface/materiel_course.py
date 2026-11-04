@@ -24,7 +24,7 @@ from PySide6.QtWidgets import (
 )
 
 from data.database import connexion
-from data.reference_materiel_course import calculer_materiel
+from noyau.course.reference_materiel_course import calculer_materiel
 from interface.theme import (
     PALETTE, POLICE_TITRE, POLICE_TEXTE, POLICE_TEXTE_DEMI, charger_polices,
     obtenir_couleur_accent, obtenir_couleur_accent_douce,

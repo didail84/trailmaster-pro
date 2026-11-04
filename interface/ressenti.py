@@ -9,7 +9,7 @@ from PySide6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QButtonGroup, QFrame,
 )
 
-import data.metriques as met
+import noyau.entrainement.metriques as met
 from interface.theme import PALETTE, obtenir_couleur_accent
 from interface.outils_ui import notifier
 

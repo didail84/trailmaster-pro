@@ -4,7 +4,7 @@ from PySide6.QtWidgets import QDialog, QMessageBox
 
 from data.database import connexion, affichage_simplifie_actif
 from interface.ecran_liste import EcranListe, Champ, configurer_table_redimensionnable
-from interface.date_utils import parser_date_flexible
+from noyau.outils.date_utils import parser_date_flexible
 from interface.dialogue_tactique_course import DialogueTactiqueCourse
 
 

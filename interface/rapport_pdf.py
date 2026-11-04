@@ -14,7 +14,7 @@ from PySide6.QtGui import (
 )
 from PySide6.QtWidgets import QComboBox, QLabel, QPushButton, QFileDialog, QTextBrowser
 
-import data.metriques as met
+import noyau.entrainement.metriques as met
 from data.database import connexion
 from interface.forme_evolution import _EcranAthlete
 from interface.outils_ui import notifier
@@ -118,7 +118,7 @@ def construire_rapport(athlete_id, type_periode="semaine", ref=None):
     images = {}
 
     # graphique de charge
-    from interface.coach import obtenir_charges_journalieres
+    from noyau.entrainement.coach import obtenir_charges_journalieres
     nb = (date.today() - debut).days + 1
     par_jour = dict(obtenir_charges_journalieres(athlete_id, max(nb, 1)))
     if type_periode == "semaine":
@@ -133,7 +133,7 @@ def construire_rapport(athlete_id, type_periode="semaine", ref=None):
         images["charge"] = _graphique_charge([v for _, v in sem], [l for l, _ in sem], "Charge d'entraînement par semaine")
 
     # forme
-    from interface.coach import calculer_serie_forme, generer_alertes
+    from noyau.entrainement.coach import calculer_serie_forme, generer_alertes
     forme_txt = ""
     serie = calculer_serie_forme(athlete_id, nb_jours=max((date.today() - debut).days + 45, 60))
     if serie:

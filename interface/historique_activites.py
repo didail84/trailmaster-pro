@@ -36,10 +36,10 @@ from interface.ecran_liste import (
     obtenir_style_ecran, configurer_table_redimensionnable, creer_bouton_retour_tableau_bord,
 )
 from interface.apercu_survol import installer_apercu_survol
-from interface.date_utils import parser_date_flexible
-from interface.coach import charge_activite_pour_athlete
-from interface.vo2max import estimer_vo2max
-from interface.ia_coach import analyser_sortie, cle_api_configuree
+from noyau.outils.date_utils import parser_date_flexible
+from noyau.entrainement.coach import charge_activite_pour_athlete
+from noyau.entrainement.vo2max import estimer_vo2max
+from noyau.ia.ia_coach import analyser_sortie, cle_api_configuree
 from interface.tache_ia import TacheAnalyseIA
 from interface.detail_sortie import DialogueDetailSortie
 from interface.dialogue_nouvelle_activite import DialogueNouvelleActivite

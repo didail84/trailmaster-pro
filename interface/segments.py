@@ -22,7 +22,7 @@ from PySide6.QtWidgets import (
 from data.database import connexion, creer_base_de_donnees, obtenir_athletes
 from interface.ecran_liste import obtenir_style_ecran, configurer_table_redimensionnable
 from interface.trace_widget import TraceCanvas
-from interface.segments_utils import (
+from noyau.traces.segments_utils import (
     extraire_reference_segment,
     detecter_occurrence,
     duree_occurrence_s,

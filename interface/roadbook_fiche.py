@@ -11,7 +11,7 @@ Les chiffres sont des estimations : à lire comme un repère, pas comme un chron
 from PySide6.QtCore import Qt, QRectF, QPointF, QMarginsF
 from PySide6.QtGui import QPdfWriter, QPageSize, QPainter, QColor, QFont, QPen, QBrush, QPolygonF, QPageLayout
 
-from data.roadbook import texte_duree, texte_heure
+from noyau.course.roadbook import texte_duree, texte_heure
 
 NOIR = QColor("#111111")
 GRIS = QColor("#666666")

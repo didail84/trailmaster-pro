@@ -19,8 +19,8 @@ from data.database import connexion, obtenir_athletes
 from interface.ecran_liste import (
     obtenir_style_ecran, configurer_table_redimensionnable, creer_bouton_retour_tableau_bord,
 )
-from interface.secteurs_utils import regrouper_en_secteurs
-from interface.meteo import obtenir_meteo_actuelle_et_previsions, obtenir_meteo_historique
+from noyau.traces.secteurs_utils import regrouper_en_secteurs
+from noyau.outils.meteo import obtenir_meteo_actuelle_et_previsions, obtenir_meteo_historique
 
 
 def _localisation_principale(athlete_id):

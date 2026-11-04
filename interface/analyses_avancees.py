@@ -8,9 +8,9 @@ v104 — trois écrans d'analyse poussée :
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QLabel, QPushButton, QMessageBox, QFrame, QVBoxLayout, QHBoxLayout
 
-from data import qualite_donnees as qd
-from data import meilleurs_efforts as me
-from data import impact_conditions as ic
+from noyau.entrainement import qualite_donnees as qd
+from noyau.traces import meilleurs_efforts as me
+from noyau.entrainement import impact_conditions as ic
 from interface import arriere_plan
 from interface.courbe_multiligne import CourbeMultiLignes
 from interface.forme_evolution import _EcranAthlete

@@ -21,8 +21,8 @@ from PySide6.QtWidgets import (
     QProgressDialog, QApplication, QMessageBox,
 )
 
-import data.analyse_traces as at
-import data.metriques as met
+import noyau.traces.analyse_traces as at
+import noyau.entrainement.metriques as met
 from interface.arriere_plan import executer
 from interface.courbe_widget import CourbeBarres
 from interface.cockpit import Anneau, couleur_score
@@ -97,7 +97,7 @@ class _EcranTraces(_EcranAthlete):
         executer(fonction, retour, *args, proprietaire=self, cle_cache=cle)
 
     def _fc_cible(self):
-        from data.metriques import _athlete
+        from noyau.entrainement.metriques import _athlete
         fc_max = _athlete(self.athlete_id).get("fc_max") or 185
         return int(round(fc_max * 0.75 / 5) * 5)
 

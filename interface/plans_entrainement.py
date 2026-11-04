@@ -26,18 +26,18 @@ from PySide6.QtWidgets import (
 
 from data.database import connexion, creer_base_de_donnees, obtenir_athletes, affichage_simplifie_actif
 from interface.ecran_liste import obtenir_style_ecran, configurer_table_redimensionnable
-from interface.generateur_plan import (
+from noyau.entrainement.generateur_plan import (
     generer_plan,
     date_seance,
     PARAMETRES_DISTANCE,
     FACTEUR_NIVEAU,
     NOMS_JOURS,
 )
-from interface.records import calculer_records, calculer_predictions, DISTANCES_REFERENCE
+from noyau.entrainement.records import calculer_records, calculer_predictions, DISTANCES_REFERENCE
 from interface.replanification_dialog import DialogueReplanification
 from interface.dialogue_programme_ultra import DialogueProgrammeUltra
-from interface.export_ics import generer_ics
-from interface.generateur_ultra import obtenir_blocs_plan, generer_rapport_bloc
+from noyau.entrainement.export_ics import generer_ics
+from noyau.entrainement.generateur_ultra import obtenir_blocs_plan, generer_rapport_bloc
 
 
 # Correspondance entre les distances de ce module et les libellés

@@ -15,8 +15,8 @@ from PySide6.QtWidgets import (
 
 from data.database import obtenir_athletes, obtenir_parametre, definir_parametre
 from interface.ecran_liste import obtenir_style_ecran
-from interface.strava_api import demarrer_flux_autorisation, verifier_code_recu, echanger_code_contre_jetons
-from interface.strava_sync import synchroniser, sauvegarder_jetons
+from noyau.imports.strava_api import demarrer_flux_autorisation, verifier_code_recu, echanger_code_contre_jetons
+from noyau.imports.strava_sync import synchroniser, sauvegarder_jetons
 
 
 class StravaEcran(QMainWindow):
@@ -269,7 +269,7 @@ class StravaEcran(QMainWindow):
             self.label_resultat_sync.setText(f"⚠️ {erreur}")
             return
 
-        from interface.strava_sync import DERNIER_BILAN
+        from noyau.imports.strava_sync import DERNIER_BILAN
         self.label_resultat_sync.setText(
             f"✅ {nb_nouvelles} nouvelle(s) activité(s) importée(s)"
             + (f", {DERNIER_BILAN['completees']} sortie(s) existante(s) complétée(s)"

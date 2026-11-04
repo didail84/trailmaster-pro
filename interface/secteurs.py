@@ -23,7 +23,7 @@ from PySide6.QtWidgets import (
 from data.database import obtenir_athletes
 from interface.ecran_liste import obtenir_style_ecran, configurer_table_redimensionnable
 from interface.trace_widget import TraceCanvas
-from interface.secteurs_utils import calculer_stats_secteurs
+from noyau.traces.secteurs_utils import calculer_stats_secteurs
 
 
 class Secteurs(QMainWindow):

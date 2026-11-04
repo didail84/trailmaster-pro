@@ -117,3 +117,9 @@ def executer(fonction, rappel, *args, proprietaire=None, cle_cache=None, ttl=300
 
 def vider_cache():
     _cache.clear()
+
+
+# Vidé automatiquement dès que la base annonce une modification.
+from noyau.outils import evenements as _evenements  # noqa: E402
+
+_evenements.abonner(_evenements.DONNEES_MODIFIEES, lambda **_: vider_cache())

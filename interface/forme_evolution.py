@@ -22,8 +22,8 @@ from PySide6.QtWidgets import (
 from data.database import obtenir_athletes
 from interface.ecran_liste import obtenir_style_ecran
 from interface.courbe_multiligne import CourbeMultiLignes
-from interface.coach import calculer_serie_forme, obtenir_blessures_periode
-from interface.evolution_performance import MESURES_EVOLUTION, serie_evolution_mensuelle
+from noyau.entrainement.coach import calculer_serie_forme, obtenir_blessures_periode
+from noyau.entrainement.evolution_performance import MESURES_EVOLUTION, serie_evolution_mensuelle
 from interface.apercu_widgets import etat_fraicheur, virgule
 
 PERIODES_FORME = [("3 mois", 91), ("6 mois", 182), ("1 an", 365), ("2 ans", 730)]

@@ -13,7 +13,7 @@ from PySide6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QFileDialog, QWidget,
 )
 
-import data.metriques as met
+import noyau.entrainement.metriques as met
 import data.photos_sorties as ph
 from data.database import connexion
 from interface.theme import PALETTE, obtenir_couleur_accent
@@ -36,7 +36,7 @@ def _km_a_la_photo(photo, points, debut):
     pos = ph.position_sur_trace(photo, points, debut)
     if not pos or not points:
         return None, pos
-    import data.analyse_traces as at
+    import noyau.traces.analyse_traces as at
     cumul, d, meilleur, idx = 0.0, 0.0, 1e18, 0
     for i, p in enumerate(points):
         if i:

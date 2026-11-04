@@ -27,7 +27,7 @@ from data.database import connexion, obtenir_athletes
 from interface.ecran_liste import (
     obtenir_style_ecran, configurer_table_redimensionnable, creer_bouton_retour_tableau_bord,
 )
-from interface.adaptation_musculation import proposer_charge_suivante
+from noyau.entrainement.adaptation_musculation import proposer_charge_suivante
 
 
 class Renforcement(QMainWindow):

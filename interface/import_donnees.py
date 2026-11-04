@@ -1,5 +1,5 @@
 import csv
-from data.completer_activites import completer_activite
+from noyau.imports.completer_activites import completer_activite
 import hashlib
 import re
 import sqlite3
@@ -11,8 +11,8 @@ from interface.theme import (
     obtenir_couleur_accent, eclaircir, obtenir_couleur_accent_douce,
     charger_polices, PALETTE, POLICE_TITRE, POLICE_TEXTE,
 )
-from interface.date_utils import normaliser_vers_iso
-from interface.import_garmin_json import parser_export_garmin_json
+from noyau.outils.date_utils import normaliser_vers_iso
+from noyau.imports.import_garmin_json import parser_export_garmin_json
 from interface.ecran_liste import configurer_table_redimensionnable
 
 from PySide6.QtCore import Qt
@@ -467,7 +467,7 @@ class ImportDonnees(QMainWindow):
     # ==========================================================
 
     def importer_sante_garmin(self):
-        from data.import_sante_garmin import importer_sante, LIBELLES_MESURES
+        from noyau.imports.import_sante_garmin import importer_sante, LIBELLES_MESURES
 
         athlete_id = self.combo_athlete_import.currentData()
         if athlete_id is None:

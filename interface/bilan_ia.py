@@ -26,7 +26,7 @@ from PySide6.QtWidgets import (
 
 from data.database import obtenir_athletes
 from interface.ecran_liste import obtenir_style_ecran
-from interface.ia_coach import analyser_periode, cle_api_configuree
+from noyau.ia.ia_coach import analyser_periode, cle_api_configuree
 from interface.tache_ia import TacheAnalyseIA
 
 

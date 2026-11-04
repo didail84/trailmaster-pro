@@ -158,6 +158,14 @@ def desactiver_synchronisation():
         CHEMIN_POINTEUR_SYNC.unlink()
 
 
+def _annoncer_modification():
+    """Prévient les modules abonnés (cache du coach, calculs en
+    arrière-plan de l'interface) que les activités ont changé — sans
+    que la base ait à les connaître (voir noyau/outils/evenements.py)."""
+    from noyau.outils.evenements import emettre, DONNEES_MODIFIEES
+    emettre(DONNEES_MODIFIEES)
+
+
 def connexion():
     """Retourne une connexion SQLite avec les clés étrangères activées."""
     conn = sqlite3.connect(CHEMIN_BDD)
@@ -1334,13 +1342,7 @@ def supprimer_activite(activite_id):
     conn.commit()
     conn.close()
 
-    # Import différé (jamais au niveau module) pour éviter un import
-    # circulaire : interface/coach.py importe déjà data.database.
-    try:
-        from interface.coach import invalider_cache_coach
-        invalider_cache_coach()
-    except ImportError:
-        pass
+    _annoncer_modification()
 
 
 def creer_activite_manuelle(athlete_id, date_iso, nom, type_, distance_km=None,
@@ -1367,11 +1369,7 @@ def creer_activite_manuelle(athlete_id, date_iso, nom, type_, distance_km=None,
     nouvel_id = cur.lastrowid
     conn.close()
 
-    try:
-        from interface.coach import invalider_cache_coach
-        invalider_cache_coach()
-    except ImportError:
-        pass
+    _annoncer_modification()
 
     return nouvel_id
 
@@ -1462,11 +1460,7 @@ def fusionner_activites(id_survivant, id_a_fusionner):
     conn.commit()
     conn.close()
 
-    try:
-        from interface.coach import invalider_cache_coach
-        invalider_cache_coach()
-    except ImportError:
-        pass
+    _annoncer_modification()
 
 
 # --------------------------------------------------

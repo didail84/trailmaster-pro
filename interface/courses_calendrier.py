@@ -23,7 +23,7 @@ from datetime import date, timedelta
 from PySide6.QtWidgets import QMessageBox
 
 from data.database import connexion
-from data.estimation_temps_course import estimer_temps_course
+from noyau.course.estimation_temps_course import estimer_temps_course
 from interface.ecran_liste import EcranListe, Champ
 from interface.materiel_course import MaterielCourse
 

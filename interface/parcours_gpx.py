@@ -24,14 +24,14 @@ from PySide6.QtWidgets import (
 )
 
 from data.database import connexion, creer_base_de_donnees, obtenir_athletes, affichage_simplifie_actif
-from interface.gpx_utils import parser_gpx
-from interface.fit_utils import parser_fit
+from noyau.traces.gpx_utils import parser_gpx
+from noyau.traces.fit_utils import parser_fit
 from interface.trace_widget import TraceCanvas
 from interface.ecran_liste import obtenir_style_ecran, configurer_table_redimensionnable
-from interface.montees import detecter_montees
-from interface.puissance import calculer_puissance_estimee
-from interface.dynamique_course import calculer_decouplage_cardiaque, calculer_cadence_moyenne
-from interface.pacing_segments import decouper_par_segments, calculer_pacing
+from noyau.traces.montees import detecter_montees
+from noyau.traces.puissance import calculer_puissance_estimee
+from noyau.traces.dynamique_course import calculer_decouplage_cardiaque, calculer_cadence_moyenne
+from noyau.course.pacing_segments import decouper_par_segments, calculer_pacing
 
 
 class ParcoursGPX(QMainWindow):
@@ -540,7 +540,7 @@ class DialoguePacingSegmente(QDialog):
         layout.addWidget(self.label_total)
 
     def calculer(self):
-        from interface.conformite import parser_allure
+        from noyau.entrainement.conformite import parser_allure
 
         allure_plat = parser_allure(self.champ_allure_plat.text().strip())
         if not allure_plat:

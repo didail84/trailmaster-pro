@@ -20,7 +20,7 @@ from PySide6.QtWidgets import (
 from interface.courbe_multiligne import CourbeMultiLignes
 from interface.courbe_widget import CourbeBarres
 from interface.theme import PALETTE, POLICE_TEXTE, obtenir_couleur_accent, eclaircir
-from interface.coach import (
+from noyau.entrainement.coach import (
     calculer_acwr, calculer_score_forme_jour, calculer_serie_forme,
     obtenir_charges_journalieres, obtenir_charges_periode,
     obtenir_mesure_periode, obtenir_date_premiere_activite, generer_alertes,
@@ -393,7 +393,7 @@ class DialogueDetailCarte(QDialog):
         elif cle in MESURE_PAR_CARTE or cle == "graphique_sur_mesure":
             mesures = [MESURE_PAR_CARTE[cle]] if cle in MESURE_PAR_CARTE else [
                 "distance", "denivele", "duree", "nb_seances", "charge"]
-            from interface.coach import MESURES_CUMULABLES
+            from noyau.entrainement.coach import MESURES_CUMULABLES
             for m in mesures:
                 points, gran, total = obtenir_mesure_periode(aid, m, nb)
                 libelle = MESURES_CUMULABLES[m]["libelle"]
@@ -428,7 +428,7 @@ class DialogueDetailCarte(QDialog):
 
     def _ajouter_selecteur_mesure(self):
         """Graphique polyvalent : petit sélecteur de mesure sous le graphique."""
-        from interface.coach import MESURES_CUMULABLES
+        from noyau.entrainement.coach import MESURES_CUMULABLES
         ligne = QHBoxLayout()
         ligne.addWidget(QLabel("Mesure :"))
         combo = QComboBox()
@@ -446,7 +446,7 @@ class DialogueDetailCarte(QDialog):
     def _changer_mesure(self, idx):
         self._mesure_idx = idx
         # Recalcule le graphique avec la mesure choisie.
-        from interface.coach import MESURES_CUMULABLES
+        from noyau.entrainement.coach import MESURES_CUMULABLES
         mesure = self._combo_mesure.currentData()
         nb = _nb_jours(self.combo_periode.currentText(), self.athlete_id)
         points, _, total = obtenir_mesure_periode(self.athlete_id, mesure, nb)

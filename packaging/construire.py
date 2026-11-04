@@ -67,6 +67,7 @@ def pyinstaller():
         "--hidden-import", "PySide6.QtWebEngineCore",
         "--hidden-import", "PySide6.QtWebChannel",
         "--hidden-import", keyring,
+        "--collect-submodules", "noyau",
         "--collect-all", "PySide6",
         "--collect-all", "garminconnect",
         "--collect-all", "curl_cffi",

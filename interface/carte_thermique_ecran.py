@@ -17,7 +17,7 @@ from PySide6.QtWidgets import (
 from data.database import connexion, creer_base_de_donnees, obtenir_athletes
 from interface.ecran_liste import obtenir_style_ecran
 from interface.carte_thermique import CarteThermique
-from interface.secteurs_utils import regrouper_en_secteurs
+from noyau.traces.secteurs_utils import regrouper_en_secteurs
 
 
 class CarteThermiqueEcran(QMainWindow):

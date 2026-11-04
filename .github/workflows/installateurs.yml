@@ -55,7 +55,7 @@ jobs:
 
       - name: Vérification de la syntaxe
         shell: bash
-        run: python -m compileall -q interface data main.py
+        run: python -m compileall -q noyau interface data main.py
 
       - name: Tests automatiques
         shell: bash
