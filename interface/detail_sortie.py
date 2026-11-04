@@ -32,7 +32,7 @@ from PySide6.QtWidgets import (
 )
 from noyau.donnees import activites as dact, parcours as dparc  # accès aux données
 
-from data.database import connexion, supprimer_activite
+from data.database import supprimer_activite
 from interface.ecran_liste import obtenir_style_ecran, configurer_table_redimensionnable
 from noyau.outils.date_utils import parser_date_flexible
 from noyau.entrainement.coach import charge_activite_pour_athlete
@@ -94,6 +94,7 @@ def _spin_optionnel(minimum, maximum, suffixe="", decimales=None):
 
 
 from interface.outils_ui import notifier
+from noyau.donnees import segments as dseg
 
 
 def style_sombre():
@@ -772,17 +773,7 @@ class DialogueDetailSortie(QDialog):
         return {"id": resultat[0], "trace_json": resultat[1]}
 
     def _charger_segments_efforts(self):
-        conn = connexion()
-        cur = conn.cursor()
-        cur.execute(
-            "SELECT s.nom, s.distance_km, e.duree_s FROM segments_efforts e "
-            "JOIN segments s ON e.segment_id = s.id "
-            "WHERE e.activite_id=?",
-            (self.activite_id,),
-        )
-        lignes = cur.fetchall()
-        conn.close()
-        return lignes
+        return dseg.passages_de_l_activite(self.activite_id)
 
     def _ouvrir_meilleures_portions(self, points):
         from interface.meilleures_portions import ouvrir_meilleures_portions

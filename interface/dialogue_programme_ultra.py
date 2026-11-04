@@ -26,10 +26,10 @@ from PySide6.QtWidgets import (
     QMessageBox,
 )
 
-from data.database import connexion
 from interface.ecran_liste import obtenir_style_ecran, configurer_table_redimensionnable
 from noyau.entrainement.generateur_plan import FACTEUR_NIVEAU, date_seance
 from noyau.entrainement.generateur_ultra import generer_programme_ultra
+from noyau.donnees import plans as dplan
 
 
 JOURS_SEMAINE = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"]
@@ -268,50 +268,28 @@ class DialogueProgrammeUltra(QDialog):
         nb_semaines = len(semaines)
         date_fin = date_seance(date_debut, nb_semaines, self.combo_jour_longue.currentIndex())
 
-        conn = connexion()
-        cur = conn.cursor()
-        cur.execute(
-            """
-            INSERT INTO plans_entrainement (
-                athlete_id, nom, distance_cible, niveau, nb_semaines,
-                jours_par_semaine, allure_objectif, date_debut, date_course
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """,
-            (
-                self.athlete_id,
-                self.champ_nom.text().strip(),
-                f"Ultra {distance_finale:g} km (objectif {self.spin_annees.value()} an(s))",
-                self.combo_niveau.currentText(),
-                nb_semaines,
-                None,
-                self.champ_allure.text().strip() or None,
-                date_debut.strftime("%Y-%m-%d"),
-                date_fin.strftime("%Y-%m-%d"),
-            ),
-        )
-        plan_id = cur.lastrowid
-
+        liste_seances = []
         for semaine in semaines:
             for seance in semaine["seances"]:
                 date_prevue = date_seance(date_debut, semaine["indice"], seance["jour_offset"])
-                cur.execute(
-                    """
-                    INSERT INTO seances_structurees (
-                        athlete_id, nom, type_seance, date_prevue, statut, etapes_json, plan_id
-                    ) VALUES (?, ?, ?, ?, 'Prévue', ?, ?)
-                    """,
-                    (
-                        self.athlete_id,
-                        f"S{semaine['indice']} [{semaine['bloc']}] — {seance['nom']}",
-                        seance["type_seance"],
-                        date_prevue.strftime("%Y-%m-%d"),
-                        json.dumps(seance["etapes"]),
-                        plan_id,
-                    ),
-                )
-
-        conn.commit()
-        conn.close()
+                liste_seances.append({
+                    "athlete_id": self.athlete_id,
+                    "nom": f"S{semaine['indice']} [{semaine['bloc']}] — {seance['nom']}",
+                    "type_seance": seance["type_seance"],
+                    "date_prevue": date_prevue.strftime("%Y-%m-%d"),
+                    "etapes_json": json.dumps(seance["etapes"]),
+                })
+        dplan.creer_avec_seances({
+            "athlete_id": self.athlete_id,
+            "nom": self.champ_nom.text().strip(),
+            "distance_cible": f"Ultra {distance_finale:g} km (objectif {self.spin_annees.value()} an(s))",
+            "niveau": self.combo_niveau.currentText(),
+            "nb_semaines": nb_semaines,
+            "jours_par_semaine": None,
+            "allure_objectif": self.champ_allure.text().strip() or None,
+            "date_debut": date_debut.strftime("%Y-%m-%d"),
+            "date_course": date_fin.strftime("%Y-%m-%d"),
+        }, liste_seances)
 
         nb_seances = sum(len(s["seances"]) for s in semaines)
         QMessageBox.information(

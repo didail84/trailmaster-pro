@@ -28,6 +28,7 @@ from interface.ecran_liste import (
     obtenir_style_ecran, configurer_table_redimensionnable, creer_bouton_retour_tableau_bord,
 )
 from noyau.entrainement.adaptation_musculation import proposer_charge_suivante
+from noyau.donnees import musculation as dmus
 
 
 class Renforcement(QMainWindow):
@@ -406,51 +407,26 @@ class Renforcement(QMainWindow):
         if athlete_id is None:
             return
 
-        conn = connexion()
-        cur = conn.cursor()
-
-        cur.execute(
-            "SELECT groupe_seance, exercice, charge_depart_kg, bloc1, bloc2, bloc3, bloc4, bloc5, bloc6 "
-            "FROM musculation_exercices WHERE athlete_id=? ORDER BY groupe_seance, id",
-            (athlete_id,),
-        )
-        lignes = cur.fetchall()
+        lignes = dmus.exercices(athlete_id)
         self.table_plan.setRowCount(len(lignes))
         for i, ligne in enumerate(lignes):
             for j, valeur in enumerate(ligne):
                 self.table_plan.setItem(i, j, QTableWidgetItem("" if valeur is None else str(valeur)))
             self.combo_exercice.addItem(ligne[1])
 
-        cur.execute(
-            "SELECT date, type_seance, exercice, charge_kg, series, rpe, douleur, "
-            "charge_proposee, decision, appareil, duree_min, type_intensite, "
-            "valeur_intensite, distance_km, fc_moyenne, calories, groupe_musculaire "
-            "FROM musculation_suivi WHERE athlete_id=? ORDER BY date DESC",
-            (athlete_id,),
-        )
-        lignes_suivi = cur.fetchall()
+        lignes_suivi = dmus.suivi(athlete_id)
         self.table_suivi.setRowCount(len(lignes_suivi))
         for i, ligne in enumerate(lignes_suivi):
             for j, valeur in enumerate(self._formater_ligne_suivi(ligne)):
                 self.table_suivi.setItem(i, j, QTableWidgetItem(valeur))
 
-        cur.execute(
-            "SELECT jour, duree, bloc, contenu, intensite, moment FROM planning_mobilite "
-            "WHERE athlete_id=?",
-            (athlete_id,),
-        )
-        lignes_planning = cur.fetchall()
+        lignes_planning = dmus.planning_mobilite(athlete_id)
         self.table_planning_mobilite.setRowCount(len(lignes_planning))
         for i, ligne in enumerate(lignes_planning):
             for j, valeur in enumerate(ligne):
                 self.table_planning_mobilite.setItem(i, j, QTableWidgetItem("" if valeur is None else str(valeur)))
 
-        cur.execute(
-            "SELECT categorie, exercice, moment_ou_objectif, zone, bloc1, bloc2, bloc3, bloc4, "
-            "bloc5, bloc6, progression FROM mobilite_exercices WHERE athlete_id=? ORDER BY categorie, id",
-            (athlete_id,),
-        )
-        lignes_mobilite = cur.fetchall()
+        lignes_mobilite = dmus.exercices_mobilite(athlete_id)
         self.table_mobilite.setRowCount(len(lignes_mobilite))
         for i, ligne in enumerate(lignes_mobilite):
             for j, valeur in enumerate(ligne):
@@ -460,8 +436,6 @@ class Renforcement(QMainWindow):
         self.table_suivi.resizeColumnsToContents()
         self.table_planning_mobilite.resizeColumnsToContents()
         self.table_mobilite.resizeColumnsToContents()
-
-        conn.close()
 
     def _formater_ligne_suivi(self, ligne):
         """Met en forme une ligne d'historique (Renforcement ou Cardio machine)
@@ -514,9 +488,6 @@ class Renforcement(QMainWindow):
         date_iso = self.champ_date.date().toString("yyyy-MM-dd")
         type_seance = self.combo_type_seance.currentData()
 
-        conn = connexion()
-        cur = conn.cursor()
-
         if type_seance == "Cardio machine":
             appareil = self.combo_appareil.currentText()
             duree = self.champ_duree.value()
@@ -531,16 +502,12 @@ class Renforcement(QMainWindow):
                 type_intensite = "Vitesse"
                 valeur_intensite = f"{self.champ_vitesse.value()} km/h"
 
-            cur.execute(
-                """INSERT INTO musculation_suivi
-                   (athlete_id, date, type_seance, appareil, duree_min, type_intensite,
-                    valeur_intensite, distance_km, fc_moyenne, calories)
-                   VALUES (?,?,?,?,?,?,?,?,?,?)""",
-                (athlete_id, date_iso, type_seance, appareil, duree, type_intensite,
-                 valeur_intensite, distance, fc_moyenne, calories),
-            )
-            conn.commit()
-            conn.close()
+            dmus.ajouter_suivi({
+                "athlete_id": athlete_id, "date": date_iso, "type_seance": type_seance,
+                "appareil": appareil, "duree_min": duree, "type_intensite": type_intensite,
+                "valeur_intensite": valeur_intensite, "distance_km": distance,
+                "fc_moyenne": fc_moyenne, "calories": calories,
+            })
 
             self.label_resultat_suivi.setText(
                 f"✅ Enregistré : {appareil} — {duree} min, {distance} km, "
@@ -551,7 +518,6 @@ class Renforcement(QMainWindow):
 
         exercice = self.combo_exercice.currentText()
         if not exercice:
-            conn.close()
             QMessageBox.warning(self, "Exercice requis", "Sélectionne un exercice.")
             return
 
@@ -565,17 +531,12 @@ class Renforcement(QMainWindow):
 
         charge_proposee, decision = proposer_charge_suivante(charge, rpe, douleur)
 
-        cur.execute(
-            """INSERT INTO musculation_suivi
-               (athlete_id, date, type_seance, exercice, charge_kg, series, reps_prevues,
-                rpe, douleur, charge_proposee, decision, groupe_musculaire, duree_min)
-               VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)""",
-            (athlete_id, date_iso, type_seance, exercice, charge, series, reps, rpe, douleur,
-             charge_proposee, decision, groupe_musculaire, duree),
-        )
-        id_seance_muscu = cur.lastrowid
-        conn.commit()
-        conn.close()
+        id_seance_muscu = dmus.ajouter_suivi({
+            "athlete_id": athlete_id, "date": date_iso, "type_seance": type_seance,
+            "exercice": exercice, "charge_kg": charge, "series": series, "reps_prevues": reps,
+            "rpe": rpe, "douleur": douleur, "charge_proposee": charge_proposee,
+            "decision": decision, "groupe_musculaire": groupe_musculaire, "duree_min": duree,
+        })
 
         self.label_resultat_suivi.setText(
             f"✅ Enregistré. Charge proposée pour la prochaine séance : {charge_proposee} kg — {decision}"

@@ -271,7 +271,10 @@ def test_recherche_globale(remplie):
 # ------------------------------------------------------------------
 
 RACINE = Path(__file__).resolve().parent.parent
-TABLES_FAITES = {"activites", "parcours_gpx", "athletes"}
+TABLES_FAITES = {"activites", "parcours_gpx", "athletes",                       # étape 1.4a
+                 "seances_structurees", "plans_entrainement", "rapports_bloc",   # étape 1.4b
+                 "segments", "segments_efforts", "musculation_suivi",
+                 "musculation_exercices", "planning_mobilite", "mobilite_exercices"}
 _TABLE = re.compile(r"\b(?:FROM|INTO|UPDATE)\s+([a-z_]+)", re.I)
 
 
@@ -287,9 +290,9 @@ def requetes_des_ecrans():
 
 
 def test_plus_aucune_requete_principale_sur_les_tables_faites():
-    """Les écrans ne lisent plus activites, parcours_gpx ni athletes en
-    table principale (seules restent des jointures depuis d'autres tables,
-    traitées aux étapes 1.4b et 1.4c)."""
+    """Les écrans n'interrogent plus directement les tables déjà passées
+    dans noyau/donnees (seules restent des jointures depuis d'autres
+    tables, traitées à l'étape 1.4c)."""
     fautes = []
     for fichier, ligne, texte in requetes_des_ecrans():
         principales = _TABLE.findall(texte)
@@ -299,5 +302,5 @@ def test_plus_aucune_requete_principale_sur_les_tables_faites():
 
 
 def test_le_nombre_de_requetes_des_ecrans_ne_remonte_pas():
-    # 157 requêtes en v108 → 88 après l'étape 1.4a ; ce plafond baissera à chaque étape.
-    assert len(requetes_des_ecrans()) <= 88
+    # 157 requêtes en v108 → 88 après l'étape 1.4a → 50 après la 1.4b ; ce plafond baisse à chaque étape.
+    assert len(requetes_des_ecrans()) <= 50

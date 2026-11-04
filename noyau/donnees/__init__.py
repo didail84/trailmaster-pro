@@ -10,6 +10,10 @@ numérotées, mode serveur), seul ce dossier changera.
   activites     sorties
   parcours      traces GPX et parcours dessinés
   athletes      profils des coureurs
+  seances       séances structurées
+  plans         plans d'entraînement et rapports de bloc
+  segments      segments précis et passages
+  musculation   renforcement, cardio machine et mobilité
   recherche     recherche globale (toutes les tables)
 
 Chaque fonction peut recevoir `cur=` (un curseur déjà ouvert) pour

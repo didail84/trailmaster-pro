@@ -1,5 +1,12 @@
 # Historique des versions
 
+## Trail Hub Center — étape 1.4b (accès aux données : plans, séances, segments, musculation)
+- `noyau/donnees/` s'enrichit de `seances`, `plans`, `segments` et `musculation` : 39 requêtes ont quitté 9 écrans (88 → 50 requêtes restantes dans les écrans).
+- Un plan d'entraînement (classique ou Programme Ultra) est enregistré avec toutes ses séances en une seule opération : rien n'est écrit à moitié en cas d'erreur.
+- Correction : un plan ayant un rapport de fin de bloc, un historique de replanification ou une séance déjà comparée à une sortie ne pouvait pas être supprimé (la base refusait et l'écran affichait une erreur). Sa suppression efface maintenant aussi ces éléments liés.
+- Correction : même chose pour une séance seule déjà comparée à une sortie réalisée.
+- Tests : 202, dont 9 sur les nouvelles fonctions de données.
+
 ## Trail Hub Center — étape 1.4a (accès aux données : sorties, parcours, athlètes)
 - Nouveau dossier `noyau/donnees/` : c'est désormais le seul endroit où s'écrivent les requêtes sur les sorties, les parcours GPX et les athlètes. 70 requêtes ont quitté 28 écrans (157 → 88 requêtes restantes dans les écrans).
 - La recherche globale est rangée dans le noyau.

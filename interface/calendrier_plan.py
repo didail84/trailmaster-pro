@@ -11,10 +11,10 @@ from PySide6.QtCore import Qt, QMimeData
 from PySide6.QtGui import QDrag
 from PySide6.QtWidgets import QFrame, QGridLayout, QLabel, QPushButton, QVBoxLayout, QHBoxLayout, QWidget
 
-from data.database import connexion
 from interface.forme_evolution import _EcranAthlete
 from interface.outils_ui import notifier
 import noyau.entrainement.metriques as met
+from noyau.donnees import seances as dseance
 
 MIME = "application/x-trailmaster-seance"
 MOIS = ["Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"]
@@ -85,13 +85,7 @@ class CaseJour(QFrame):
 
 
 def deplacer_seance(seance_id, jour):
-    conn = connexion()
-    cur = conn.cursor()
-    cur.execute("UPDATE seances_structurees SET date_prevue=? WHERE id=? AND statut='Prévue'", (jour.isoformat(), seance_id))
-    ok = cur.rowcount > 0
-    conn.commit()
-    conn.close()
-    return ok
+    return dseance.deplacer(seance_id, jour.isoformat())
 
 
 class CalendrierPlan(_EcranAthlete):
@@ -152,16 +146,11 @@ class CalendrierPlan(_EcranAthlete):
         dernier = premier + timedelta(days=7 * nb_sem - 1)
         seances, faites, courses = {}, {}, {}
         if a is not None:
-            conn = connexion()
-            cur = conn.cursor()
-            cur.execute("SELECT id, nom, type_seance, date_prevue, statut FROM seances_structurees WHERE athlete_id=? "
-                        "AND date_prevue>=? AND date_prevue<=?", (a, premier.isoformat(), dernier.isoformat() + "z"))
-            for sid, nom, typ, dp, st in cur.fetchall():
+            for sid, nom, typ, dp, st in dseance.entre_dates(a, premier.isoformat(), dernier.isoformat() + "z"):
                 try:
                     seances.setdefault(date.fromisoformat(str(dp)[:10]), []).append((sid, nom, typ, st))
                 except ValueError:
                     pass
-            conn.close()
             for s in met.activites_periode(a, premier, dernier):
                 if s["jour"]:
                     faites.setdefault(s["jour"], []).append(s)

@@ -22,6 +22,7 @@ from noyau.course import predictions_course as pred
 from noyau.course import ravitaillement as rav
 from interface.ecran_liste import obtenir_style_ecran
 from interface.vma import _table, _remplir, duree_texte
+from noyau.donnees import seances as dseance
 
 COULEURS = {"vert": "#66BB6A", "orange": "#FFA726", "rouge": "#EF5350"}
 LIBELLES = {"vert": "🟢 Feu vert", "orange": "🟠 Prudence", "rouge": "🔴 Repos conseillé"}
@@ -182,14 +183,8 @@ class CoachDuJour(QMainWindow):
         if not d or not d["etapes"] or a is None:
             return
         from datetime import date
-        conn = connexion()
-        cur = conn.cursor()
-        cur.execute(
-            "INSERT INTO seances_structurees (athlete_id, nom, type_seance, date_prevue, statut, etapes_json) "
-            "VALUES (?, ?, ?, ?, 'Prévue', ?)",
-            (a, d["titre"][:60], "Coach du jour", date.today().isoformat(), json.dumps(d["etapes"])))
-        conn.commit()
-        conn.close()
+        dseance.creer({"athlete_id": a, "nom": d["titre"][:60], "type_seance": "Coach du jour",
+                       "date_prevue": date.today().isoformat(), "etapes_json": json.dumps(d["etapes"])})
         QMessageBox.information(self, "Enregistrée", "La séance est dans l'écran Séances.")
 
     def envoyer_garmin(self):

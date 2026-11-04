@@ -25,7 +25,7 @@ from PySide6.QtWidgets import (
 )
 from noyau.donnees import activites as dact, parcours as dparc  # accès aux données
 
-from data.database import connexion, creer_base_de_donnees, obtenir_athletes
+from data.database import creer_base_de_donnees, obtenir_athletes
 from interface.ecran_liste import obtenir_style_ecran, configurer_table_redimensionnable
 from noyau.entrainement.conformite import (
     calculer_score_conformite,
@@ -36,6 +36,7 @@ from interface.carte_reelle import CarteReelle
 from noyau.entrainement.comparaison_courses import (
     comparer_seance_realisee, enregistrer_comparaison, tendance_ecart_allure,
 )
+from noyau.donnees import seances as dseance
 
 
 TYPES_SEANCE = [
@@ -334,25 +335,14 @@ class Seances(QMainWindow):
             QMessageBox.warning(self, "Étapes requises", "Ajoute au moins une étape à la séance.")
             return
 
-        conn = connexion()
-        cur = conn.cursor()
-        cur.execute(
-            """
-            INSERT INTO seances_structurees (
-                athlete_id, nom, type_seance, date_prevue, statut, etapes_json, parcours_id
-            ) VALUES (?, ?, ?, ?, 'Prévue', ?, ?)
-            """,
-            (
-                athlete_id,
-                self.champ_nom.text().strip(),
-                self.combo_type_seance.currentText(),
-                self.champ_date_prevue.date().toString("yyyy-MM-dd"),
-                json.dumps(self.etapes_en_cours),
-                self.combo_parcours.currentData(),
-            ),
-        )
-        conn.commit()
-        conn.close()
+        dseance.creer({
+            "athlete_id": athlete_id,
+            "nom": self.champ_nom.text().strip(),
+            "type_seance": self.combo_type_seance.currentText(),
+            "date_prevue": self.champ_date_prevue.date().toString("yyyy-MM-dd"),
+            "etapes_json": json.dumps(self.etapes_en_cours),
+            "parcours_id": self.combo_parcours.currentData(),
+        })
 
         self.champ_nom.clear()
         self.etapes_en_cours = []
@@ -365,27 +355,7 @@ class Seances(QMainWindow):
     def charger_seances(self):
         athlete_id = self.combo_athlete.currentData()
 
-        conn = connexion()
-        cur = conn.cursor()
-        colonnes_sql = (
-            "s.id, s.nom, s.type_seance, s.date_prevue, s.statut, s.score_conformite, "
-            "s.etapes_json, s.parcours_id, p.nom, p.distance_km, s.commentaire_replanification"
-        )
-        if athlete_id is None:
-            cur.execute(
-                f"SELECT {colonnes_sql} FROM seances_structurees s "
-                "LEFT JOIN parcours_gpx p ON s.parcours_id = p.id "
-                "ORDER BY s.date_prevue DESC"
-            )
-        else:
-            cur.execute(
-                f"SELECT {colonnes_sql} FROM seances_structurees s "
-                "LEFT JOIN parcours_gpx p ON s.parcours_id = p.id "
-                "WHERE s.athlete_id=? ORDER BY s.date_prevue DESC",
-                (athlete_id,),
-            )
-        lignes = cur.fetchall()
-        conn.close()
+        lignes = dseance.lister_avec_parcours(athlete_id)
 
         self.seances_ids = [l[0] for l in lignes]
         self.parcours_ids = [l[7] for l in lignes]
@@ -431,11 +401,7 @@ class Seances(QMainWindow):
         if ligne < 0:
             QMessageBox.information(self, "Sélection requise", "Sélectionne d'abord une séance.")
             return
-        conn = connexion()
-        cur = conn.cursor()
-        cur.execute("SELECT nom, etapes_json FROM seances_structurees WHERE id=?", (self.seances_ids[ligne],))
-        r = cur.fetchone()
-        conn.close()
+        r = dseance.valeurs(self.seances_ids[ligne], "nom", "etapes_json")
         etapes = json.loads(r[1]) if r and r[1] else []
         if not etapes:
             QMessageBox.information(self, "Séance vide", "Cette séance n'a pas d'étapes à envoyer.")
@@ -480,11 +446,7 @@ class Seances(QMainWindow):
             return
 
         id_seance = self.seances_ids[ligne]
-        conn = connexion()
-        cur = conn.cursor()
-        cur.execute("DELETE FROM seances_structurees WHERE id=?", (id_seance,))
-        conn.commit()
-        conn.close()
+        dseance.supprimer(id_seance)
 
         self.charger_seances()
 
@@ -510,11 +472,7 @@ class Seances(QMainWindow):
         athlete_id = self.combo_athlete.currentData()
         if athlete_id is None:
             id_seance = self.seances_ids[ligne]
-            conn = connexion()
-            cur = conn.cursor()
-            cur.execute("SELECT athlete_id FROM seances_structurees WHERE id=?", (id_seance,))
-            ligne_athlete = cur.fetchone()
-            conn.close()
+            ligne_athlete = dseance.valeurs(id_seance, "athlete_id")
             athlete_id = ligne_athlete[0] if ligne_athlete else None
 
         self.fenetre_carte_parcours = CarteReelle(
@@ -534,13 +492,9 @@ class Seances(QMainWindow):
 
         id_seance = self.seances_ids[ligne]
 
-        conn = connexion()
-        cur = conn.cursor()
-        cur.execute("SELECT athlete_id, etapes_json FROM seances_structurees WHERE id=?", (id_seance,))
-        athlete_id, etapes_json = cur.fetchone()
+        athlete_id, etapes_json = dseance.valeurs(id_seance, "athlete_id", "etapes_json")
         etapes = json.loads(etapes_json) if etapes_json else []
 
-        conn.close()
         activites_recentes = dact.pour_liaison(athlete_id, 30)
 
         if not activites_recentes:
@@ -559,19 +513,7 @@ class Seances(QMainWindow):
 
         resultat = calculer_score_conformite(etapes, distance, duree_min)
 
-        conn = connexion()
-        cur = conn.cursor()
-        cur.execute(
-            "UPDATE seances_structurees SET statut=?, activite_id=?, score_conformite=? WHERE id=?",
-            (
-                "Réalisée",
-                activite_id,
-                resultat["score"] if resultat else None,
-                id_seance,
-            ),
-        )
-        conn.commit()
-        conn.close()
+        dseance.marquer_realisee(id_seance, activite_id, resultat["score"] if resultat else None)
 
         if resultat:
             QMessageBox.information(

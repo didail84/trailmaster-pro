@@ -24,7 +24,7 @@ from PySide6.QtWidgets import (
     QInputDialog,
 )
 
-from data.database import connexion, creer_base_de_donnees, obtenir_athletes, affichage_simplifie_actif
+from data.database import creer_base_de_donnees, obtenir_athletes, affichage_simplifie_actif
 from interface.ecran_liste import obtenir_style_ecran, configurer_table_redimensionnable
 from noyau.entrainement.generateur_plan import (
     generer_plan,
@@ -38,6 +38,7 @@ from interface.replanification_dialog import DialogueReplanification
 from interface.dialogue_programme_ultra import DialogueProgrammeUltra
 from noyau.entrainement.export_ics import generer_ics
 from noyau.entrainement.generateur_ultra import obtenir_blocs_plan, generer_rapport_bloc
+from noyau.donnees import plans as dplan
 
 
 # Correspondance entre les distances de ce module et les libellés
@@ -380,14 +381,7 @@ class PlansEntrainement(QMainWindow):
 
         rapport = generer_rapport_bloc(plan_id, athlete_id, nom_bloc)
 
-        conn = connexion()
-        cur = conn.cursor()
-        cur.execute(
-            "INSERT INTO rapports_bloc (plan_id, athlete_id, nom_bloc, contenu) VALUES (?, ?, ?, ?)",
-            (plan_id, athlete_id, nom_bloc, rapport),
-        )
-        conn.commit()
-        conn.close()
+        dplan.enregistrer_rapport_bloc(plan_id, athlete_id, nom_bloc, rapport)
 
         QMessageBox.information(self, f"Rapport — {nom_bloc}", rapport)
 
@@ -481,49 +475,27 @@ class PlansEntrainement(QMainWindow):
 
         date_debut = self.champ_date_debut.date().toPython()
 
-        conn = connexion()
-        cur = conn.cursor()
-        cur.execute(
-            """
-            INSERT INTO plans_entrainement (
-                athlete_id, nom, distance_cible, niveau, nb_semaines,
-                jours_par_semaine, allure_objectif, date_debut
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-            """,
-            (
-                athlete_id,
-                self.champ_nom.text().strip(),
-                self.combo_distance.currentText(),
-                self.combo_niveau.currentText(),
-                self.spin_semaines.value(),
-                self.spin_jours.value(),
-                self.champ_allure.text().strip() or None,
-                date_debut.strftime("%Y-%m-%d"),
-            ),
-        )
-        plan_id = cur.lastrowid
-
+        liste_seances = []
         for semaine in self.plan_apercu:
             for seance in semaine["seances"]:
                 date_prevue = date_seance(date_debut, semaine["indice"], seance["jour_offset"])
-                cur.execute(
-                    """
-                    INSERT INTO seances_structurees (
-                        athlete_id, nom, type_seance, date_prevue, statut, etapes_json, plan_id
-                    ) VALUES (?, ?, ?, ?, 'Prévue', ?, ?)
-                    """,
-                    (
-                        athlete_id,
-                        f"S{semaine['indice']} — {seance['nom']}",
-                        seance["type_seance"],
-                        date_prevue.strftime("%Y-%m-%d"),
-                        json.dumps(seance["etapes"]),
-                        plan_id,
-                    ),
-                )
-
-        conn.commit()
-        conn.close()
+                liste_seances.append({
+                    "athlete_id": athlete_id,
+                    "nom": f"S{semaine['indice']} — {seance['nom']}",
+                    "type_seance": seance["type_seance"],
+                    "date_prevue": date_prevue.strftime("%Y-%m-%d"),
+                    "etapes_json": json.dumps(seance["etapes"]),
+                })
+        dplan.creer_avec_seances({
+            "athlete_id": athlete_id,
+            "nom": self.champ_nom.text().strip(),
+            "distance_cible": self.combo_distance.currentText(),
+            "niveau": self.combo_niveau.currentText(),
+            "nb_semaines": self.spin_semaines.value(),
+            "jours_par_semaine": self.spin_jours.value(),
+            "allure_objectif": self.champ_allure.text().strip() or None,
+            "date_debut": date_debut.strftime("%Y-%m-%d"),
+        }, liste_seances)
 
         nb_seances = sum(len(s["seances"]) for s in self.plan_apercu)
         QMessageBox.information(
@@ -543,30 +515,12 @@ class PlansEntrainement(QMainWindow):
     def charger_plans(self):
         athlete_id = self.combo_athlete.currentData()
 
-        conn = connexion()
-        cur = conn.cursor()
-        if athlete_id is None:
-            cur.execute(
-                "SELECT id, nom, distance_cible, niveau, nb_semaines, date_debut "
-                "FROM plans_entrainement ORDER BY date_creation DESC"
-            )
-        else:
-            cur.execute(
-                "SELECT id, nom, distance_cible, niveau, nb_semaines, date_debut "
-                "FROM plans_entrainement WHERE athlete_id=? ORDER BY date_creation DESC",
-                (athlete_id,),
-            )
-        plans = cur.fetchall()
+        plans = dplan.lister(athlete_id)
 
         self.plans_ids = [p[0] for p in plans]
         self.table_plans.setRowCount(len(plans))
         for i, (id_, nom, distance_cible, niveau, nb_semaines, date_debut) in enumerate(plans):
-            cur.execute(
-                "SELECT COUNT(*), SUM(CASE WHEN statut='Réalisée' THEN 1 ELSE 0 END) "
-                "FROM seances_structurees WHERE plan_id=?",
-                (id_,),
-            )
-            total, realisees = cur.fetchone()
+            total, realisees = dplan.avancement(id_)
             realisees = realisees or 0
 
             self.table_plans.setItem(i, 0, QTableWidgetItem(nom))
@@ -577,7 +531,6 @@ class PlansEntrainement(QMainWindow):
             self.table_plans.setItem(i, 5, QTableWidgetItem(f"{realisees} / {total}"))
 
         self.table_plans.resizeColumnsToContents()
-        conn.close()
 
     def supprimer_plan(self):
         ligne = self.table_plans.currentRow()
@@ -593,11 +546,6 @@ class PlansEntrainement(QMainWindow):
             return
 
         plan_id = self.plans_ids[ligne]
-        conn = connexion()
-        cur = conn.cursor()
-        cur.execute("DELETE FROM seances_structurees WHERE plan_id=?", (plan_id,))
-        cur.execute("DELETE FROM plans_entrainement WHERE id=?", (plan_id,))
-        conn.commit()
-        conn.close()
+        dplan.supprimer(plan_id)
 
         self.charger_plans()

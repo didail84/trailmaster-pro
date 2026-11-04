@@ -27,13 +27,13 @@ from PySide6.QtWidgets import (
 )
 from noyau.donnees import activites as dact  # accès aux données
 
-from data.database import connexion
 from interface.theme import (
     PALETTE, POLICE_TITRE, POLICE_TEXTE, POLICE_TEXTE_DEMI,
     obtenir_couleur_accent, obtenir_couleur_accent_douce,
 )
 from interface.detail_sortie import DialogueDetailSortie
 from interface.dialogue_nouvelle_activite import DialogueNouvelleActivite
+from noyau.donnees import musculation as dmus
 
 
 NOMS_JOURS = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"]
@@ -84,8 +84,6 @@ def charger_jours(athlete_id, debut_iso, fin_iso):
     jours = {}
     if athlete_id is None:
         return jours
-    conn = connexion()
-    cur = conn.cursor()
     for id_, d, nom, type_, dist, dp, duree, fc in dact.par_jour_entre(athlete_id, debut_iso, fin_iso):
         jours.setdefault(str(d)[:10], []).append({
             "genre": "sortie", "id": id_, "nom": nom or type_ or "Sortie",
@@ -94,14 +92,9 @@ def charger_jours(athlete_id, debut_iso, fin_iso):
         })
 
     try:
-        cur.execute(
-            "SELECT substr(date,1,10), exercice, charge_kg, series, reps_prevues, rpe, "
-            "duree_min, type_seance, groupe_musculaire FROM musculation_suivi "
-            "WHERE athlete_id=? AND substr(date,1,10) BETWEEN ? AND ? ORDER BY date, id",
-            (athlete_id, debut_iso, fin_iso),
-        )
         par_jour = {}
-        for d, exo, charge, series, reps, rpe, duree_min, type_seance, groupe in cur.fetchall():
+        for d, exo, charge, series, reps, rpe, duree_min, type_seance, groupe in dmus.suivi_par_jour_entre(
+                athlete_id, debut_iso, fin_iso):
             par_jour.setdefault(d, []).append((exo, charge, series, reps, rpe, duree_min, type_seance, groupe))
         for d, lignes in par_jour.items():
             jours.setdefault(d, []).append({
@@ -111,7 +104,6 @@ def charger_jours(athlete_id, debut_iso, fin_iso):
             })
     except Exception:
         pass
-    conn.close()
     return jours
 
 

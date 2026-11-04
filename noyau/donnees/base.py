@@ -80,6 +80,20 @@ def ecrire(sql, parametres=(), cur=None):
         conn.close()
 
 
+def ecrire_compte(sql, parametres=(), cur=None):
+    """Exécute une écriture ; renvoie le nombre de lignes touchées."""
+    if cur is not None:
+        cur.execute(sql, parametres)
+        return cur.rowcount
+    conn = connexion()
+    try:
+        c = conn.execute(sql, parametres)
+        conn.commit()
+        return c.rowcount
+    finally:
+        conn.close()
+
+
 def inserer(table, champs, cur=None):
     """INSERT des colonnes de `champs` (dict, ordre conservé) ; renvoie l'id."""
     colonnes = verifier_colonnes(list(champs))

@@ -28,6 +28,7 @@ from noyau.traces.segments_utils import (
     detecter_occurrence,
     duree_occurrence_s,
 )
+from noyau.donnees import segments as dseg
 
 
 def _formater_duree(secondes):
@@ -266,27 +267,14 @@ class Segments(QMainWindow):
             )
             return
 
-        conn = connexion()
-        cur = conn.cursor()
-        cur.execute(
-            """
-            INSERT INTO segments (
-                athlete_id, nom, distance_km, denivele_positif,
-                points_reference_json, parcours_origine_id
-            ) VALUES (?, ?, ?, ?, ?, ?)
-            """,
-            (
-                athlete_id,
-                self.champ_nom_segment.text().strip(),
-                segment["distance_km"],
-                segment["denivele_positif"],
-                json.dumps(segment["points_reference"]),
-                parcours_id,
-            ),
-        )
-        segment_id = cur.lastrowid
-        conn.commit()
-        conn.close()
+        segment_id = dseg.creer({
+            "athlete_id": athlete_id,
+            "nom": self.champ_nom_segment.text().strip(),
+            "distance_km": segment["distance_km"],
+            "denivele_positif": segment["denivele_positif"],
+            "points_reference_json": json.dumps(segment["points_reference"]),
+            "parcours_origine_id": parcours_id,
+        })
 
         nb_trouves = self._rechercher_passages(segment_id, athlete_id, segment["points_reference"])
 
@@ -304,8 +292,7 @@ class Segments(QMainWindow):
         cur = conn.cursor()
         tous_parcours = dparc.traces_et_activites(athlete_id)
 
-        cur.execute("SELECT parcours_id FROM segments_efforts WHERE segment_id=?", (segment_id,))
-        deja_trouves = set(r[0] for r in cur.fetchall())
+        deja_trouves = dseg.parcours_deja_trouves(segment_id, cur=cur)
 
         nb_nouveaux = 0
         for parcours_id, trace_json, activite_id in tous_parcours:
@@ -326,13 +313,7 @@ class Segments(QMainWindow):
                 ligne = dact.valeurs(activite_id, "date", cur=cur)
                 date_activite = ligne[0] if ligne else None
 
-            cur.execute(
-                """
-                INSERT INTO segments_efforts (segment_id, parcours_id, activite_id, date, duree_s)
-                VALUES (?, ?, ?, ?, ?)
-                """,
-                (segment_id, parcours_id, activite_id, date_activite, duree),
-            )
+            dseg.ajouter_passage(segment_id, parcours_id, activite_id, date_activite, duree, cur=cur)
             nb_nouveaux += 1
 
         conn.commit()
@@ -348,22 +329,12 @@ class Segments(QMainWindow):
             self.segments_ids = []
             return
 
-        conn = connexion()
-        cur = conn.cursor()
-        cur.execute(
-            "SELECT id, nom, distance_km, denivele_positif FROM segments "
-            "WHERE athlete_id=? ORDER BY date_creation DESC",
-            (athlete_id,),
-        )
-        segments = cur.fetchall()
+        segments = dseg.lister(athlete_id)
 
         self.segments_ids = [s[0] for s in segments]
         self.table_segments.setRowCount(len(segments))
         for i, (id_, nom, distance, denivele) in enumerate(segments):
-            cur.execute(
-                "SELECT COUNT(*), MIN(duree_s) FROM segments_efforts WHERE segment_id=?", (id_,)
-            )
-            nb_passages, meilleur = cur.fetchone()
+            nb_passages, meilleur = dseg.resume_passages(id_)
 
             self.table_segments.setItem(i, 0, QTableWidgetItem(nom))
             self.table_segments.setItem(i, 1, QTableWidgetItem(f"{distance} km"))
@@ -372,7 +343,6 @@ class Segments(QMainWindow):
             self.table_segments.setItem(i, 4, QTableWidgetItem(_formater_duree(meilleur)))
 
         self.table_segments.resizeColumnsToContents()
-        conn.close()
 
     def afficher_classement(self):
         self.table_classement.setRowCount(0)
@@ -382,15 +352,7 @@ class Segments(QMainWindow):
 
         segment_id = self.segments_ids[ligne]
 
-        conn = connexion()
-        cur = conn.cursor()
-        cur.execute(
-            "SELECT date, duree_s FROM segments_efforts WHERE segment_id=? "
-            "AND duree_s IS NOT NULL ORDER BY duree_s ASC",
-            (segment_id,),
-        )
-        efforts = cur.fetchall()
-        conn.close()
+        efforts = dseg.classement(segment_id)
 
         if not efforts:
             return
@@ -417,11 +379,7 @@ class Segments(QMainWindow):
         segment_id = self.segments_ids[ligne]
         athlete_id = self.combo_athlete.currentData()
 
-        conn = connexion()
-        cur = conn.cursor()
-        cur.execute("SELECT points_reference_json FROM segments WHERE id=?", (segment_id,))
-        points_reference = json.loads(cur.fetchone()[0])
-        conn.close()
+        points_reference = dseg.points_reference(segment_id)
 
         nb_nouveaux = self._rechercher_passages(segment_id, athlete_id, points_reference)
         QMessageBox.information(self, "Recherche terminée", f"{nb_nouveaux} nouveau(x) passage(s) trouvé(s).")
@@ -443,11 +401,6 @@ class Segments(QMainWindow):
             return
 
         segment_id = self.segments_ids[ligne]
-        conn = connexion()
-        cur = conn.cursor()
-        cur.execute("DELETE FROM segments_efforts WHERE segment_id=?", (segment_id,))
-        cur.execute("DELETE FROM segments WHERE id=?", (segment_id,))
-        conn.commit()
-        conn.close()
+        dseg.supprimer(segment_id)
 
         self.charger_segments()
