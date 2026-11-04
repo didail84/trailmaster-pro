@@ -53,6 +53,7 @@ def _jour_fr(iso):
 
 
 class _EcranTraces(_EcranAthlete):
+    ANALYSE_IA = ("courbe", "résultats affichés")
     """_EcranAthlete + sélecteur de période + calcul en arrière-plan."""
 
     PERIODE_DEFAUT = "1 an"
@@ -612,6 +613,7 @@ class MeteoPerformance(_EcranTraces):
 # ----------------------------------------------------------------------
 
 class FormeDistance(_EcranAthlete):
+    ANALYSE_IA = ("courses", "préparation à la course")
 
     def __init__(self, athlete_id_initial=None):
         super().__init__(

@@ -311,6 +311,7 @@ from PySide6.QtWidgets import (  # noqa: E402
 from data.database import obtenir_athletes  # noqa: E402
 from interface.ecran_liste import obtenir_style_ecran, configurer_table_redimensionnable  # noqa: E402
 from interface.courbe_multiligne import CourbeMultiLignes  # noqa: E402
+from interface import estimations_basses  # noqa: E402
 
 
 def _carte_kpi(titre, valeur, note=""):
@@ -455,6 +456,37 @@ class VMACircuits(QMainWindow):
         l1.addWidget(self.courbe_vma)
         self.principal.addWidget(c1)
 
+        # v102 — courbes d'estimations (VMA, VO2max, efficacité), « estimation basse »
+        c1b = QFrame()
+        c1b.setObjectName("carteForm")
+        l1b = QVBoxLayout(c1b)
+        t1b = QLabel("📉 Évolution des estimations — estimation basse")
+        t1b.setObjectName("titreCarte")
+        note_b = QLabel(estimations_basses.NOTE)
+        note_b.setObjectName("texteSecondaire")
+        note_b.setWordWrap(True)
+        l1b.addWidget(t1b)
+        l1b.addWidget(note_b)
+        self.titres_estim, self.courbes_estim = [], []
+        for _ in range(3):
+            lt = QLabel("")
+            lt.setObjectName("texteSecondaire")
+            cb = CourbeMultiLignes()
+            cb.echelle_ajustee = True
+            cb.setMinimumHeight(180)
+            l1b.addWidget(lt)
+            l1b.addWidget(cb)
+            self.titres_estim.append(lt)
+            self.courbes_estim.append(cb)
+        self.principal.addWidget(c1b)
+
+        from interface.analyse_ia_widget import CarteAnalyseIA
+        from data import analyse_ecran as _ae
+        self.carte_ia = CarteAnalyseIA("vma", "VMA et VO₂max (estimations basses)",
+                                       lambda: self.combo_athlete.currentData(),
+                                       lambda: _ae.dossier_vma(self.combo_athlete.currentData()))
+        self.principal.addWidget(self.carte_ia)
+
         # Allures + meilleurs efforts
         zone = QHBoxLayout()
         zone.setSpacing(15)
@@ -541,6 +573,17 @@ class VMACircuits(QMainWindow):
     def _athlete(self):
         return self.combo_athlete.currentData()
 
+    def _maj_estimations(self, athlete_id):
+        series = estimations_basses.serie_estimations(athlete_id) if athlete_id else None
+        defs = estimations_basses.definitions_courbes(series) if series else []
+        for i, (lt, cb) in enumerate(zip(self.titres_estim, self.courbes_estim)):
+            if i < len(defs):
+                lt.setText(defs[i][0])
+                cb.definir_series(defs[i][1])
+            else:
+                lt.setText("")
+                cb.definir_series([])
+
     def _vider_kpi(self):
         while self.zone_kpi.count():
             w = self.zone_kpi.takeAt(0).widget()
@@ -555,6 +598,7 @@ class VMACircuits(QMainWindow):
         if athlete_id is None:
             self.bouton_appliquer.setEnabled(False)
             self.courbe_vma.definir_series([])
+            self._maj_estimations(None)
             for t in (self.table_allures, self.table_efforts, self.table_circuits, self.table_passages):
                 t.setRowCount(0)
             self.courbe_chrono.definir_series([])
@@ -564,6 +608,7 @@ class VMACircuits(QMainWindow):
 
         res = calculer_vma(athlete_id)
         self.resultat = res
+        self._maj_estimations(athlete_id)
         profil = self._vma_profil(athlete_id)
 
         if not res or res["actuelle"] is None:

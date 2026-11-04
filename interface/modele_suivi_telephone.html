@@ -121,7 +121,7 @@ const fr=s=>{const[y,m,d]=s.split('-');return d+'/'+m+'/'+y};
 const nf=(v,d=0)=>v==null?'—':Number(v).toLocaleString('fr-FR',{minimumFractionDigits:d,maximumFractionDigits:d});
 const hm=s=>{const m=Math.round(s/60);return Math.floor(m/60)+'h'+pad(m%60)};
 const MOIS=['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
-$('snap').textContent='Données jusqu\'au '+fr(REF)+' · '+A.length+' activités · TrailMaster Pro';
+$('snap').textContent='Données jusqu\'au '+fr(REF)+' · '+A.length+' activités · Didier Beltran';
 
 /* ---------- graphique en courbes (SVG, une seule échelle) ---------- */
 function line(host,o){

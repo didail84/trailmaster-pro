@@ -1,4 +1,4 @@
-from interface.conteneur_onglets import ConteneurOnglets
+from interface.conteneur_onglets import ConteneurOnglets, faire_groupe
 from interface.performance_traces import (
     MonteesVAM, AllureAjustee, ResistanceFatigue, EfficaciteCourse, TerrainPente, MeteoPerformance, FormeDistance,
 )
@@ -6,6 +6,13 @@ from interface.bilans_objectifs import TotauxPeriodes, ComparerPeriodes, Objecti
 from interface.partage_images import AfficheAnnuelle
 from interface.rapport_pdf import RapportPDF
 from interface.page_telephone import PageTelephone
+
+
+GROUPE_PARTAGER = faire_groupe("Partager", [
+    ("📄 Rapport PDF", RapportPDF),
+    ("📱 Page téléphone", PageTelephone),
+    ("🖼️ Affiche de l'année", AfficheAnnuelle),
+])
 
 
 class PerformanceTrail(ConteneurOnglets):
@@ -36,9 +43,7 @@ class BilansObjectifs(ConteneurOnglets):
                 ("🔀 Comparer", ComparerPeriodes),
                 ("🏆 Objectifs de l'année", ObjectifsAnnuels),
                 ("🧪 Planifier la charge", PlanifierCharge),
-                ("📄 Rapport PDF", RapportPDF),
-                ("📱 Page téléphone", PageTelephone),
-                ("🖼️ Affiche de l'année", AfficheAnnuelle),
+                ("📤 Partager", GROUPE_PARTAGER),
             ],
             athlete_id_initial=athlete_id_initial,
         )

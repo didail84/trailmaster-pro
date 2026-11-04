@@ -1,20 +1,25 @@
 """
 Import du suivi poids / jambes / fatigue depuis un classeur Excel (.xlsx)
-ou un fichier CSV — dans la table suivi_corporel (écran « Poids & fatigue »).
+ou un fichier CSV — dans la table suivi_corporel (écran « Poids & récupération »).
 
 Format attendu (celui du fichier « suivi_poids_jambes_RPE_trail.xlsx »),
 une ligne par relevé, première ligne = titres des colonnes :
 
     Date | Poids (kg) | État des jambes | Fatigue ressentie (RPE /10) | Commentaires
 
+Colonnes facultatives reconnues en plus : « Moment » (matin, soir, après
+séance) et « Fatigue jambes (/10) ».
+
 Règles :
 - Seules les lignes avec une VRAIE date sont importées (jj/mm/aaaa, aaaa-mm-jj
   ou date Excel). Les lignes du type « Septembre 2026 (date inconnue) » sont
   ignorées et comptées dans le compte rendu : aucune date n'est inventée.
 - Une date suivie d'un mot (« 08/10/2026 soir », « 11/10/2026 après trail »)
-  devient un relevé distinct de la même journée, avec ce mot dans les notes.
+  devient un relevé distinct de la même journée (moment « soir » ou « après
+  séance »), avec ce mot dans les notes.
 - Réimporter le même fichier ne crée pas de doublons : si un relevé existe
-  déjà à cette date, seules les cases VIDES sont complétées, rien n'est écrasé.
+  déjà à cette date et à ce moment (matin, soir, après séance), seules les
+  cases VIDES sont complétées, rien n'est écrasé.
 - Aucune dépendance : le .xlsx est lu avec la bibliothèque standard.
 """
 
@@ -177,22 +182,56 @@ def _etat_jambes(texte):
     return etat, garde
 
 
+MOMENTS = ["matin", "soir", "après séance"]
+
+
+def normaliser_moment(texte):
+    """« Soir », « après trail », « post-sortie », « matin »… -> un des
+    MOMENTS (le matin par défaut)."""
+    t = str(texte or "").strip().lower()
+    if not t or t.startswith("matin") or "réveil" in t or "reveil" in t:
+        return "matin"
+    if t.startswith("soir"):
+        return "soir"
+    if "après" in t or "apres" in t or "post" in t:
+        return "après séance"
+    return "matin"
+
+
 def analyser_lignes(lignes):
     """-> (relevés, nb_sans_date, nb_vides). Chaque relevé : dict date,
-    qualificatif, poids, etat_jambes, fatigue_generale, notes."""
+    moment, qualificatif, poids, etat_jambes, fatigue_jambes,
+    fatigue_generale, notes."""
     if not lignes:
         return [], 0, 0
 
     entete = [str(c or "").lower() for c in lignes[0]]
+    pris = set()
 
-    def col(*mots):
+    def col(*mots, sauf=()):
         for i, e in enumerate(entete):
-            if any(m in e for m in mots):
+            if i in pris:
+                continue
+            if any(m in e for m in mots) and not any(x in e for x in sauf):
+                pris.add(i)
                 return i
         return None
 
     c_date = col("date")
+    # « Fatigue jambes (/10) » doit être reconnue avant « État des jambes »
+    # et « Fatigue générale », qui partagent un mot avec elle.
+    c_fat_jambes = None
+    for i, e in enumerate(entete):
+        if i not in pris and "jambe" in e and ("fatigue" in e or "/10" in e or "note" in e):
+            c_fat_jambes = i
+            pris.add(i)
+            break
+    c_moment = col("moment")
     c_poids = col("poids")
+    from data.mensurations import MESURES
+    c_mesures = {}
+    for colonne_sql, (_lib, _u, mots) in MESURES.items():
+        c_mesures[colonne_sql] = col(*mots)
     c_jambes = col("jambe")
     c_rpe = col("rpe", "fatigue")
     c_comm = col("comment", "note", "remarque")
@@ -210,15 +249,24 @@ def analyser_lignes(lignes):
         if d is None:
             sans_date += 1
             continue
+        texte_moment = get(ligne, c_moment)
+        moment = normaliser_moment(texte_moment if texte_moment not in (None, "") else qualif)
         poids = _nombre(get(ligne, c_poids))
         rpe = _nombre(get(ligne, c_rpe))
+        fj = _nombre(get(ligne, c_fat_jambes))
         etat, texte_jambes = _etat_jambes(get(ligne, c_jambes))
         commentaire = str(get(ligne, c_comm) or "").strip()
-        if poids is None and rpe is None and etat is None and not texte_jambes:
+        mesures = {}
+        for colonne_sql, i in c_mesures.items():
+            v = _nombre(get(ligne, i))
+            if v:
+                mesures[colonne_sql] = v
+        if (poids is None and rpe is None and fj is None and etat is None and not texte_jambes
+                and not mesures):
             vides += 1  # « Aucune valeur confirmée » : rien à enregistrer
             continue
         morceaux = []
-        if qualif:
+        if qualif and qualif.lower() not in ("matin", "soir", "après séance"):
             morceaux.append(qualif.capitalize())
         if texte_jambes:
             morceaux.append(f"Jambes : {texte_jambes}")
@@ -226,11 +274,14 @@ def analyser_lignes(lignes):
             morceaux.append(commentaire)
         releves.append({
             "date": d,
+            "moment": moment,
             "qualificatif": qualif.lower(),
-            "poids": poids,
+            "poids": poids if poids else None,
             "etat_jambes": etat,
-            "fatigue_generale": int(round(rpe)) if rpe is not None else None,
+            "fatigue_jambes": int(round(fj)) if fj else None,
+            "fatigue_generale": int(round(rpe)) if rpe else None,
             "notes": " — ".join(morceaux) or None,
+            "mesures": mesures,
         })
     return releves, sans_date, vides
 
@@ -240,51 +291,57 @@ def analyser_lignes(lignes):
 # ------------------------------------------------------------------
 
 def importer_releves(athlete_id, releves):
-    """Insère ou complète. Retourne (ajoutés, complétés, inchangés)."""
+    """Insère ou complète. Retourne (ajoutés, complétés, inchangés).
+
+    Un relevé est « le même » qu'un relevé existant s'il a la même date et
+    le même moment (matin, soir, après séance) : il ne crée alors pas de
+    doublon, seules les cases encore vides sont remplies."""
     conn = connexion()
     cur = conn.cursor()
     ajoutes = completes = inchanges = 0
     try:
         for r in releves:
             cur.execute(
-                "SELECT id, poids_kg, etat_jambes, fatigue_generale, notes "
-                "FROM suivi_corporel WHERE athlete_id=? AND date=? ORDER BY id",
+                "SELECT id, poids_kg, etat_jambes, fatigue_jambes, fatigue_generale, notes, "
+                "COALESCE(moment, 'matin') FROM suivi_corporel WHERE athlete_id=? AND date=? ORDER BY id",
                 (athlete_id, r["date"]),
             )
             existants = cur.fetchall()
+            cible = next((e for e in existants if e[6] == r["moment"]), None)
 
-            if r["qualificatif"]:
-                # Relevé distinct (soir, après sortie…) : déjà là si une note
-                # de la même journée contient le qualificatif.
-                deja = next(
-                    (e for e in existants if e[4] and r["qualificatif"] in e[4].lower()), None
-                )
-                cible = deja
-            else:
-                # Relevé du matin : on complète le premier relevé du jour sans qualificatif.
-                cible = existants[0] if existants else None
-
+            mesures = r.get("mesures") or {}
             if cible is None:
+                colonnes_m = list(mesures)
                 cur.execute(
-                    "INSERT INTO suivi_corporel "
-                    "(athlete_id, date, poids_kg, etat_jambes, fatigue_generale, notes) "
-                    "VALUES (?, ?, ?, ?, ?, ?)",
-                    (athlete_id, r["date"], r["poids"], r["etat_jambes"],
-                     r["fatigue_generale"], r["notes"]),
+                    "INSERT INTO suivi_corporel (athlete_id, date, moment, poids_kg, etat_jambes, "
+                    "fatigue_jambes, fatigue_generale, notes" + "".join(f", {c}" for c in colonnes_m)
+                    + ") VALUES (?, ?, ?, ?, ?, ?, ?, ?" + ", ?" * len(colonnes_m) + ")",
+                    (athlete_id, r["date"], r["moment"], r["poids"], r["etat_jambes"],
+                     r.get("fatigue_jambes"), r["fatigue_generale"], r["notes"],
+                     *[mesures[c] for c in colonnes_m]),
                 )
                 ajoutes += 1
                 continue
 
-            id_, poids, etat, fat, notes = cible
+            id_, poids, etat, fj, fat, notes, _ = cible
             maj = {}
             if poids is None and r["poids"] is not None:
                 maj["poids_kg"] = r["poids"]
             if not etat and r["etat_jambes"]:
                 maj["etat_jambes"] = r["etat_jambes"]
+            if fj is None and r.get("fatigue_jambes") is not None:
+                maj["fatigue_jambes"] = r["fatigue_jambes"]
             if fat is None and r["fatigue_generale"] is not None:
                 maj["fatigue_generale"] = r["fatigue_generale"]
             if not notes and r["notes"]:
                 maj["notes"] = r["notes"]
+            if mesures:
+                cols = list(mesures)
+                cur.execute(f"SELECT {', '.join(cols)} FROM suivi_corporel WHERE id=?", (id_,))
+                actuelles = cur.fetchone()
+                for c, ancienne in zip(cols, actuelles):
+                    if ancienne is None:
+                        maj[c] = mesures[c]
             if maj:
                 sets = ", ".join(f"{k}=?" for k in maj)
                 cur.execute(

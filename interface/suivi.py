@@ -6,7 +6,6 @@ from interface.nutrition import Nutrition
 from interface.zones_entrainement import ZonesEntrainement
 from interface.objectifs import Objectifs
 from interface.poids_fatigue import PoidsFatigue
-from interface.sante_charge import PoidsLisse
 from interface.carte_corps import CarteCorps
 
 
@@ -16,8 +15,7 @@ class Suivi(ConteneurOnglets):
         super().__init__(
             titre="Suivi",
             onglets=[
-                ("⚖️ Poids & fatigue", PoidsFatigue),
-                ("📉 Poids lissé", PoidsLisse),
+                ("⚖️ Poids & récupération", PoidsFatigue),
                 ("🩹 Blessures", Blessures),
                 ("🧍 Carte du corps", CarteCorps),
                 ("💆 Soins", Soins),

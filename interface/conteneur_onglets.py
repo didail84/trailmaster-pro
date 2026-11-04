@@ -70,7 +70,7 @@ def _obtenir_style_onglets():
 
 class ConteneurOnglets(QMainWindow):
 
-    def __init__(self, titre, onglets, athlete_id_initial=None, onglet_initial=0):
+    def __init__(self, titre, onglets, athlete_id_initial=None, onglet_initial=0, avec_retour=True):
         """onglets : liste de (label, classe_ecran) — chaque classe est
         instanciée avec athlete_id_initial=athlete_id_initial.
         onglet_initial : index de l'onglet affiché à l'ouverture (0 par
@@ -92,7 +92,10 @@ class ConteneurOnglets(QMainWindow):
         bouton_retour.setObjectName("boutonRetourTableauBord")
         bouton_retour.setCursor(Qt.CursorShape.PointingHandCursor)
         bouton_retour.clicked.connect(self.close)
-        layout.addWidget(bouton_retour, 0, Qt.AlignmentFlag.AlignLeft)
+        if avec_retour:
+            layout.addWidget(bouton_retour, 0, Qt.AlignmentFlag.AlignLeft)
+        else:
+            bouton_retour.deleteLater()
 
         self.tabs = QTabWidget()
         self.tabs.setDocumentMode(True)
@@ -104,7 +107,7 @@ class ConteneurOnglets(QMainWindow):
         self.ecrans = []
         for label, classe_ecran in onglets:
             ecran = classe_ecran(athlete_id_initial=athlete_id_initial)
-            self.tabs.addTab(ecran, label)
+            self.tabs.addTab(ecran, label.replace("&&", "&").replace("&", "&&"))   # « & » affiché tel quel (pas de raccourci)
             self.ecrans.append(ecran)
 
         if 0 <= onglet_initial < self.tabs.count():
@@ -114,5 +117,22 @@ class ConteneurOnglets(QMainWindow):
         """Bascule sur l'onglet donné — utile quand une fenêtre déjà
         ouverte est ramenée au premier plan depuis un bouton de menu
         différent de celui qui l'a créée (ex. Compte : Athlètes / Réglages)."""
+        sous = None
+        if isinstance(index, (tuple, list)):          # v104 : (onglet, sous-onglet d'un groupe)
+            index, sous = index
         if 0 <= index < self.tabs.count():
             self.tabs.setCurrentIndex(index)
+            ecran = self.ecrans[index] if index < len(self.ecrans) else None
+            if sous is not None and ecran is not None and hasattr(ecran, "selectionner_onglet"):
+                ecran.selectionner_onglet(sous)
+
+
+def faire_groupe(titre, onglets):
+    """v104 — classe d'écran regroupant plusieurs écrans en sous-onglets, sans
+    bouton « Retour » propre (le conteneur parent a déjà le sien). Sert à
+    ranger les onglets proches (ex. toute la récupération) sous une seule entrée."""
+    class Groupe(ConteneurOnglets):
+        def __init__(self, athlete_id_initial=None):
+            super().__init__(titre, onglets, athlete_id_initial=athlete_id_initial, avec_retour=False)
+    Groupe.__name__ = "Groupe_" + "".join(c for c in titre if c.isalnum())
+    return Groupe

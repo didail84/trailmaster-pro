@@ -22,9 +22,7 @@ ignore silencieusement et l'appli continue normalement.
 """
 
 import json
-import platform
 import re
-import sys
 import urllib.request
 import urllib.error
 from pathlib import Path
@@ -102,46 +100,13 @@ def verifier_mise_a_jour():
         # release manuellement.
         url_zip = donnees.get("zipball_url")
 
-    installateur = _installateur_pour_cet_ordinateur(donnees.get("assets", []) or [])
-
     return {
         "version": distante,
         "tag": donnees.get("tag_name"),
         "nom": donnees.get("name") or donnees.get("tag_name"),
         "notes": donnees.get("body") or "",
         "url_zip": url_zip,
-        "url_installateur": installateur[0] if installateur else None,
-        "nom_installateur": installateur[1] if installateur else None,
     }
-
-
-def appli_installee():
-    """Vrai quand le logiciel tourne depuis l'application installée
-    (fabriquée avec PyInstaller), faux quand on lance python3 main.py."""
-    return bool(getattr(sys, "frozen", False))
-
-
-def _installateur_pour_cet_ordinateur(actifs):
-    """Dans une release, l'installateur qui convient à cet ordinateur :
-    .exe sous Windows, .dmg Intel (x64) ou Apple Silicon (arm64) sur Mac.
-    Renvoie (url, nom_fichier) ou None. Seulement pour l'appli installée :
-    depuis les sources, on garde le zip du code."""
-    if not appli_installee():
-        return None
-    if sys.platform == "win32" and (Path(sys.executable).resolve().parent / "Donnees").is_dir():
-        voulu = lambda n: n.endswith(".zip") and "windows-portable" in n
-    elif sys.platform == "win32":
-        voulu = lambda n: n.endswith(".exe") and "windows" in n
-    elif sys.platform == "darwin":
-        arch = "arm64" if platform.machine().lower() in ("arm64", "aarch64") else "x64"
-        voulu = lambda n: n.endswith(".dmg") and f"mac-{arch}" in n
-    else:
-        return None
-    for actif in actifs:
-        nom = actif.get("name") or ""
-        if voulu(nom.lower()):
-            return actif.get("browser_download_url"), nom
-    return None
 
 
 def telecharger_mise_a_jour(url_zip, nom_fichier=None):
@@ -163,12 +128,8 @@ def telecharger_mise_a_jour(url_zip, nom_fichier=None):
 
     try:
         requete = urllib.request.Request(url_zip, headers={"User-Agent": "TrailMasterPro"})
-        with urllib.request.urlopen(requete, timeout=60) as reponse, open(destination, "wb") as fichier:
-            while True:
-                morceau = reponse.read(1024 * 1024)
-                if not morceau:
-                    break
-                fichier.write(morceau)
+        with urllib.request.urlopen(requete, timeout=30) as reponse, open(destination, "wb") as fichier:
+            fichier.write(reponse.read())
     except (urllib.error.URLError, TimeoutError, OSError):
         return None
 
@@ -230,8 +191,6 @@ def proposer_mise_a_jour(parent, resultat):
 
     if not resultat:
         return False
-    if resultat.get("url_installateur"):
-        return _proposer_installateur(parent, resultat)
     boite = QMessageBox(parent)
     boite.setWindowTitle("Mise à jour disponible")
     boite.setIcon(QMessageBox.Icon.Information)
@@ -270,50 +229,4 @@ def proposer_mise_a_jour(parent, resultat):
         f"Nouvelle version prête dans :\n{cible}\n\nDouble-clique sur Installer_MacBook.command "
         "pour terminer (tes données ne sont pas touchées).",
     )
-    return True
-
-
-def _proposer_installateur(parent, resultat):
-    """Appli installée : télécharge le nouvel installateur (.dmg ou .exe)
-    dans Téléchargements puis l'ouvre. Les données ne sont pas touchées :
-    elles restent dans le dossier de l'application (Application Support
-    sur Mac, %APPDATA% sous Windows)."""
-    from PySide6.QtWidgets import QMessageBox, QApplication
-    from PySide6.QtGui import QDesktopServices
-    from PySide6.QtCore import QUrl, Qt
-
-    boite = QMessageBox(parent)
-    boite.setWindowTitle("Mise à jour disponible")
-    boite.setIcon(QMessageBox.Icon.Information)
-    notes = (resultat.get("notes") or "").strip()
-    texte = f"Une nouvelle version est disponible : {resultat.get('nom')}."
-    if notes:
-        texte += f"\n\n{notes[:900]}"
-    if sys.platform == "darwin":
-        texte += ("\n\nUn clic sur « Mettre à jour » télécharge la nouvelle version et l'ouvre. "
-                  "Quitte TrailMaster, puis fais glisser TrailMaster Pro dans Applications "
-                  "(remplace l'ancienne). Tes données sont conservées.")
-    else:
-        texte += ("\n\nUn clic sur « Mettre à jour » télécharge l'installateur et le lance. "
-                  "Ferme TrailMaster quand l'installateur le demande. Tes données sont conservées.")
-    boite.setText(texte)
-    bouton_ok = boite.addButton("Mettre à jour", QMessageBox.ButtonRole.AcceptRole)
-    boite.addButton("Plus tard", QMessageBox.ButtonRole.RejectRole)
-    boite.exec()
-    if boite.clickedButton() is not bouton_ok:
-        return False
-
-    QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
-    try:
-        chemin = telecharger_mise_a_jour(resultat.get("url_installateur"), resultat.get("nom_installateur"))
-    finally:
-        QApplication.restoreOverrideCursor()
-    if not chemin:
-        QMessageBox.warning(
-            parent, "Mise à jour",
-            "Le téléchargement a échoué (réseau indisponible ou interrompu). Réessaie plus tard, "
-            "ou récupère la version sur github.com/didail84/trailmaster-pro/releases.",
-        )
-        return False
-    QDesktopServices.openUrl(QUrl.fromLocalFile(str(chemin)))
     return True

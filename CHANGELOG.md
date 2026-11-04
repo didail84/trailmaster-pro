@@ -1,9 +1,69 @@
 # Historique des versions
 
+## 108
+- Nouveau : **Roadbook course** (Analyses > Performance > 🗺️ Roadbook, et bouton « 🗺️ Roadbook de cette course » dans Courses à venir) pour préparer une course précise, en complément de l'entraînement.
+- Import du GPX (ou d'un parcours déjà importé) : profil altimétrique, points nommés du GPX repris, temps de passage estimés selon ton niveau (VO₂max « estimation basse », allure sur le plat, ou temps visé) avec le même calcul de pente que le pacing existant.
+- Points de passage éditables : ravitaillements, barrières horaires, repères ; barrière saisie en heure (« 14:30 », passage minuit géré) ; marge en minutes à chaque barrière (vert / orange sous 30 min / rouge si dépassée) et alerte globale ; ravitaillements réguliers en un clic.
+- Nutrition par tronçon : glucides, eau, sodium et menu d'exemple entre chaque point, avec les débits du plan de ravitaillement du Coach du jour (aucun nouveau calcul).
+- Checklist du sac cochable : matériel obligatoire / conseillé de « Matériel course » (nuit, altitude, saison), nutrition à emporter, éléments perso ; les cases cochées sont conservées quand la liste est recalculée.
+- Roadbooks enregistrés dans la base (plusieurs courses possibles), rechargeables et supprimables.
+- Mini-fiche A5 en PDF à imprimer / plastifier : profil, points de passage avec heures, barrières et marges, quoi manger entre les points, checklist.
+- Tests automatiques ajoutés (GPX synthétique, barrières, nutrition, enregistrement, PDF, écran).
+
+## 107
+- Poids & récupération : saisie manuelle des mensurations avec le poids — tour de taille, hanches, poitrine, cuisse, bras et masse grasse (cases facultatives du formulaire sous le tableau, colonnes visibles dans la table). Nouvelles cartes « Tour de taille » (dernière valeur et écart depuis le premier relevé) et « Autres mesures », courbe « Mensurations ».
+- L'import Excel / CSV reconnaît les colonnes « Tour de taille (cm) », « hanches », « poitrine », « cuisse », « bras », « masse grasse » (sans doublon, complète un relevé existant).
+- L'analyse IA du poids reçoit aussi les mensurations. Base mise à jour automatiquement (colonnes ajoutées), tes données ne sont pas touchées.
+- Tests automatiques ajoutés.
+
+## 106
+- Analyse IA sur les écrans de résultats : une carte « 🤖 Analyser » en bas du tableau de bord (synthèse du jour), du sommeil / HRV / FC de repos, de la récupération & tendances, du poids (deux écrans), de la VMA et du VO₂max, des meilleurs efforts, de conditions & intensité, des courbes (forme, évolution, charge, efficacité, montées…) et de la préparation aux courses. Format : Lecture, Cause probable, À faire (chiffré).
+- L'IA ne lit que des chiffres calculés par le logiciel (dossier par écran) et ne peut pas en inventer ; la VMA et le VO₂max restent signalés « estimation basse ».
+- Mémorisation : tant que les chiffres ne changent pas, l'analyse est relue sans nouvel appel (aucun quota consommé) ; « Régénérer » force un nouvel appel.
+- Sans clé IA (Réglages > Analyse IA), la carte affiche un résumé local des chiffres clés. Consentement demandé une seule fois avant le premier envoi à Gemini ou Groq.
+- Tests automatiques ajoutés (IA simulée, aucun appel réseau).
+
+## 105
+- Plan de ravitaillement : une colonne « Exemple concret » propose, heure par heure, une combinaison d'aliments qui atteint les glucides visés (boisson d'effort, gel, compote, barre, banane, pâtes de fruits, dattes, raisins secs, gâteau de riz, sandwich…), l'eau restante et les pastilles d'électrolytes ; du salé est suggéré au-delà de 4 h. Aliments génériques, glucides indicatifs : à vérifier sur l'étiquette.
+- Tests automatiques ajoutés.
+
+## 104
+- Écran Aujourd'hui relié au Coach du jour : la carte « Séance du jour » affiche la décision du coach (feu vert / prudence / repos) et prévient quand la séance prévue est intense alors que le coach conseille d'alléger. Le matin, ce conseil est aussi écrit dans le commentaire de la séance (sans la modifier : tu décides).
+- Nouvel onglet « 🧪 Données » (Analyses & Forme) : contrôle de la qualité des données (sorties sans FC, valeurs aberrantes, doublons probables, trous de santé, note sur 100) et bouton qui recalcule les FC manquantes depuis les traces.
+- Nouvel onglet « ⚡ Meilleurs efforts » : meilleure vitesse (à plat équivalent) de 1 min à 1 h, vitesse critique et réserve D′ — estimation basse.
+- Nouvel écran « 🌡️ Conditions & intensité » : efficacité selon la température et selon le sommeil de la nuit, et répartition de l'intensité (profil polarisé / pyramidal / zone grise) sur 6 semaines.
+- Onglets regroupés : Analyses & Forme passe de 10 à 6 onglets (Forme & récupération, Performance, IA & bilans regroupent les écrans proches, sans les modifier) ; Bilans & objectifs range Rapport PDF, Page téléphone et Affiche sous « Partager ». Les raccourcis du tableau de bord ont été mis à jour.
+- Les « & » des titres d'onglets s'affichent correctement.
+- Tests automatiques ajoutés.
+
+## 103
+- Nouvel onglet « 🎯 Coach du jour » (Analyses & Forme) : décide la séance du jour d'après tes jambes, ta RPE, ta fraîcheur (TSB), ta HRV, ta FC de repos, ton sommeil et une éventuelle blessure. Feu vert / prudence / repos, séance structurée aux allures de ta VMA (qualité, endurance ou récupération), routine de renfort et de mobilité adaptée, explication chiffrée de la décision.
+- Envoi de la séance directement sur Garmin Connect, sans câble (elle arrive sur la montre à la prochaine synchronisation). Non testé avec un vrai compte Garmin : à vérifier à la première utilisation. L'export .fit par câble reste disponible dans Séances.
+- Prédiction de chrono 5 km, 10 km, semi, marathon et sur un parcours avec D+, à partir du VO₂max estimé, avec la mention « estimation basse ».
+- Allure par segment sur un GPX : nouvelle méthode par défaut basée sur le coût énergétique réel de la pente (Minetti), la même que l'analyse des sorties ; l'ancienne règle simple reste au choix.
+- Plan de ravitaillement chiffré (glucides, eau, sodium par heure selon durée, intensité, température et poids). Repères généraux à tester à l'entraînement.
+- Tests automatiques ajoutés.
+
+## 102
+- Écran « VMA & circuits » : nouvelle carte « Évolution des estimations — estimation basse » avec trois courbes sur 24 mois (VMA en km/h, VO₂max en ml/kg/min, indice d'efficacité cardiaque), chacune portant la mention « estimation basse » et la variation en % sur la période. Ces valeurs sont calculées sur des sorties réelles (rarement des efforts maximaux) : elles sous-estiment la valeur vraie, seule la tendance est fiable. Un graphique par grandeur (pas de double axe).
+- Tests automatiques ajoutés.
+
+## 101
+- Analyses de l'IA plus orientées performance et plus techniques. Avant chaque analyse, TrailMaster calcule en local un dossier de chiffres (rien n'est inventé par l'IA) : allure réelle vs allure ajustée à la pente (GAP), régularité et split, découplage cardiaque Pa:Hr, VAM des montées, durabilité par blocs de 30 min, efficacité (m par battement, indice km-effort/FC), temps par zone de FC avec bornes en bpm, comparaison avec des sorties similaires, fitness/fatigue/fraîcheur (CTL/ATL/TSB) et monotonie au jour J, HRV, FC de repos, sommeil, VMA et VO2max estimés.
+- Nouvelle structure d'une analyse de sortie : Lecture technique, Points forts, Limiteurs de performance, Charge/fatigue/récupération (avec niveau de risque), Prescription de la prochaine séance (durée, structure, bpm, allure, D+, critère d'ajustement). Bilans semaine/mois/année : volume en km-effort, répartition d'intensité 80/20, tendance d'efficacité, charge, plan chiffré des 7 à 14 jours.
+- Questions au coach et commentaire de replanification : même niveau technique. Réponses plus factuelles (température basse). Les anciennes analyses (format simple) sont régénérées à la prochaine demande.
+- Tests automatiques ajoutés.
+
+## 100
+- Nouvel écran « Poids & récupération » (onglet Suivi) : fusion de « Poids & fatigue » et « Poids lissé et objectif ». Six cartes (dernier poids du matin, moyenne 7 jours et écart avec la semaine d'avant, perte depuis le poids de départ, reste jusqu'à l'objectif avec estimation, fatigue et jambes au réveil), poids brut + courbe lissée, fatigue au réveil, et la séance de la veille à côté de chaque relevé (tirée des sorties et séances de salle déjà enregistrées).
+- Moment du relevé (matin, soir, après séance) : seules les pesées du matin servent aux moyennes et à la courbe lissée. Les anciens relevés reçoivent leur moment automatiquement.
+- Poids de départ réglable ; les cases laissées vides ne sont plus enregistrées à 0.
+- Import Excel/CSV : colonnes « Moment » et « Fatigue jambes (/10) » reconnues ; réimporter un fichier ne crée toujours aucun doublon (même date + même moment = même relevé, seules les cases vides sont complétées).
+- Tests automatiques (`python3 -m pytest tests`).
+
 ## 99
-- Vrais installateurs prêts à l'emploi, fabriqués automatiquement par GitHub : `.exe` pour Windows, `.dmg` pour Mac Intel (compatible macOS 12 Monterey) et pour Mac Apple Silicon. Plus besoin d'installer Python.
-- Mise à jour en un clic depuis l'application installée : le bon installateur est téléchargé puis ouvert ; les données restent en place.
-- Synchronisation Garmin Connect (sorties et santé) ; le code publié ne contient plus aucune donnée personnelle.
+- Synchronisation automatique avec Garmin Connect (sans USB) : sorties avec trace GPS, sommeil, VFC, FC de repos, Body Battery, stress, SpO2, pas, disponibilité d'entraînement, VO2max, poids.
+- Option de synchro automatique une fois par jour au démarrage.
 
 ## 98
 Grande version « fluidité, performance et santé » : 42 nouvelles fonctions.

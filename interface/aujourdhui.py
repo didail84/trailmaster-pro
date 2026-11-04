@@ -198,6 +198,12 @@ class EcranAujourdhui(QWidget):
         ligne3.addWidget(self._carte_alertes(d), 7)
         ligne3.addWidget(self._carte_sortie(d), 5)
         self.zone.addLayout(ligne3)
+        from interface.analyse_ia_widget import CarteAnalyseIA
+        from data import analyse_ecran as _ae
+        a_id = self.athlete_id
+        self.carte_ia = CarteAnalyseIA("aujourdhui", "synthèse du jour", lambda: a_id,
+                                       lambda: _ae.dossier_aujourdhui(a_id))
+        self.zone.addWidget(self.carte_ia)
 
     # ------------------------------------------------------------------
     def _carte(self, cle=None):
@@ -258,6 +264,18 @@ class EcranAujourdhui(QWidget):
         else:
             lay.addWidget(_label("Jour libre", "font-size:20px; font-weight:700;"))
             lay.addWidget(_label("Aucune séance prévue aujourd'hui.", "", True))
+        co = d.get("coach")
+        if co and co.get("nb_signaux", 0) >= 2:
+            pastille = {"vert": "🟢", "orange": "🟠", "rouge": "🔴"}[co["niveau"]]
+            lay.addWidget(_label(f"🎯 Coach : {pastille} {co['titre']}", "font-size:13px; font-weight:600;"))
+            if d.get("ecart_coach"):
+                lay.addWidget(_label("⚠️ " + d["ecart_coach"], "font-size:12px; color:#FFA726;", True))
+            bouton = QPushButton("Voir le coach du jour →")
+            bouton.setFlat(True)
+            bouton.setCursor(Qt.CursorShape.PointingHandCursor)
+            bouton.setStyleSheet(f"color:{obtenir_couleur_accent()}; font-weight:600; text-align:left; border:none;")
+            bouton.clicked.connect(lambda: self.nav["coach"]())
+            lay.addWidget(bouton, 0, Qt.AlignmentFlag.AlignLeft)
         lay.addStretch(1)
         lay.addWidget(_label("Ouvrir le calendrier →", f"color:{obtenir_couleur_accent()}; font-weight:600;"))
         return c

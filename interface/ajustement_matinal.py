@@ -66,6 +66,28 @@ def ajuster_athlete(athlete_id):
     return sorties
 
 
+def noter_conseil_coach(athlete_id):
+    """v104 — si la séance prévue aujourd'hui est intense alors que le coach du jour conseille
+    d'alléger, l'écrit dans le commentaire de la séance (sans la modifier : c'est toi qui décides).
+    Retourne le message écrit, ou None."""
+    try:
+        from data.coach_du_jour import coach_du_jour, ecart_avec_plan
+        from data.metriques import seance_du_jour
+        seance = seance_du_jour(athlete_id)
+        msg = ecart_avec_plan(coach_du_jour(athlete_id), seance)
+    except Exception:
+        return None
+    if not msg or (seance.get("commentaire") or "").startswith("🎯"):
+        return None
+    conn = connexion()
+    cur = conn.cursor()
+    cur.execute("UPDATE seances_structurees SET commentaire_replanification=? WHERE id=?",
+                ("🎯 " + msg, seance["id"]))
+    conn.commit()
+    conn.close()
+    return msg
+
+
 def ajustement_du_jour(force=False):
     """Fait l'ajustement une seule fois par jour pour tous les athlètes.
     Renvoie (liste_resultats, message) ou ([], None) s'il n'y a rien à faire."""
@@ -82,6 +104,7 @@ def ajustement_du_jour(force=False):
     res = []
     for a in ids:
         res += ajuster_athlete(a)
+        noter_conseil_coach(a)
     definir_parametre(CLE_DERNIER, aujourd)
     n = sum(r["nb_modifiees"] for r in res)
     if n:

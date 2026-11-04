@@ -504,6 +504,12 @@ class RecuperationTendances(QMainWindow):
                 if self.combo_athlete.itemData(i) == athlete_id_initial:
                     self.combo_athlete.setCurrentIndex(i)
                     break
+        from interface.analyse_ia_widget import CarteAnalyseIA
+        from data import analyse_ecran as _ae
+        self.carte_ia = CarteAnalyseIA("sommeil", "récupération et tendances",
+                                       lambda: self.combo_athlete.currentData(),
+                                       lambda: _ae.dossier_sommeil(self.combo_athlete.currentData()))
+        self.principal.addWidget(self.carte_ia)
         self.combo_athlete.currentIndexChanged.connect(self.actualiser)
         self.combo_periode.currentIndexChanged.connect(self.actualiser)
         self.actualiser()

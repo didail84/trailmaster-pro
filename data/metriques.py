@@ -344,8 +344,10 @@ def poids_serie(athlete_id, nb_jours=365):
     debut = (date.today() - timedelta(days=nb_jours)).isoformat()
     conn = connexion()
     cur = conn.cursor()
-    cur.execute("SELECT date, poids_kg FROM suivi_corporel WHERE athlete_id=? AND date>=? AND poids_kg IS NOT NULL "
-                "ORDER BY date", (athlete_id, debut))
+    # Pesées du matin seulement (un relevé sans moment compte comme du matin) :
+    # le poids du soir ou d'après sortie fausserait la tendance.
+    cur.execute("SELECT date, poids_kg FROM suivi_corporel WHERE athlete_id=? AND date>=? AND poids_kg > 0 "
+                "AND COALESCE(moment, 'matin')='matin' ORDER BY date, id", (athlete_id, debut))
     pts = [(_jour(d), float(p)) for d, p in cur.fetchall() if _jour(d)]
     conn.close()
     return pts
@@ -361,6 +363,88 @@ def objectif_poids(athlete_id):
 
 def definir_objectif_poids(athlete_id, kg):
     definir_parametre(f"poids_objectif_{athlete_id}", "" if kg is None else str(kg))
+
+
+def poids_depart(athlete_id):
+    v = obtenir_parametre(f"poids_depart_{athlete_id}")
+    try:
+        return float(v) if v else None
+    except (TypeError, ValueError):
+        return None
+
+
+def definir_poids_depart(athlete_id, kg):
+    definir_parametre(f"poids_depart_{athlete_id}", "" if kg is None else str(kg))
+
+
+def _moyenne_1(valeurs):
+    return round(sum(valeurs) / len(valeurs), 1) if valeurs else None
+
+
+def resume_poids_recuperation(athlete_id):
+    """Chiffres des cartes de l'écran « Poids & récupération », tous tirés
+    des relevés du MATIN (comparables d'un jour à l'autre) :
+    dernier poids, moyenne des 7 derniers jours (fenêtre de 7 jours finissant
+    à la dernière pesée) et des 7 jours d'avant, écart au poids de départ et
+    à l'objectif, dernières fatigue générale et jambes au réveil."""
+    conn = connexion()
+    cur = conn.cursor()
+    cur.execute("SELECT date, poids_kg, etat_jambes, fatigue_jambes, fatigue_generale FROM suivi_corporel "
+                "WHERE athlete_id=? AND COALESCE(moment, 'matin')='matin' ORDER BY date, id", (athlete_id,))
+    lignes = [(_jour(d), p, e, fj, fg) for d, p, e, fj, fg in cur.fetchall() if _jour(d)]
+    conn.close()
+
+    res = {"dernier_poids": None, "dernier_date": None, "moy7": None, "moy7_prec": None, "ecart7": None,
+           "depart": poids_depart(athlete_id), "perte": None, "objectif": objectif_poids(athlete_id),
+           "reste": None, "fatigue": None, "fatigue_date": None, "jambes_note": None, "jambes_etat": None,
+           "jambes_date": None}
+    pesees = [(j, float(p)) for j, p, _, _, _ in lignes if p]
+    if pesees:
+        j0, p0 = pesees[-1]
+        res["dernier_poids"], res["dernier_date"] = p0, j0
+        res["moy7"] = _moyenne_1([p for j, p in pesees if 0 <= (j0 - j).days < 7])
+        res["moy7_prec"] = _moyenne_1([p for j, p in pesees if 7 <= (j0 - j).days < 14])
+        if res["moy7"] is not None and res["moy7_prec"] is not None:
+            res["ecart7"] = round(res["moy7"] - res["moy7_prec"], 1)
+        if res["depart"]:
+            res["perte"] = round(res["depart"] - p0, 1)
+        if res["objectif"]:
+            res["reste"] = round(p0 - res["objectif"], 1)
+    fat = [(j, fg) for j, _, _, _, fg in lignes if fg is not None]
+    if fat:
+        res["fatigue_date"], res["fatigue"] = fat[-1]
+    jamb = [(j, fj, e) for j, _, e, fj, _ in lignes if fj is not None or e]
+    if jamb:
+        res["jambes_date"], res["jambes_note"], res["jambes_etat"] = jamb[-1]
+    return res
+
+
+def seances_du_jour(athlete_id, jour):
+    """Texte court des séances d'un jour : sorties (Garmin/Strava ou saisies)
+    et séances de salle — pour voir, à côté d'un relevé du matin, ce qui a
+    été fait la veille sans rien ressaisir."""
+    j = jour.isoformat() if isinstance(jour, date) else str(jour)[:10]
+    conn = connexion()
+    cur = conn.cursor()
+    cur.execute("SELECT nom, type, distance, denivele FROM activites WHERE athlete_id=? AND date>=? AND date<=? "
+                "ORDER BY date", (athlete_id, j, f"{j}T23:59:59"))
+    morceaux = []
+    for nom, type_, dist, deniv in cur.fetchall():
+        txt = type_ or nom or "Sortie"
+        if dist:
+            txt += f" {dist:.1f} km".replace(".", ",")
+        if deniv:
+            txt += f" D+{int(deniv)}"
+        morceaux.append(txt)
+    try:
+        cur.execute("SELECT COUNT(*) FROM musculation_suivi WHERE athlete_id=? AND substr(date,1,10)=?",
+                    (athlete_id, j))
+        if cur.fetchone()[0]:
+            morceaux.append("Salle")
+    except Exception:
+        pass
+    conn.close()
+    return " + ".join(morceaux)
 
 
 def poids_lisse(athlete_id, nb_jours=365, tau_jours=7.0):
@@ -1064,6 +1148,12 @@ def donnees_aujourdhui(athlete_id):
     res = {"athlete_id": athlete_id}
     res["dispo"] = disponibilite_matin(athlete_id)
     res["seance"] = seance_du_jour(athlete_id)
+    try:                                   # v104 : décision du coach du jour sur l'écran Aujourd'hui
+        from data.coach_du_jour import coach_du_jour, ecart_avec_plan
+        res["coach"] = coach_du_jour(athlete_id)
+        res["ecart_coach"] = ecart_avec_plan(res["coach"], res["seance"])
+    except Exception:
+        res["coach"], res["ecart_coach"] = None, None
     res["volume"] = volume_cible_semaine(athlete_id)
     try:
         res["acwr"] = calculer_acwr(athlete_id)

@@ -47,8 +47,6 @@ pyinstaller ^
     --windowed ^
     --name "TrailMaster Pro" ^
     --add-data "interface/assets;interface/assets" ^
-    --add-data "ressources;ressources" ^
-    --add-data "VERSION;." ^
     --hidden-import "PySide6.QtWebEngineWidgets" ^
     --hidden-import "PySide6.QtWebEngineCore" ^
     --hidden-import "PySide6.QtWebChannel" ^

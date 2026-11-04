@@ -94,3 +94,9 @@ class Sommeil(EcranListe):
                 ("📥 Importer un fichier .FIT (HRV/stress)", _importer_signaux_recuperation),
             ],
         )
+
+        from interface.analyse_ia_widget import CarteAnalyseIA
+        from data import analyse_ecran as _ae
+        self.carte_ia = CarteAnalyseIA("sommeil", "sommeil", lambda: self.combo_athlete.currentData(),
+                                       lambda: _ae.dossier_sommeil(self.combo_athlete.currentData()))
+        self.zone_haut.addWidget(self.carte_ia)

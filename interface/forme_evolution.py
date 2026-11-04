@@ -70,7 +70,32 @@ class _EcranAthlete(QMainWindow):
         self.principal.addLayout(self.barre)
         self._athlete_initial = athlete_id_initial
 
+    ANALYSE_IA = None            # (sujet, titre) : l'écran reçoit une carte « Analyser » en bas
+
+    def _dossier_ia(self):
+        """Dossier de chiffres pour l'IA : celui du sujet + ce qui est affiché à l'écran."""
+        from data import analyse_ecran as ae
+        a = self.combo_athlete.currentData()
+        sujet = self.ANALYSE_IA[0]
+        constructeur = {"sommeil": ae.dossier_sommeil, "poids": ae.dossier_poids, "vma": ae.dossier_vma,
+                        "conditions": ae.dossier_conditions, "courses": ae.dossier_courses,
+                        "aujourdhui": ae.dossier_aujourdhui}.get(sujet)
+        d = constructeur(a) if constructeur else {}
+        if not d:
+            d["forme"] = ae._forme(a)
+        d["affiche_a_l_ecran"] = ae.dossier_courbes_widgets(self)
+        return ae._nettoyer(d)
+
+    def _ajouter_carte_ia(self):
+        if not self.ANALYSE_IA:
+            return
+        from interface.analyse_ia_widget import CarteAnalyseIA
+        self.carte_ia = CarteAnalyseIA(self.ANALYSE_IA[0], self.ANALYSE_IA[1],
+                                       lambda: self.combo_athlete.currentData(), self._dossier_ia)
+        self.principal.addWidget(self.carte_ia)
+
     def _finaliser(self):
+        self._ajouter_carte_ia()
         self.setStyleSheet(obtenir_style_ecran() + "#carteForm QLabel { background: transparent; }")
         if self._athlete_initial is not None:
             for i in range(self.combo_athlete.count()):
@@ -133,6 +158,7 @@ class _EcranAthlete(QMainWindow):
 # ------------------------------------------------------------------
 
 class FormeFatigue(_EcranAthlete):
+    ANALYSE_IA = ("courbe", "forme, fatigue et fraîcheur")
 
     def __init__(self, athlete_id_initial=None):
         super().__init__(
@@ -230,6 +256,7 @@ class FormeFatigue(_EcranAthlete):
 # ------------------------------------------------------------------
 
 class EvolutionPerformances(_EcranAthlete):
+    ANALYSE_IA = ("courbe", "évolution des performances")
 
     def __init__(self, athlete_id_initial=None):
         super().__init__(

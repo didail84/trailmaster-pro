@@ -160,6 +160,27 @@ def _voir_materiel_pour_course(ecran):
     ecran._fenetre_materiel.show()
 
 
+def _ouvrir_roadbook_pour_course(ecran):
+    """Ouvre le Roadbook (GPX, barrières, ravitaillements, fiche) pour la course sélectionnée."""
+    ligne = ecran.table.currentRow()
+    if ligne < 0:
+        QMessageBox.information(ecran, "Sélection requise", "Sélectionne d'abord une course dans la liste.")
+        return
+    conn = connexion()
+    cur = conn.cursor()
+    cur.execute("SELECT athlete_id, nom, date, distance_km, denivele_m FROM courses_calendrier WHERE id=?",
+                (ecran.lignes_ids[ligne],))
+    r = cur.fetchone()
+    conn.close()
+    if not r:
+        return
+    from interface.roadbook import RoadbookCourse
+    ecran._fenetre_roadbook = RoadbookCourse(
+        athlete_id_initial=r[0],
+        course_preselectionnee={"nom": r[1], "date": r[2], "distance_km": r[3], "denivele_m": r[4]})
+    ecran._fenetre_roadbook.show()
+
+
 class CoursesCalendrier(EcranListe):
 
     def __init__(self, athlete_id_initial=None):
@@ -191,5 +212,12 @@ class CoursesCalendrier(EcranListe):
                 {"label": "Score d'intérêt", "fonction": _calculer_score_interet},
                 {"label": "Temps estimé", "fonction": _calculer_temps_estime},
             ],
-            bouton_extra=("🎒 Voir le matériel conseillé", _voir_materiel_pour_course),
+            bouton_extra=[("🎒 Voir le matériel conseillé", _voir_materiel_pour_course),
+                          ("🗺️ Roadbook de cette course", _ouvrir_roadbook_pour_course)],
         )
+
+        from interface.analyse_ia_widget import CarteAnalyseIA
+        from data import analyse_ecran as _ae
+        self.carte_ia = CarteAnalyseIA("courses", "préparation aux courses", lambda: self.combo_athlete.currentData(),
+                                       lambda: _ae.dossier_courses(self.combo_athlete.currentData()))
+        self.zone_haut.addWidget(self.carte_ia)

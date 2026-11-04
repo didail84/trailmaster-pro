@@ -43,18 +43,6 @@ def _emplacement_synchronise_configure():
     return None
 
 
-def dossier_portable():
-    """Version portable (clé USB, Windows) : si un dossier « Donnees » se
-    trouve à côté de TrailMaster Pro.exe, la base et les photos y sont
-    rangées — elles voyagent avec la clé au lieu de rester sur le PC."""
-
-    if getattr(sys, "frozen", False) and sys.platform == "win32":
-        dossier = Path(sys.executable).resolve().parent / "Donnees"
-        if dossier.is_dir():
-            return dossier
-    return None
-
-
 def _obtenir_chemin_bdd():
     """En exécution normale (python3 main.py), la base reste à côté du
     code, comme avant. Une fois empaquetée en vraie application
@@ -67,10 +55,6 @@ def _obtenir_chemin_bdd():
     — c'est ce qui permet à deux installations (Mac et Windows, par
     exemple) de partager la même base via un dossier iCloud Drive/
     Google Drive/OneDrive déjà synchronisé entre les deux machines."""
-
-    portable = dossier_portable()
-    if portable is not None:
-        return portable / "trailmaster.db"
 
     emplacement_sync = _emplacement_synchronise_configure()
     if emplacement_sync is not None:
@@ -623,6 +607,57 @@ def creer_base_de_donnees():
     if "photo_path" not in colonnes_athletes:
         cur.execute("ALTER TABLE athletes ADD COLUMN photo_path TEXT")
 
+    # v100 — moment du relevé (matin / soir / après séance) dans le suivi
+    # corporel : seules les pesées du matin sont comparables d'un jour à
+    # l'autre. Les anciens relevés reçoivent leur moment depuis la note
+    # que l'import y écrivait (« Soir », « Après trail »…) ; un relevé
+    # sans moment est considéré comme un relevé du matin.
+    cur.execute("PRAGMA table_info(suivi_corporel)")
+    colonnes_suivi_corporel = [c[1] for c in cur.fetchall()]
+    if "moment" not in colonnes_suivi_corporel:
+        cur.execute("ALTER TABLE suivi_corporel ADD COLUMN moment TEXT")
+        cur.execute("UPDATE suivi_corporel SET moment='soir' "
+                    "WHERE moment IS NULL AND lower(notes) LIKE 'soir%'")
+        cur.execute("UPDATE suivi_corporel SET moment='après séance' "
+                    "WHERE moment IS NULL AND (lower(notes) LIKE 'après%' OR lower(notes) LIKE 'apres%')")
+        cur.execute("UPDATE suivi_corporel SET moment='matin' WHERE moment IS NULL")
+    # v108 — roadbooks de course (voir data/roadbook.py)
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS roadbooks (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            athlete_id INTEGER,
+            nom TEXT NOT NULL,
+            date_course TEXT,
+            depart TEXT,
+            mode_niveau TEXT,
+            allure_plat TEXT,
+            temps_vise TEXT,
+            temperature_c REAL,
+            poids_kg REAL,
+            intensite TEXT,
+            nocturne INTEGER DEFAULT 0,
+            altitude INTEGER DEFAULT 0,
+            distance_km REAL,
+            denivele_m INTEGER,
+            trace_json TEXT,
+            points_json TEXT,
+            checklist_json TEXT,
+            date_modif TEXT DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+
+    # v107 — mensurations (tour de taille, etc.) saisies avec le poids.
+    for colonne in ("tour_taille_cm", "tour_hanches_cm", "tour_poitrine_cm",
+                    "tour_cuisse_cm", "tour_bras_cm", "masse_grasse_pct"):
+        if colonne not in colonnes_suivi_corporel:
+            cur.execute(f"ALTER TABLE suivi_corporel ADD COLUMN {colonne} REAL")
+    # Le formulaire enregistrait 0 dans les cases laissées vides : un poids
+    # ou une fatigue à 0 veut dire « non renseigné ».
+    cur.execute("UPDATE suivi_corporel SET poids_kg=NULL WHERE poids_kg=0")
+    cur.execute("UPDATE suivi_corporel SET fatigue_jambes=NULL WHERE fatigue_jambes=0")
+    cur.execute("UPDATE suivi_corporel SET fatigue_generale=NULL WHERE fatigue_generale=0")
+    cur.execute("UPDATE suivi_corporel SET etat_jambes=NULL WHERE etat_jambes=''")
+
     # --------------------------------------------------
     # SÉANCES STRUCTURÉES
     # --------------------------------------------------
@@ -863,6 +898,19 @@ def creer_base_de_donnees():
 
             FOREIGN KEY (athlete_id) REFERENCES athletes(id),
             FOREIGN KEY (activite_id) REFERENCES activites(id)
+        )
+    """)
+
+    # v106 — analyses IA des écrans (sommeil, poids, VMA, courbes...) mises en cache
+    # tant que les chiffres analysés n'ont pas changé (empreinte du dossier).
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS analyses_ecran (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            athlete_id INTEGER,
+            sujet TEXT,
+            empreinte TEXT,
+            contenu TEXT,
+            date_generation TEXT DEFAULT CURRENT_TIMESTAMP
         )
     """)
 

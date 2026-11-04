@@ -246,30 +246,78 @@ def construire_resume_sortie(activite_id, athlete_id):
         "sorties_similaires_recentes": _activites_similaires_recentes(
             athlete_id, type_, date_obj or datetime.now()
         ),
+        "dossier_technique": _dossier_technique_sortie(activite_id, athlete_id),
     }
 
 
+def _dossier_technique_sortie(activite_id, athlete_id):
+    """Chiffres de performance calculés en local (interface/analyse_technique.py).
+    Un échec ici ne doit jamais empêcher l'analyse : on envoie alors sans."""
+    try:
+        from interface.analyse_technique import dossier_sortie
+        return dossier_sortie(activite_id, athlete_id)
+    except Exception:
+        return {}
+
+
+MARQUEUR_ANALYSE_TECHNIQUE = "Lecture technique"   # présent dans toute analyse générée par la v101+
+
+CONSIGNES_COMMUNES = (
+    "RÈGLES ABSOLUES :\n"
+    "- Tu t'appuies UNIQUEMENT sur les données fournies. Chaque affirmation cite au moins un chiffre "
+    "exact avec son unité (min/km, bpm, m/h, %, km-effort...). Si une donnée manque (clé absente ou "
+    "null), écris « non mesuré » et n'en déduis rien.\n"
+    "- Tu n'inventes aucune valeur, aucune comparaison, aucun record. Les zones en % FCmax, la VMA, le "
+    "VO2max, les allures de référence, l'allure ajustée (GAP) et la nature probable de la séance sont "
+    "des ESTIMATIONS : dis-le en une fois, brièvement.\n"
+    "- Vocabulaire d'entraîneur : allure ajustée à la pente (GAP), découplage aérobie (Pa:Hr), VAM, "
+    "zones de FC, CTL/ATL/TSB, ACWR, monotonie, polarisation 80/20, durabilité. Explique en quelques "
+    "mots un terme technique la première fois qu'il apparaît.\n"
+    "- Priorise : un point fort ou un limiteur n'est cité que s'il est étayé par un chiffre. Pas de "
+    "compliments génériques, pas de phrases vagues (« continue comme ça »).\n"
+    "- Si une alerte, une blessure active, une HRV sous la bande ou une FC de repos en hausse figure dans "
+    "les données, elle prime sur l'envie de charger : dis-le clairement.\n"
+    "- Aucun diagnostic médical. Tutoie l'athlète. Réponds uniquement en français, en Markdown.\n"
+)
+
+
 def _construire_prompt(resume):
+    from interface.analyse_technique import LEGENDE
     return (
-        "Tu es un coach de course à pied trail expérimenté, bienveillant mais direct. "
-        "Voici les données d'une sortie que l'athlète vient de terminer, ainsi que son "
-        "contexte de forme récent (calculés localement, pas de nom ni de données "
-        "personnelles). Réponds UNIQUEMENT en français, dans un ton naturel, sans jargon "
-        "inutile, structuré en 3 parties avec ces titres exacts :\n\n"
-        "### Ce qui est positif\n"
-        "### Ce qui est à travailler\n"
-        "### Pour ta prochaine séance\n\n"
-        "Dans la 3e partie, recommande clairement un type de séance parmi : repos complet, "
-        "récupération active, renforcement musculaire, endurance fondamentale, sortie "
-        "spécifique (allure/dénivelé ciblé), ou fractionné — en justifiant en une phrase à "
-        "partir des données de charge/ACWR/forme/sommeil/blessures ci-dessous. Si le champ "
-        "'rythme_de_vie' est renseigné (pas null), tiens-en compte comme une source de "
-        "fatigue en dehors de l'entraînement (lever tôt, longue journée, trajets) : elle "
-        "peut à elle seule justifier une séance plus légère même si les chiffres "
-        "d'entraînement seuls ne le montreraient pas. Reste concis : "
-        "5 à 8 lignes par partie maximum.\n\n"
-        "Données de la sortie et du contexte (JSON) :\n"
-        f"{json.dumps(resume, ensure_ascii=False, indent=2)}"
+        "Tu es un entraîneur de trail et de course à pied de haut niveau, spécialiste de la "
+        "physiologie de l'effort et de l'analyse de données d'entraînement. Tu rédiges l'analyse "
+        "technique d'UNE séance pour un athlète qui veut progresser en performance. Le ton est "
+        "direct, précis, professionnel.\n\n"
+        + CONSIGNES_COMMUNES + "\n"
+        "STRUCTURE OBLIGATOIRE (ces titres exacts, dans cet ordre) :\n\n"
+        "### Lecture technique de la séance\n"
+        "Nature de la séance (déduite de nature_probable_de_la_seance, des zones et de la régularité), "
+        "puis lecture chiffrée : allure réelle vs allure ajustée à la pente, régularité (split), "
+        "FC et zones (% de temps), découplage Pa:Hr, VAM dans les montées principales, cadence, "
+        "durabilité si disponible. 6 à 10 lignes, en puces courtes.\n\n"
+        "### Points forts (performance)\n"
+        "2 à 4 puces, chacune avec son chiffre. Compare à comparaison_sorties_similaires "
+        "(efficacité, vitesse, FC) quand elle existe.\n\n"
+        "### Limiteurs de performance\n"
+        "2 à 4 puces : ce qui a freiné ou coûté de l'énergie (dérive cardiaque, allure irrégulière, "
+        "trop de temps en zone 3, VAM qui chute, descente subie...), chacune avec son chiffre et "
+        "l'hypothèse physiologique la plus probable. Distingue clairement un fait mesuré d'une hypothèse.\n\n"
+        "### Charge, fatigue et récupération\n"
+        "CTL/ATL/TSB au jour J, charge des 7 derniers jours et variation, monotonie, HRV vs base, FC "
+        "de repos, sommeil, poids si pertinent. Conclus par un niveau de risque (faible / modéré / "
+        "élevé) justifié en une phrase. 4 à 6 lignes.\n\n"
+        "### Prescription pour la prochaine séance\n"
+        "Une séance précise et exécutable : type, durée, structure (échauffement / blocs / retour au "
+        "calme), intensité en bpm ET en allure (min/km, allure ajustée si en côte), D+ cible, critère "
+        "d'arrêt ou d'ajustement (ex. « si la FC dépasse X bpm à allure Y, ralentis »). Justifie en une "
+        "phrase par les données. Donne une alternative plus légère si la fraîcheur, la HRV ou le "
+        "sommeil sont défavorables. Termine par UN axe de travail prioritaire pour les 2 prochaines "
+        "semaines.\n\n"
+        "Longueur totale : 350 à 550 mots. Pas d'introduction, pas de conclusion en dehors des "
+        "sections.\n\n"
+        + LEGENDE + "\n"
+        "DONNÉES DE LA SORTIE ET DU CONTEXTE (JSON, calculées localement, sans donnée personnelle) :\n"
+        f"{json.dumps(resume, ensure_ascii=False, separators=(',', ':'), default=str)}"
     )
 
 
@@ -299,6 +347,7 @@ def _appeler_gemini_avec_modele(prompt, cle, modele):
 
     corps = json.dumps({
         "contents": [{"parts": [{"text": prompt}]}],
+        "generationConfig": {"temperature": 0.3, "maxOutputTokens": 4096},
     }).encode("utf-8")
 
     requete = urllib.request.Request(
@@ -403,7 +452,8 @@ def _appeler_groq_avec_modele(prompt, cle, modele):
     corps = json.dumps({
         "model": modele,
         "messages": [{"role": "user", "content": prompt}],
-        "temperature": 0.7,
+        "temperature": 0.3,
+        "max_tokens": 2500,
     }).encode("utf-8")
 
     requete = urllib.request.Request(
@@ -534,7 +584,7 @@ def _analyse_en_cache(activite_id):
     cur = conn.cursor()
     cur.execute(
         "SELECT contenu, date_generation FROM analyses_ia "
-        "WHERE activite_id=? ORDER BY date_generation DESC LIMIT 1",
+        "WHERE activite_id=? ORDER BY date_generation DESC, id DESC LIMIT 1",
         (activite_id,),
     )
     resultat = cur.fetchone()
@@ -560,8 +610,9 @@ def analyser_sortie(activite_id, athlete_id, forcer_regeneration=False):
 
     if not forcer_regeneration:
         en_cache = _analyse_en_cache(activite_id)
-        if en_cache:
+        if en_cache and MARQUEUR_ANALYSE_TECHNIQUE in en_cache[0]:
             return en_cache[0], True
+        # Analyse d'avant la v101 (format simple) : on la régénère en version technique.
 
     resume = construire_resume_sortie(activite_id, athlete_id)
     if resume is None:
@@ -808,31 +859,53 @@ def construire_resume_periode(athlete_id, type_periode, date_ref=None):
         "score_forme_actuel": calculer_score_forme_jour(athlete_id),
         "rythme_de_vie": contexte_fatigue_vie().get("texte"),
         "alertes_actives": generer_alertes(athlete_id),
+        "dossier_technique": _dossier_technique_periode(athlete_id, debut, fin),
     }
 
 
+def _dossier_technique_periode(athlete_id, debut, fin):
+    try:
+        from interface.analyse_technique import dossier_periode
+        return dossier_periode(athlete_id, debut, fin)
+    except Exception:
+        return {}
+
+
 def _construire_prompt_periode(type_periode, debut, fin, resume):
+    from interface.analyse_technique import LEGENDE
     libelle = LIBELLES_PERIODE.get(type_periode, type_periode)
     return (
-        "Tu es un coach de course à pied trail expérimenté, bienveillant mais direct. "
-        f"Voici un bilan agrégé de l'entraînement d'un athlète sur {libelle} (du "
-        f"{debut.strftime('%d/%m/%Y')} au {fin.strftime('%d/%m/%Y')}), comparé à la période "
-        "précédente de même durée, avec ses objectifs à échéance sur la période, sa "
-        "progression de forme et son contexte de récupération (calculés localement, pas de "
-        "nom ni de données personnelles). Réponds UNIQUEMENT en français, structuré en 4 "
-        "parties avec ces titres exacts :\n\n"
-        "### Bilan de la période\n"
+        "Tu es un entraîneur de trail et de course à pied de haut niveau, spécialiste de la "
+        "planification et de l'analyse de charge. Tu rédiges le bilan technique d'un athlète sur "
+        f"{libelle} (du {debut.strftime('%d/%m/%Y')} au {fin.strftime('%d/%m/%Y')}), comparé à la "
+        "période précédente de même durée. Le ton est direct, précis, professionnel.\n\n"
+        + CONSIGNES_COMMUNES + "\n"
+        "STRUCTURE OBLIGATOIRE (ces titres exacts, dans cet ordre) :\n\n"
+        "### Bilan technique de la période\n"
+        "Volume en km, D+, heures et km-effort vs période précédente (variations en %), sorties "
+        "longues, vitesse équivalente-plat, répartition d'intensité (% de temps facile vs 80 % visé, "
+        "zones cumulées si disponibles). 6 à 9 puces chiffrées.\n\n"
         "### Objectifs\n"
-        "### Progression constatée\n"
-        "### Recommandations pour la suite\n\n"
-        "Dans 'Objectifs', commente les objectifs à échéance sur la période s'il y en a "
-        "(atteints ou non), sinon dis-le simplement en une phrase. Dans 'Progression "
-        "constatée', compare le volume/la charge/la forme à la période précédente. Si le "
-        "champ 'rythme_de_vie' est renseigné (pas null), tiens compte de cette fatigue "
-        "en dehors de l'entraînement (lever tôt, longue journée, trajets) dans tes "
-        "recommandations pour la suite. Reste concis : "
-        "4 à 7 lignes par partie maximum.\n\n"
-        f"Données (JSON) :\n{json.dumps(resume, ensure_ascii=False, indent=2, default=str)}"
+        "Objectifs à échéance sur la période (atteints ou non, avec l'écart chiffré) et courses à venir "
+        "avec ce que la forme actuelle permet d'en attendre ; sinon une phrase.\n\n"
+        "### Progression et efficacité\n"
+        "Évolution de l'indice d'efficacité (tendance_efficacite), du CTL (fitness), de la VMA et du "
+        "VO2max estimés. Dis clairement si la forme progresse, stagne ou régresse, avec les chiffres, "
+        "et à quoi tu l'attribues (volume, intensité, récupération). Distingue fait mesuré et "
+        "hypothèse.\n\n"
+        "### Charge et récupération\n"
+        "Charge hebdomadaire et variations (règle des +10 %), monotonie, TSB, ACWR, HRV vs base, FC "
+        "de repos, sommeil, blessures. Conclus par un niveau de risque (faible / modéré / élevé) "
+        "justifié.\n\n"
+        "### Plan des 7 à 14 prochains jours\n"
+        "Cible chiffrée : volume (km, D+, heures), nombre et nature des séances clés (avec intensité en "
+        "bpm et allure), répartition facile/dur visée, et un point de contrôle mesurable pour juger "
+        "si ça se passe bien. Priorise UN levier de performance. Adapte si le rythme de vie "
+        "(champ rythme_de_vie) ou la récupération l'imposent.\n\n"
+        "Longueur totale : 400 à 600 mots. Pas d'introduction ni de conclusion hors sections.\n\n"
+        + LEGENDE + "\n"
+        "DONNÉES (JSON, calculées localement, sans donnée personnelle) :\n"
+        f"{json.dumps(resume, ensure_ascii=False, separators=(',', ':'), default=str)}"
     )
 
 
@@ -841,7 +914,7 @@ def _analyse_periode_en_cache(athlete_id, type_periode, cle_periode):
     cur = conn.cursor()
     cur.execute(
         "SELECT contenu FROM analyses_ia WHERE athlete_id=? AND type=? AND periode_cle=? "
-        "ORDER BY date_generation DESC LIMIT 1",
+        "ORDER BY date_generation DESC, id DESC LIMIT 1",
         (athlete_id, type_periode, cle_periode),
     )
     resultat = cur.fetchone()
@@ -871,7 +944,7 @@ def analyser_periode(athlete_id, type_periode, date_ref=None, forcer_regeneratio
 
     if not forcer_regeneration:
         en_cache = _analyse_periode_en_cache(athlete_id, type_periode, cle)
-        if en_cache:
+        if en_cache and "Bilan technique" in en_cache[0]:
             return en_cache[0], True, debut, fin
 
     resume = construire_resume_periode(athlete_id, type_periode, date_ref)
@@ -893,13 +966,14 @@ def analyser_periode(athlete_id, type_periode, date_ref=None, forcer_regeneratio
 
 def _construire_prompt_replanification(resume_diagnostic, resume_changements):
     return (
-        "Tu es un coach de course à pied trail expérimenté, bienveillant mais direct. "
-        "Le plan d'entraînement d'un athlète vient d'être réajusté automatiquement par "
-        "des règles simples (pas par toi) à partir de son état de forme récent. Voici le "
-        "diagnostic qui a motivé l'ajustement, et un résumé des changements appliqués. "
-        "Explique en français, en 4-6 lignes, dans un ton naturel et encourageant, "
-        "pourquoi cet ajustement a du sens et ce que l'athlète peut en retenir pour la "
-        "suite — sans répéter mécaniquement chaque chiffre, en reformulant avec tes mots.\n\n"
+        "Tu es un entraîneur de trail de haut niveau. Le plan d'entraînement d'un athlète vient d'être "
+        "réajusté automatiquement par des règles simples (pas par toi) à partir de son état de forme. "
+        "Voici le diagnostic et les changements appliqués. En français, en 6 à 9 lignes, tutoiement, ton "
+        "technique et direct : (1) quels indicateurs ont déclenché l'ajustement et ce qu'ils signifient "
+        "physiologiquement (charge/ACWR, fraîcheur TSB, récupération), (2) l'effet attendu de chaque "
+        "changement sur la charge et sur la performance à moyen terme, (3) le point à surveiller dans "
+        "les prochains jours avec un seuil chiffré (FC de repos, HRV, sensations, FC à allure donnée). "
+        "N'invente aucun chiffre absent des données ; cite ceux qui y figurent.\n\n"
         f"Diagnostic :\n{resume_diagnostic}\n\nChangements appliqués :\n{resume_changements}"
     )
 

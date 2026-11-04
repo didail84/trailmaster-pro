@@ -1,22 +1,22 @@
-# Environnement Python et fabrication
 .venv/
 __pycache__/
 *.pyc
+.DS_Store
+.pytest_cache/
+
+# Données personnelles : ne jamais publier sur GitHub
+# (base, photos, sauvegardes, exports et sorties à restaurer)
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+data/photos/
+data/sorties_perdues.json.gz
+export/
+sauvegardes/
+
+# Fichiers de fabrication
 build/
 dist/
 *.spec
-interface/assets/version_build.txt
-
-# Données personnelles : ne JAMAIS publier
-*.db
-*.db-journal
-*.sqlite
-data/photos/
-data/*.json.gz
-*.fit
-*.gpx
-*.xlsx
-export/
-
-.DS_Store
-Thumbs.db
+fabrication.log

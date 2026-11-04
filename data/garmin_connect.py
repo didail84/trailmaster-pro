@@ -364,8 +364,8 @@ def _enregistrer_extras(athlete_id, jour, extras):
             cur.execute("SELECT 1 FROM suivi_corporel WHERE athlete_id=? AND date=?", (athlete_id, jour))
             if cur.fetchone() is None:
                 cur.execute(
-                    "INSERT INTO suivi_corporel (athlete_id, date, poids_kg, notes) VALUES (?,?,?,?)",
-                    (athlete_id, jour, extras["poids_kg"], "Pesée Garmin Connect"),
+                    "INSERT INTO suivi_corporel (athlete_id, date, moment, poids_kg, notes) VALUES (?,?,?,?,?)",
+                    (athlete_id, jour, "matin", extras["poids_kg"], "Pesée Garmin Connect"),
                 )
         conn.commit()
     finally:
@@ -645,3 +645,106 @@ def resume_texte(res):
     if res.get("arret"):
         morceaux.append("⚠️ " + res["arret"])
     return " ".join(morceaux) if morceaux else "Rien à synchroniser."
+
+
+# ======================================================================
+# v103 — ENVOI D'UNE SÉANCE STRUCTURÉE VERS GARMIN CONNECT
+# ======================================================================
+# La séance part sur ton compte Garmin Connect ; elle arrive sur la montre à
+# la prochaine synchronisation (Bluetooth / Wi-Fi), sans câble.
+
+_TYPE_ETAPE = {
+    "Échauffement": (1, "warmup"), "Retour au calme": (2, "cooldown"),
+    "Effort": (3, "interval"), "Récupération": (4, "recovery"),
+}
+
+
+def _allure_vers_ms(texte):
+    try:
+        m, s = str(texte).split(":")
+        minutes = int(m) + int(s) / 60
+        return 1000 / (minutes * 60) if minutes > 0 else None
+    except (ValueError, TypeError):
+        return None
+
+
+def _etape_garmin(ordre, e):
+    type_id, type_cle = _TYPE_ETAPE.get(e.get("type"), (3, "interval"))
+    if e.get("mode") == "distance":
+        fin, val = {"conditionTypeId": 3, "conditionTypeKey": "distance"}, float(e["valeur"]) * 1000
+    else:
+        fin, val = {"conditionTypeId": 2, "conditionTypeKey": "time"}, float(e["valeur"]) * 60
+    cible = {"workoutTargetTypeId": 1, "workoutTargetTypeKey": "no.target"}
+    v1 = v2 = None
+    v = _allure_vers_ms(e.get("allure_cible"))
+    if v:
+        cible = {"workoutTargetTypeId": 6, "workoutTargetTypeKey": "pace.zone"}
+        v1, v2 = round(v * 0.97, 3), round(v * 1.03, 3)      # m/s : bas, haut
+    elif e.get("fc_cible"):
+        fc = int(e["fc_cible"])
+        cible = {"workoutTargetTypeId": 4, "workoutTargetTypeKey": "heart.rate.zone"}
+        v1, v2 = fc - 5, fc + 5
+    pas = {"type": "ExecutableStepDTO", "stepOrder": ordre,
+           "stepType": {"stepTypeId": type_id, "stepTypeKey": type_cle},
+           "endCondition": fin, "endConditionValue": val, "targetType": cible}
+    if v1 is not None:
+        pas["targetValueOne"], pas["targetValueTwo"] = v1, v2
+    return pas
+
+
+def construire_seance_garmin(nom, etapes):
+    """Séance (étapes de l'écran Séances) -> JSON « workout » de Garmin Connect.
+    Les paires effort / récupération identiques sont regroupées en répétitions."""
+    if not etapes:
+        raise ErreurGarmin("La séance n'a aucune étape.")
+    from data.export_fit_seance import _regrouper
+    pas_groupes = _regrouper(etapes)
+    sortie = []          # éléments dans l'ordre ; un groupe remplace ses 2 pas
+    for p in pas_groupes:
+        if p[0] == "etape":
+            sortie.append(("pas", p[1]))
+        else:
+            _, _debut, n = p
+            b, a = sortie.pop(), sortie.pop()
+            sortie.append(("groupe", [a[1], b[1]], n))
+    ordre, pas_json = 0, []
+    for el in sortie:
+        ordre += 1
+        if el[0] == "pas":
+            pas_json.append(_etape_garmin(ordre, el[1]))
+        else:
+            interieur = []
+            for sous in el[1]:
+                ordre += 1
+                interieur.append(_etape_garmin(ordre, sous))
+            pas_json.append({
+                "type": "RepeatGroupDTO", "stepOrder": ordre - len(el[1]),
+                "stepType": {"stepTypeId": 6, "stepTypeKey": "repeat"},
+                "numberOfIterations": el[2],
+                "endCondition": {"conditionTypeId": 7, "conditionTypeKey": "iterations"},
+                "endConditionValue": float(el[2]), "workoutSteps": interieur})
+    sport = {"sportTypeId": 1, "sportTypeKey": "running"}
+    return {"workoutName": str(nom)[:60], "sportType": sport,
+            "workoutSegments": [{"segmentOrder": 1, "sportType": sport, "workoutSteps": pas_json}]}
+
+
+def envoyer_seance(nom, etapes, jour_iso=None, g=None):
+    """Envoie la séance sur Garmin Connect (et la place au calendrier à `jour_iso`
+    si la bibliothèque le permet). Retourne un texte de confirmation."""
+    contenu = construire_seance_garmin(nom, etapes)
+    g = g or client_connecte()
+    try:
+        rep = g.upload_workout(contenu)
+    except Exception as e:
+        raise _traduire_erreur(e)
+    identifiant = None
+    if isinstance(rep, dict):
+        identifiant = rep.get("workoutId") or rep.get("workout_id")
+    texte = f"Séance « {contenu['workoutName']} » envoyée sur Garmin Connect."
+    if jour_iso and identifiant and hasattr(g, "schedule_workout"):
+        try:
+            g.schedule_workout(identifiant, jour_iso)
+            texte += f" Programmée le {jour_iso[8:10]}/{jour_iso[5:7]}."
+        except Exception:
+            texte += " (Programmation au calendrier impossible : lance-la depuis la montre.)"
+    return texte + " Elle apparaît sur la montre après la prochaine synchronisation."

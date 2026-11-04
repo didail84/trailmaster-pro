@@ -49,6 +49,17 @@ def contexte_local(athlete_id):
         L.append("Variation de charge hebdo : " + ", ".join(f"{x['variation_pct']:+d} %" for x in h if x["variation_pct"] is not None))
     except Exception:
         pass
+    try:
+        import json
+        from interface.analyse_technique import dossier_periode
+        d = dossier_periode(athlete_id, date.today() - timedelta(days=27), date.today())
+        garde = {k: d[k] for k in ("repartition_intensite", "tendance_efficacite", "semaines_recentes",
+                                   "charge_et_fraicheur_fin_de_periode", "recuperation_fin_de_periode",
+                                   "capacites_estimees", "plus_gros_efforts") if k in d}
+        if garde:
+            L.append("Dossier technique 28 jours (JSON) : " + json.dumps(garde, ensure_ascii=False, separators=(",", ":"), default=str))
+    except Exception:
+        pass
     for al in generer_alertes(athlete_id):
         if al["niveau"] in ("critique", "attention"):
             L.append("Alerte : " + al["message"])
@@ -61,9 +72,13 @@ def contexte_local(athlete_id):
 
 
 def construire_prompt(question, contexte):
-    return ("Tu es un entraîneur de trail expérimenté, bienveillant et prudent. Réponds en français, de façon concrète et courte "
-            "(10 lignes maximum), en t'appuyant uniquement sur les données ci-dessous. Si une donnée manque, dis-le. "
-            "Ne pose aucun diagnostic médical.\n\nDONNÉES :\n" + contexte + "\n\nQUESTION : " + question)
+    return ("Tu es un entraîneur de trail de haut niveau, spécialiste de la performance et de l'analyse de charge. "
+            "Réponds en français, tutoiement, de façon technique et concrète (12 lignes maximum), en t'appuyant "
+            "UNIQUEMENT sur les données ci-dessous : cite les chiffres exacts avec leurs unités (bpm, min/km, km-effort, "
+            "CTL/ATL/TSB, %), donne une réponse tranchée puis sa justification, et si on te demande une séance, "
+            "prescris-la précisément (durée, structure, intensité en bpm et en allure, D+). Si une donnée manque, "
+            "dis « non mesuré » sans la deviner. Une alerte, une blessure ou une récupération défavorable prime sur "
+            "l'envie de charger. Ne pose aucun diagnostic médical.\n\nDONNÉES :\n" + contexte + "\n\nQUESTION : " + question)
 
 
 class QuestionsCoach(_EcranAthlete):

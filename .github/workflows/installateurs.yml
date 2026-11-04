@@ -57,6 +57,15 @@ jobs:
         shell: bash
         run: python -m compileall -q interface data main.py
 
+      - name: Tests automatiques
+        shell: bash
+        env:
+          QT_QPA_PLATFORM: offscreen
+          PYTHONUTF8: '1'
+        run: |
+          pip install pytest
+          python -m pytest -q -p no:cacheprovider tests
+
       - name: Fabrication
         shell: bash
         env:

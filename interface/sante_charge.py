@@ -51,6 +51,7 @@ def _vide(carte, valeur="—", detail=""):
 # ----------------------------------------------------------------------
 
 class SommeilRecuperation(_EcranAthlete):
+    ANALYSE_IA = ("sommeil", "sommeil, HRV et cœur au repos")
 
     def __init__(self, athlete_id_initial=None):
         super().__init__(
@@ -212,6 +213,7 @@ class SommeilRecuperation(_EcranAthlete):
 # ----------------------------------------------------------------------
 
 class ChargeEquilibre(_EcranAthlete):
+    ANALYSE_IA = ("courbe", "charge et équilibre")
 
     def __init__(self, athlete_id_initial=None):
         super().__init__(
@@ -324,6 +326,7 @@ class ChargeEquilibre(_EcranAthlete):
 # ----------------------------------------------------------------------
 
 class PoidsLisse(_EcranAthlete):
+    ANALYSE_IA = ("poids", "poids lissé et objectif")
 
     def __init__(self, athlete_id_initial=None):
         super().__init__(
@@ -372,7 +375,7 @@ class PoidsLisse(_EcranAthlete):
             return
         p = met.poids_lisse(a, 365)
         if not p["lisse"]:
-            self.cartes["actuel"].detail.setText("Aucune pesée enregistrée (onglet Poids & fatigue).")
+            self.cartes["actuel"].detail.setText("Aucune pesée enregistrée (onglet Poids & récupération).")
             return
         self.cartes["actuel"].valeur.setText(f"{virgule(p['actuel'], 1)} kg")
         self.cartes["actuel"].detail.setText(f"dernière pesée {virgule(p['brut'][-1][1], 1)} kg le {_fmt_jour(p['brut'][-1][0])}")

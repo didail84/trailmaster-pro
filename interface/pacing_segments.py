@@ -88,20 +88,28 @@ def _formater_allure(allure_min_km):
     return f"{minutes}:{secondes:02d}"
 
 
-def calculer_pacing(segments, allure_plat_min_km):
+def calculer_pacing(segments, allure_plat_min_km, methode="minetti"):
     """Ajoute à chaque segment une allure cible et un temps cible,
-    puis retourne (segments_avec_pacing, temps_total_texte)."""
+    puis retourne (segments_avec_pacing, temps_total_texte).
+
+    methode : « minetti » (v103, défaut) = coût énergétique réel de la pente, la
+    même formule que l'analyse des sorties ; « simple » = ancienne règle
+    linéaire (+12 s/km par % de montée, -6 s/km par % de descente)."""
 
     resultat = []
     temps_cumule_s = 0.0
 
     for seg in segments:
         pente = seg["pente_moyenne_pct"]
-        ajustement_s_km = (
-            pente * SECONDES_PAR_POURCENT_MONTEE if pente > 0
-            else pente * SECONDES_PAR_POURCENT_DESCENTE  # pente négative -> ajustement négatif
-        )
-        allure_cible = max(allure_plat_min_km + ajustement_s_km / 60, allure_plat_min_km * 0.5)
+        if methode == "minetti":
+            from data.analyse_traces import facteur_pente
+            allure_cible = allure_plat_min_km * facteur_pente(pente / 100.0)
+        else:
+            ajustement_s_km = (
+                pente * SECONDES_PAR_POURCENT_MONTEE if pente > 0
+                else pente * SECONDES_PAR_POURCENT_DESCENTE  # pente négative -> ajustement négatif
+            )
+            allure_cible = max(allure_plat_min_km + ajustement_s_km / 60, allure_plat_min_km * 0.5)
         temps_segment_s = allure_cible * seg["distance_km"] * 60
         temps_cumule_s += temps_segment_s
 

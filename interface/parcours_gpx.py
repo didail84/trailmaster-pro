@@ -513,7 +513,11 @@ class DialoguePacingSegmente(QDialog):
         self.spin_longueur_segment.setRange(0.2, 10.0)
         self.spin_longueur_segment.setValue(1.0)
         self.spin_longueur_segment.setSuffix(" km")
+        self.combo_methode_pacing = QComboBox()
+        self.combo_methode_pacing.addItem("Formule de pente (Minetti) — recommandée", "minetti")
+        self.combo_methode_pacing.addItem("Règle simple (+12 s/km par % de montée)", "simple")
         formulaire.addRow("Allure de référence (plat) :", self.champ_allure_plat)
+        formulaire.addRow("Méthode :", self.combo_methode_pacing)
         formulaire.addRow("Longueur des segments :", self.spin_longueur_segment)
         layout.addLayout(formulaire)
 
@@ -548,7 +552,7 @@ class DialoguePacingSegmente(QDialog):
             QMessageBox.information(self, "Trace trop courte", "Pas assez de points pour découper cette trace.")
             return
 
-        segments_pacing, temps_total_texte = calculer_pacing(segments, allure_plat)
+        segments_pacing, temps_total_texte = calculer_pacing(segments, allure_plat, self.combo_methode_pacing.currentData())
 
         self.table_segments.setRowCount(len(segments_pacing))
         for i, seg in enumerate(segments_pacing):
