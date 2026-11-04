@@ -21,10 +21,11 @@ from PySide6.QtWidgets import (
 )
 from noyau.donnees import activites as dact, athletes as dath  # accès aux données
 
-from data.database import connexion, obtenir_athletes
+from data.database import obtenir_athletes
 from interface.courbe_multiligne import CourbeMultiLignes
 from interface.ecran_liste import obtenir_style_ecran, configurer_table_redimensionnable
 from interface.vma import _carte_kpi, _table, _remplir, duree_texte
+from noyau.donnees import sante as dsante
 
 PERIODES = [("30 jours", 30), ("3 mois", 90), ("6 mois", 180), ("1 an", 365)]
 TYPES_COURSE = ("Trail", "Course")
@@ -54,18 +55,11 @@ def charger_recuperation(athlete_id, nb_jours=90, fin=None):
     """Lignes de recuperation_quotidienne (dicts) du plus ancien au plus récent."""
     fin = fin or date.today()
     debut = fin - timedelta(days=nb_jours)
-    conn = connexion()
-    cur = conn.cursor()
     try:
-        cur.execute(
-            f"SELECT {', '.join(COLONNES_JOUR)} FROM recuperation_quotidienne "
-            "WHERE athlete_id=? AND date>=? AND date<=? ORDER BY date",
-            (athlete_id, debut.isoformat(), fin.isoformat()),
-        )
-        lignes = [dict(zip(COLONNES_JOUR, l)) for l in cur.fetchall()]
+        lignes = [dict(zip(COLONNES_JOUR, l))
+                  for l in dsante.recuperation_entre(athlete_id, COLONNES_JOUR, debut.isoformat(), fin.isoformat())]
     except Exception:
         lignes = []  # table absente (très vieille base) : pas de donnée
-    conn.close()
     return lignes
 
 

@@ -14,9 +14,10 @@ from PySide6.QtWidgets import (
 )
 
 from noyau.imports import garmin_connect as gc
-from data.database import connexion, obtenir_athletes, obtenir_parametre, definir_parametre
+from data.database import obtenir_athletes, obtenir_parametre, definir_parametre
 from interface import arriere_plan
 from interface.ecran_liste import obtenir_style_ecran, configurer_table_redimensionnable
+from noyau.donnees import sante as dsante
 
 # (libellé, jours de sorties, jours de santé)
 PROFONDEURS = [
@@ -30,22 +31,7 @@ PROFONDEURS = [
 
 def lignes_sante_recentes(athlete_id, nb=14):
     """Derniers jours de santé en base (lecture seule) pour le tableau de l'écran."""
-    conn = connexion()
-    cur = conn.cursor()
-    cur.execute(
-        """
-        SELECT r.date, r.fc_repos, r.hrv_nuit_ms, r.hrv_statut, r.sommeil_duree_h, r.sommeil_score,
-               r.body_battery_max, r.stress_moyen, r.spo2_moyenne,
-               g.pas, g.readiness_score, g.statut_entrainement, g.vo2max
-        FROM recuperation_quotidienne r
-        LEFT JOIN garmin_quotidien g ON g.athlete_id=r.athlete_id AND g.date=r.date
-        WHERE r.athlete_id=? ORDER BY r.date DESC LIMIT ?
-        """,
-        (athlete_id, nb),
-    )
-    lignes = cur.fetchall()
-    conn.close()
-    return lignes
+    return dsante.sante_garmin_recente(athlete_id, nb)
 
 
 class GarminEcran(QMainWindow):

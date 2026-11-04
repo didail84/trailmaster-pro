@@ -17,11 +17,11 @@ from PySide6.QtWidgets import (
 )
 from noyau.donnees import activites as dact  # accès aux données
 
-from data.database import connexion
 from noyau.entrainement.coach import calculer_serie_forme
 from interface.courbe_multiligne import CourbeMultiLignes
 from interface.theme import PALETTE
 from noyau.entrainement.vo2max import estimer_vo2max, estimer_vo2max_recent
+from noyau.donnees import sante as dsante
 
 COULEURS_TYPE = {
     "Trail": "#F9A825", "Course": "#42A5F5", "Randonnée": "#66BB6A",
@@ -237,14 +237,7 @@ class ApercuCartes(QFrame):
 
     @staticmethod
     def _dernier_poids(athlete_id):
-        conn = connexion()
-        cur = conn.cursor()
-        cur.execute(
-            "SELECT poids_kg, date FROM suivi_corporel WHERE athlete_id=? AND poids_kg IS NOT NULL "
-            "AND poids_kg > 0 ORDER BY date DESC, id DESC LIMIT 1", (athlete_id,))
-        ligne = cur.fetchone()
-        conn.close()
-        return ligne
+        return dsante.dernier_poids(athlete_id)
 
 
 # ------------------------------------------------------------------

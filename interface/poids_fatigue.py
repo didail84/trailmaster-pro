@@ -27,13 +27,13 @@ from PySide6.QtWidgets import (
 )
 
 import noyau.entrainement.metriques as met
-from data.database import connexion
 from noyau.imports.import_suivi_excel import MOMENTS
 from noyau.sante.mensurations import MESURES, serie_mesure, resume_mesures
 
 COLONNES_MESURES = list(MESURES)
 from interface.ecran_liste import EcranListe, Champ, obtenir_style_ecran
 from interface.courbe_multiligne import CourbeMultiLignes
+from noyau.donnees import sante as dsante
 
 
 ETATS_JAMBES = ["Normales", "Lourdes", "Fatiguées", "Courbatures", "Douloureuses"]
@@ -58,13 +58,7 @@ def _date_longue(d):
 
 
 def _lire_ligne(id_ligne):
-    conn = connexion()
-    cur = conn.cursor()
-    cur.execute("SELECT athlete_id, date, COALESCE(moment, 'matin'), poids_kg FROM suivi_corporel WHERE id=?",
-                (id_ligne,))
-    ligne = cur.fetchone()
-    conn.close()
-    return ligne
+    return dsante.releve(id_ligne)
 
 
 def _calculer_variation_poids(id_ligne, valeurs):
@@ -75,15 +69,7 @@ def _calculer_variation_poids(id_ligne, valeurs):
     athlete_id, date_, moment, poids = ligne
     if moment != "matin":
         return "— (hors matin)"
-    conn = connexion()
-    cur = conn.cursor()
-    cur.execute(
-        "SELECT poids_kg FROM suivi_corporel WHERE athlete_id=? AND poids_kg > 0 "
-        "AND COALESCE(moment, 'matin')='matin' AND date < ? ORDER BY date DESC, id DESC LIMIT 1",
-        (athlete_id, date_),
-    )
-    precedent = cur.fetchone()
-    conn.close()
+    precedent = dsante.poids_du_matin_precedent(athlete_id, date_)
     if not precedent:
         return "— (premier relevé)"
     ecart = round(poids - precedent[0], 1)
@@ -121,16 +107,7 @@ def donnees_courbes(athlete_id):
             {"nom": "Lissé (kg)", "couleur": BLEU, "valeurs": [(j.strftime("%d/%m"), v) for j, v in p["lisse"]]},
         ]
 
-    conn = connexion()
-    cur = conn.cursor()
-    cur.execute(
-        "SELECT date, fatigue_jambes, fatigue_generale FROM suivi_corporel "
-        "WHERE athlete_id=? AND COALESCE(moment, 'matin')='matin' "
-        "AND (fatigue_jambes IS NOT NULL OR fatigue_generale IS NOT NULL) ORDER BY date, id",
-        (athlete_id,),
-    )
-    dates_fatigue = cur.fetchall()
-    conn.close()
+    dates_fatigue = dsante.fatigue_du_matin(athlete_id)
 
     series_fatigue = []
     if dates_fatigue:
@@ -294,14 +271,7 @@ def _importer_excel(ecran):
 def nettoyer_cases_vides():
     """Le formulaire écrit 0 (ou un état vide) dans les cases non remplies :
     on les remet à « non renseigné » pour ne pas fausser moyennes et courbes."""
-    conn = connexion()
-    cur = conn.cursor()
-    for colonne in ("poids_kg", "fatigue_jambes", "fatigue_generale", *COLONNES_MESURES):
-        cur.execute(f"UPDATE suivi_corporel SET {colonne}=NULL WHERE {colonne}=0")
-    cur.execute("UPDATE suivi_corporel SET etat_jambes=NULL WHERE etat_jambes=''")
-    cur.execute("UPDATE suivi_corporel SET moment='matin' WHERE moment IS NULL OR moment=''")
-    conn.commit()
-    conn.close()
+    dsante.nettoyer_cases_vides(("poids_kg", "fatigue_jambes", "fatigue_generale", *COLONNES_MESURES))
 
 
 class PoidsFatigue(EcranListe):

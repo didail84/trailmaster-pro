@@ -624,11 +624,8 @@ class ImportDonnees(QMainWindow):
 
             conn.commit()
 
-            cur.execute(
-                "INSERT INTO importations (fichier, source, total, nouvelles, doublons, erreurs) "
-                "VALUES (?, ?, ?, ?, ?, ?)",
-                (Path(fichier).name, "Garmin (export JSON)", total, nouvelles, doublons, erreurs),
-            )
+            dact.noter_import(Path(fichier).name, "Garmin (export JSON)", total, nouvelles, doublons, erreurs,
+                              cur=cur)
             conn.commit()
             conn.close()
 
@@ -821,24 +818,7 @@ class ImportDonnees(QMainWindow):
             # HISTORIQUE DE L'IMPORT
             # --------------------------------------------------
 
-            cur.execute("""
-                INSERT INTO importations (
-                    fichier,
-                    source,
-                    total,
-                    nouvelles,
-                    doublons,
-                    erreurs
-                )
-                VALUES (?, ?, ?, ?, ?, ?)
-            """, (
-                Path(fichier).name,
-                source,
-                total,
-                nouvelles,
-                doublons,
-                erreurs,
-            ))
+            dact.noter_import(Path(fichier).name, source, total, nouvelles, doublons, erreurs, cur=cur)
 
             conn.commit()
             conn.close()

@@ -16,9 +16,9 @@ from noyau.donnees import athletes as dath  # accès aux données
 from PySide6.QtWidgets import QComboBox, QLabel, QPushButton, QFileDialog, QTextBrowser
 
 import noyau.entrainement.metriques as met
-from data.database import connexion
 from interface.forme_evolution import _EcranAthlete
 from interface.outils_ui import notifier
+from noyau.donnees import blessures as dbles
 
 MOIS = ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre", "décembre"]
 JOURS_COURTS = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"]
@@ -158,12 +158,8 @@ def construire_rapport(athlete_id, type_periode="semaine", ref=None):
     pl = met.poids_lisse(athlete_id, 120)
     if pl["actuel"]:
         sante.append(f"Poids lissé : {_f(pl['actuel'])} kg" + (f" (tendance {'+' if pl['tendance_kg_sem'] > 0 else '−'}{_f(abs(pl['tendance_kg_sem']), 2)} kg/semaine)" if pl["tendance_kg_sem"] is not None else "") + ".")
-    conn = connexion()
-    cur = conn.cursor()
-    cur.execute("SELECT zone_corporelle, type_blessure FROM blessures WHERE athlete_id=? AND statut='En cours'", (athlete_id,))
-    for z, t in cur.fetchall():
+    for z, t in dbles.en_cours(athlete_id):
         sante.append(f"Blessure en cours : {z}{' — ' + t if t else ''}.")
-    conn.close()
     cm = met.monotonie_contrainte(athlete_id, 6)
     comp = [m for m in cm if m["monotonie"] is not None and not m["partielle"]]
     if comp:

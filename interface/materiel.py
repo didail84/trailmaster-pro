@@ -1,6 +1,6 @@
-from data.database import connexion
 from interface.ecran_liste import EcranListe, Champ
 from noyau.donnees import activites as dact  # accès aux données
+from noyau.donnees import listes as dliste
 
 
 # Types d'activités pertinents pour calculer l'usure réelle de chaque
@@ -18,16 +18,11 @@ def _calculer_km_reel(id_ligne, valeurs):
     if not date_achat:
         return "— (pas de date d'achat)"
 
-    conn = connexion()
-    cur = conn.cursor()
-    cur.execute("SELECT athlete_id FROM materiel WHERE id=?", (id_ligne,))
-    resultat = cur.fetchone()
+    resultat = dliste.valeurs("materiel", id_ligne, "athlete_id")
     if not resultat:
-        conn.close()
         return "—"
     athlete_id = resultat[0]
 
-    conn.close()
     types_pertinents = TYPES_MATERIEL_VERS_ACTIVITES.get(type_materiel)
     total = dact.somme_distance_depuis(athlete_id, date_achat, types_pertinents)
 

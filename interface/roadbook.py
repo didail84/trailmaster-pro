@@ -22,11 +22,11 @@ from noyau.donnees import parcours as dparc  # accès aux données
 
 import noyau.course.roadbook as rbk
 import noyau.entrainement.metriques as met
-from data.database import connexion
 from noyau.entrainement.conformite import parser_allure
 from interface.ecran_liste import configurer_table_redimensionnable
 from interface.forme_evolution import _EcranAthlete
 from interface.theme import PALETTE
+from noyau.donnees import courses as dcourse
 
 VERT, ORANGE, ROUGE, BLEU = "#66BB6A", "#FFA726", "#EF5350", "#42A5F5"
 MODES = [("vo2", "Prédit depuis ton VO₂max (estimation basse)"),
@@ -386,15 +386,10 @@ class RoadbookCourse(_EcranAthlete):
         if a is not None:
             for id_, nom, d, km, dp in rbk.lister(a):
                 self.combo_rb.addItem(f"{nom}" + (f" ({d})" if d else ""), id_)
-            conn = connexion()
-            cur = conn.cursor()
-            cur.execute("SELECT id, nom, date, distance_km, denivele_m FROM courses_calendrier "
-                        "WHERE athlete_id=? ORDER BY COALESCE(date,'9999')", (a,))
-            for id_, nom, d, km, dp in cur.fetchall():
+            for id_, nom, d, km, dp in dcourse.courses_pour_roadbook(a):
                 self.combo_course.addItem(f"{nom}" + (f" — {km:g} km" if km else ""), id_)
             for id_, nom, km in dparc.liste_courte(a, par_id=True):
                 self.combo_parcours.addItem(f"{nom} — {km:g} km" if km else nom, id_)
-            conn.close()
             if rb_selectionne is None:
                 pr = met.poids_serie(a, 365)
                 if pr:
@@ -409,12 +404,7 @@ class RoadbookCourse(_EcranAthlete):
     def _course_choisie(self):
         if self._bloque or self.combo_course.currentData() is None:
             return
-        conn = connexion()
-        cur = conn.cursor()
-        cur.execute("SELECT nom, date, distance_km, denivele_m FROM courses_calendrier WHERE id=?",
-                    (self.combo_course.currentData(),))
-        r = cur.fetchone()
-        conn.close()
+        r = dcourse.course(self.combo_course.currentData(), "nom", "date", "distance_km", "denivele_m")
         if not r:
             return
         nom, d, km, dp = r

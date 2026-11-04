@@ -33,7 +33,8 @@ from PySide6.QtWidgets import (
     QScrollArea,
 )
 
-from data.database import connexion, creer_base_de_donnees, obtenir_athletes
+from data.database import creer_base_de_donnees, obtenir_athletes
+from noyau.donnees import listes as dliste
 
 
 def configurer_table_redimensionnable(table):
@@ -327,25 +328,8 @@ class EcranListe(QMainWindow):
         return self.combo_athlete.currentData()
 
     def charger_donnees(self):
-        conn = connexion()
-        cur = conn.cursor()
-
-        colonnes_sql = ", ".join(c.nom for c in self.champs)
         athlete_id = self.athlete_selectionne_id()
-
-        if athlete_id is None:
-            cur.execute(
-                f"SELECT id, {colonnes_sql} FROM {self.table_sql} ORDER BY {self.tri}"
-            )
-        else:
-            cur.execute(
-                f"SELECT id, {colonnes_sql} FROM {self.table_sql} "
-                f"WHERE athlete_id=? ORDER BY {self.tri}",
-                (athlete_id,),
-            )
-
-        lignes = cur.fetchall()
-        conn.close()
+        lignes = dliste.lister(self.table_sql, [c.nom for c in self.champs], self.tri, athlete_id)
 
         self.lignes_ids = [l[0] for l in lignes]
         self.table.setRowCount(len(lignes))
@@ -391,18 +375,7 @@ class EcranListe(QMainWindow):
                 return
             valeurs.append(v)
 
-        colonnes_sql = ", ".join(c.nom for c in self.champs)
-        points_interrogation = ", ".join(["?"] * len(self.champs))
-
-        conn = connexion()
-        cur = conn.cursor()
-        cur.execute(
-            f"INSERT INTO {self.table_sql} (athlete_id, {colonnes_sql}) "
-            f"VALUES (?, {points_interrogation})",
-            (athlete_id, *valeurs),
-        )
-        conn.commit()
-        conn.close()
+        dliste.ajouter(self.table_sql, athlete_id, [c.nom for c in self.champs], valeurs)
 
         for champ in self.champs:
             self._vider_widget(champ)
@@ -426,11 +399,7 @@ class EcranListe(QMainWindow):
         if confirmation != QMessageBox.StandardButton.Yes:
             return
 
-        conn = connexion()
-        cur = conn.cursor()
-        cur.execute(f"DELETE FROM {self.table_sql} WHERE id=?", (id_ligne,))
-        conn.commit()
-        conn.close()
+        dliste.supprimer(self.table_sql, id_ligne)
 
         self.charger_donnees()
 

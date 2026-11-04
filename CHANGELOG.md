@@ -1,5 +1,11 @@
 # Historique des versions
 
+## Trail Hub Center — étape 1.4c (dernières requêtes : plus aucun SQL dans les écrans)
+- `noyau/donnees/` s'enrichit de `sante` (poids, jambes, fatigue, sommeil, récupération, santé Garmin), `blessures` (blessures et soins), `courses` (courses à venir, résultats, objectifs) et `listes` (écran de liste commun). 45 requêtes ont quitté 21 écrans.
+- Étape 1.4 terminée : 157 requêtes dans les écrans en v108, 0 aujourd'hui. Un test interdit désormais toute requête dans un écran.
+- Le nettoyage des cases vides de « Poids & récupération » se fait en une seule opération.
+- Tests : 210.
+
 ## Trail Hub Center — étape 1.4b (accès aux données : plans, séances, segments, musculation)
 - `noyau/donnees/` s'enrichit de `seances`, `plans`, `segments` et `musculation` : 39 requêtes ont quitté 9 écrans (88 → 50 requêtes restantes dans les écrans).
 - Un plan d'entraînement (classique ou Programme Ultra) est enregistré avec toutes ses séances en une seule opération : rien n'est écrit à moitié en cas d'erreur.

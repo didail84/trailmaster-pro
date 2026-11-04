@@ -15,9 +15,9 @@ from PySide6.QtWidgets import (
 
 import noyau.entrainement.metriques as met
 from data import photos_sorties
-from data.database import connexion
 from interface.forme_evolution import _EcranAthlete
 from interface.detail_sortie import style_sombre
+from noyau.donnees import sante as dsante, blessures as dbles
 
 JOURS = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"]
 MOIS = ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre", "décembre"]
@@ -67,23 +67,17 @@ def entrees_journal(athlete_id, depuis, jusqu_a=None):
         res.append({"jour": s["jour"], "genre": "sortie", "s": s,
                     "ressenti": texte_ressenti(met.ressenti_de_sortie(s["id"])),
                     "photos": photos_sorties.photos_de_sortie(s["id"])[:4]})
-    conn = connexion()
-    cur = conn.cursor()
-    cur.execute("SELECT date, poids_kg, etat_jambes, notes FROM suivi_corporel WHERE athlete_id=? AND date>=? AND date<=?",
-                (athlete_id, depuis.isoformat(), jusqu_a.isoformat() + "z"))
-    for d, poids, jambes, notes in cur.fetchall():
+    for d, poids, jambes, notes in dsante.releves_entre(athlete_id, depuis.isoformat(), jusqu_a.isoformat() + "z"):
         j = met._jour(d)
         if j:
             res.append({"jour": j, "genre": "sante", "poids": poids, "jambes": jambes, "notes": notes})
-    cur.execute("SELECT date_debut, date_fin, zone_corporelle, type_blessure, statut FROM blessures WHERE athlete_id=?", (athlete_id,))
-    for dd, df, zone, typ, st in cur.fetchall():
+    for dd, df, zone, typ, st in dbles.pour_journal(athlete_id):
         j = met._jour(dd)
         if j and depuis <= j <= jusqu_a:
             res.append({"jour": j, "genre": "sante", "blessure": f"Blessure : {zone or ''}{' — ' + typ if typ else ''}", "statut": st})
         jf = met._jour(df) if df else None
         if jf and depuis <= jf <= jusqu_a:
             res.append({"jour": jf, "genre": "sante", "blessure": f"Fin de blessure : {zone or ''}", "statut": "Guérie"})
-    conn.close()
     res.sort(key=lambda e: e["jour"], reverse=True)
     return res
 

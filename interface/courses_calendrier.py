@@ -22,11 +22,11 @@ from datetime import date, timedelta
 
 from PySide6.QtWidgets import QMessageBox
 
-from data.database import connexion
 from noyau.course.estimation_temps_course import estimer_temps_course
 from interface.ecran_liste import EcranListe, Champ
 from interface.materiel_course import MaterielCourse
 from noyau.donnees import activites as dact  # accès aux données
+from noyau.donnees import courses as dcourse
 
 
 REGIONS = ["Provence-Alpes-Côte d'Azur", "Auvergne-Rhône-Alpes", "Occitanie", "Autre"]
@@ -62,14 +62,7 @@ def _score_sur_ratio(ratio):
 
 
 def _calculer_score_interet(id_ligne, valeurs):
-    conn = connexion()
-    cur = conn.cursor()
-    cur.execute(
-        "SELECT athlete_id, distance_km, denivele_m FROM courses_calendrier WHERE id=?",
-        (id_ligne,),
-    )
-    resultat = cur.fetchone()
-    conn.close()
+    resultat = dcourse.course(id_ligne, "athlete_id", "distance_km", "denivele_m")
 
     if not resultat or resultat[0] is None:
         return "—"
@@ -99,14 +92,7 @@ def _calculer_score_interet(id_ligne, valeurs):
 
 
 def _calculer_temps_estime(id_ligne, valeurs):
-    conn = connexion()
-    cur = conn.cursor()
-    cur.execute(
-        "SELECT athlete_id, date, distance_km, denivele_m FROM courses_calendrier WHERE id=?",
-        (id_ligne,),
-    )
-    resultat = cur.fetchone()
-    conn.close()
+    resultat = dcourse.course(id_ligne, "athlete_id", "date", "distance_km", "denivele_m")
 
     if not resultat or resultat[0] is None:
         return "—"
@@ -131,14 +117,7 @@ def _voir_materiel_pour_course(ecran):
         return
 
     id_course = ecran.lignes_ids[ligne]
-    conn = connexion()
-    cur = conn.cursor()
-    cur.execute(
-        "SELECT athlete_id, nom, date, distance_km, denivele_m, type_terrain FROM courses_calendrier WHERE id=?",
-        (id_course,),
-    )
-    resultat = cur.fetchone()
-    conn.close()
+    resultat = dcourse.course(id_course, "athlete_id", "nom", "date", "distance_km", "denivele_m", "type_terrain")
     if not resultat:
         return
 
@@ -159,12 +138,7 @@ def _ouvrir_roadbook_pour_course(ecran):
     if ligne < 0:
         QMessageBox.information(ecran, "Sélection requise", "Sélectionne d'abord une course dans la liste.")
         return
-    conn = connexion()
-    cur = conn.cursor()
-    cur.execute("SELECT athlete_id, nom, date, distance_km, denivele_m FROM courses_calendrier WHERE id=?",
-                (ecran.lignes_ids[ligne],))
-    r = cur.fetchone()
-    conn.close()
+    r = dcourse.course(ecran.lignes_ids[ligne], "athlete_id", "nom", "date", "distance_km", "denivele_m")
     if not r:
         return
     from interface.roadbook import RoadbookCourse

@@ -14,18 +14,16 @@ from PySide6.QtCore import QUrl
 from PySide6.QtGui import QDesktopServices
 from PySide6.QtWidgets import QLabel, QPushButton, QFileDialog
 
-from data.database import connexion
 from interface.forme_evolution import _EcranAthlete
 from interface.outils_ui import notifier
 from noyau.donnees import activites as dact  # accès aux données
+from noyau.donnees import sante as dsante
 
 MODELE = Path(__file__).with_name("modele_suivi_telephone.html")
 
 
 def generer_page(athlete_id):
     from noyau.entrainement.vo2max import estimer_vo2max
-    conn = connexion()
-    cur = conn.cursor()
     acts = []
     for d, n, t, di, de, du, fc, al, vo in dact.pour_page_telephone(athlete_id):
         v = None
@@ -34,12 +32,9 @@ def generer_page(athlete_id):
         acts.append([str(d)[:10], t, round(di or 0, 2), round(de or 0), round(du or 0), fc or 0,
                      round(al, 2) if al else 0, v or 0, (n or "")[:40]])
     try:
-        cur.execute("SELECT date, poids_kg, etat_jambes, fatigue_jambes, fatigue_generale, notes FROM suivi_corporel "
-                    "WHERE athlete_id=? ORDER BY date", (athlete_id,))
-        suivi = [list(r) for r in cur.fetchall()]
+        suivi = [list(r) for r in dsante.releves_complets(athlete_id)]
     except Exception:
         suivi = []
-    conn.close()
     donnees = json.dumps({"acts": acts, "suivi": suivi}, ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/")
     return MODELE.read_text(encoding="utf-8").replace("__DATA__", donnees)
 

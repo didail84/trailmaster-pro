@@ -2,26 +2,15 @@ from datetime import date
 
 from PySide6.QtWidgets import QDialog, QMessageBox
 
-from data.database import connexion, affichage_simplifie_actif
+from data.database import affichage_simplifie_actif
 from interface.ecran_liste import EcranListe, Champ, configurer_table_redimensionnable
 from noyau.outils.date_utils import parser_date_flexible
 from interface.dialogue_tactique_course import DialogueTactiqueCourse
+from noyau.donnees import courses as dcourse
 
 
 def _calculer_resultat_lie(id_ligne, valeurs):
-    conn = connexion()
-    cur = conn.cursor()
-    cur.execute(
-        """
-        SELECT r.nom_course, r.date, r.classement_general
-        FROM objectifs o
-        LEFT JOIN resultats_courses r ON o.resultat_id = r.id
-        WHERE o.id=? AND o.resultat_id IS NOT NULL
-        """,
-        (id_ligne,),
-    )
-    resultat = cur.fetchone()
-    conn.close()
+    resultat = dcourse.resultat_de_l_objectif(id_ligne)
 
     if not resultat:
         return "Non lié"
@@ -65,21 +54,11 @@ def _lier_resultat(ecran):
     id_objectif = ecran.lignes_ids[ligne]
     athlete_id = ecran.athlete_selectionne_id()
 
-    conn = connexion()
-    cur = conn.cursor()
-
     if athlete_id is None:
-        cur.execute("SELECT athlete_id FROM objectifs WHERE id=?", (id_objectif,))
-        ligne_athlete = cur.fetchone()
+        ligne_athlete = dcourse.objectif(id_objectif, "athlete_id")
         athlete_id = ligne_athlete[0] if ligne_athlete else None
 
-    cur.execute(
-        "SELECT id, nom_course, date, classement_general FROM resultats_courses "
-        "WHERE athlete_id=? ORDER BY date DESC LIMIT 50",
-        (athlete_id,),
-    )
-    resultats_recents = cur.fetchall()
-    conn.close()
+    resultats_recents = dcourse.resultats_pour_liaison(athlete_id, 50)
 
     if not resultats_recents:
         QMessageBox.information(
@@ -95,14 +74,7 @@ def _lier_resultat(ecran):
 
     resultat_id = dialogue.resultat_choisi[0]
 
-    conn = connexion()
-    cur = conn.cursor()
-    cur.execute(
-        "UPDATE objectifs SET resultat_id=?, statut='Atteint' WHERE id=?",
-        (resultat_id, id_objectif),
-    )
-    conn.commit()
-    conn.close()
+    dcourse.marquer_objectif_atteint(id_objectif, resultat_id)
 
     QMessageBox.information(
         ecran, "Objectif atteint 🎯",
@@ -119,14 +91,7 @@ def _analyser_tactique(ecran):
 
     id_objectif = ecran.lignes_ids[ligne]
 
-    conn = connexion()
-    cur = conn.cursor()
-    cur.execute(
-        "SELECT titre, date_cible, type_objectif, athlete_id FROM objectifs WHERE id=?",
-        (id_objectif,),
-    )
-    ligne_objectif = cur.fetchone()
-    conn.close()
+    ligne_objectif = dcourse.objectif(id_objectif, "titre", "date_cible", "type_objectif", "athlete_id")
 
     if not ligne_objectif:
         return

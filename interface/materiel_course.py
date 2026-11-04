@@ -23,12 +23,12 @@ from PySide6.QtWidgets import (
     QListWidget, QListWidgetItem,
 )
 
-from data.database import connexion
 from noyau.course.reference_materiel_course import calculer_materiel
 from interface.theme import (
     PALETTE, POLICE_TITRE, POLICE_TEXTE, POLICE_TEXTE_DEMI, charger_polices,
     obtenir_couleur_accent, obtenir_couleur_accent_douce,
 )
+from noyau.donnees import courses as dcourse
 
 
 MOIS_VERS_SAISON = {
@@ -238,21 +238,7 @@ class MaterielCourse(QMainWindow):
     # ------------------------------------------------------------
 
     def _charger_courses_enregistrees(self):
-        conn = connexion()
-        cur = conn.cursor()
-        if self.athlete_id is not None:
-            cur.execute(
-                "SELECT id, nom, date, distance_km, denivele_m, type_terrain FROM courses_calendrier "
-                "WHERE athlete_id=? ORDER BY date ASC",
-                (self.athlete_id,),
-            )
-        else:
-            cur.execute(
-                "SELECT id, nom, date, distance_km, denivele_m, type_terrain FROM courses_calendrier "
-                "ORDER BY date ASC"
-            )
-        self._courses = cur.fetchall()
-        conn.close()
+        self._courses = dcourse.courses_par_date(self.athlete_id)
 
         for id_, nom, date_, distance_km, denivele_m, type_terrain in self._courses:
             libelle = f"{nom} — {str(date_)[:10]} ({distance_km} km)"

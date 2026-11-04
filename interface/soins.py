@@ -17,24 +17,12 @@ from PySide6.QtWidgets import (
     QMessageBox,
 )
 
-from data.database import connexion
 from interface.ecran_liste import EcranListe, Champ, configurer_table_redimensionnable
+from noyau.donnees import blessures as dbles
 
 
 def _calculer_blessure_liee(id_ligne, valeurs):
-    conn = connexion()
-    cur = conn.cursor()
-    cur.execute(
-        """
-        SELECT b.zone_corporelle, b.type_blessure, b.date_debut
-        FROM soins s
-        LEFT JOIN blessures b ON s.blessure_id = b.id
-        WHERE s.id=?
-        """,
-        (id_ligne,),
-    )
-    resultat = cur.fetchone()
-    conn.close()
+    resultat = dbles.blessure_du_soin(id_ligne)
 
     if not resultat or resultat[0] is None:
         return "—"
@@ -98,21 +86,11 @@ def _lier_blessure(ecran):
     id_soin = ecran.lignes_ids[ligne]
     athlete_id = ecran.athlete_selectionne_id()
 
-    conn = connexion()
-    cur = conn.cursor()
-
     if athlete_id is None:
-        cur.execute("SELECT athlete_id FROM soins WHERE id=?", (id_soin,))
-        ligne_athlete = cur.fetchone()
+        ligne_athlete = dbles.soin_valeurs(id_soin, "athlete_id")
         athlete_id = ligne_athlete[0] if ligne_athlete else None
 
-    cur.execute(
-        "SELECT id, date_debut, zone_corporelle, type_blessure, statut FROM blessures "
-        "WHERE athlete_id=? ORDER BY date_debut DESC LIMIT 50",
-        (athlete_id,),
-    )
-    blessures_recentes = cur.fetchall()
-    conn.close()
+    blessures_recentes = dbles.pour_liaison(athlete_id, 50)
 
     if not blessures_recentes:
         QMessageBox.information(
@@ -127,11 +105,7 @@ def _lier_blessure(ecran):
 
     blessure_id = dialogue.blessure_choisie[0]
 
-    conn = connexion()
-    cur = conn.cursor()
-    cur.execute("UPDATE soins SET blessure_id=?, motif='Blessure' WHERE id=?", (blessure_id, id_soin))
-    conn.commit()
-    conn.close()
+    dbles.lier_soin_a_une_blessure(id_soin, blessure_id)
 
     QMessageBox.information(ecran, "Lié", "Le soin est maintenant lié à cette blessure.")
     ecran.charger_donnees()

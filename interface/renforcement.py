@@ -23,12 +23,13 @@ from PySide6.QtWidgets import (
     QStackedWidget,
 )
 
-from data.database import connexion, obtenir_athletes
+from data.database import obtenir_athletes
 from interface.ecran_liste import (
     obtenir_style_ecran, configurer_table_redimensionnable, creer_bouton_retour_tableau_bord,
 )
 from noyau.entrainement.adaptation_musculation import proposer_charge_suivante
 from noyau.donnees import musculation as dmus
+from noyau.donnees import blessures as dbles
 
 
 class Renforcement(QMainWindow):
@@ -556,17 +557,10 @@ class Renforcement(QMainWindow):
         if reponse != QMessageBox.StandardButton.Yes:
             return
 
-        conn = connexion()
-        cur = conn.cursor()
-        cur.execute(
-            """INSERT INTO blessures
-               (athlete_id, date_debut, zone_corporelle, cause, statut, musculation_suivi_id)
-               VALUES (?,?,?,?,?,?)""",
-            (athlete_id, date_iso, groupe_musculaire or "Non précisée",
-             f"Musculation — {exercice}", "En cours", id_seance_muscu),
-        )
-        conn.commit()
-        conn.close()
+        dbles.ajouter({"athlete_id": athlete_id, "date_debut": date_iso,
+                       "zone_corporelle": groupe_musculaire or "Non précisée",
+                       "cause": f"Musculation — {exercice}", "statut": "En cours",
+                       "musculation_suivi_id": id_seance_muscu})
 
         QMessageBox.information(
             self, "Fiche créée",

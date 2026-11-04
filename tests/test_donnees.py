@@ -271,11 +271,6 @@ def test_recherche_globale(remplie):
 # ------------------------------------------------------------------
 
 RACINE = Path(__file__).resolve().parent.parent
-TABLES_FAITES = {"activites", "parcours_gpx", "athletes",                       # étape 1.4a
-                 "seances_structurees", "plans_entrainement", "rapports_bloc",   # étape 1.4b
-                 "segments", "segments_efforts", "musculation_suivi",
-                 "musculation_exercices", "planning_mobilite", "mobilite_exercices"}
-_TABLE = re.compile(r"\b(?:FROM|INTO|UPDATE)\s+([a-z_]+)", re.I)
 
 
 def requetes_des_ecrans():
@@ -283,24 +278,22 @@ def requetes_des_ecrans():
     for chemin in sorted((RACINE / "interface").glob("*.py")):
         src = chemin.read_text(encoding="utf-8")
         for n in ast.walk(ast.parse(src)):
-            if isinstance(n, ast.Call) and getattr(n.func, "attr", "") in ("execute", "executemany") and n.args:
-                texte = ast.get_source_segment(src, n.args[0]) or ""
-                trouvees.append((chemin.name, n.lineno, texte))
+            if isinstance(n, ast.Call) and getattr(n.func, "attr", "") in ("execute", "executemany", "executescript"):
+                trouvees.append(f"{chemin.name}:{n.lineno}")
     return trouvees
 
 
-def test_plus_aucune_requete_principale_sur_les_tables_faites():
-    """Les écrans n'interrogent plus directement les tables déjà passées
-    dans noyau/donnees (seules restent des jointures depuis d'autres
-    tables, traitées à l'étape 1.4c)."""
-    fautes = []
-    for fichier, ligne, texte in requetes_des_ecrans():
-        principales = _TABLE.findall(texte)
-        if principales and principales[0].lower() in TABLES_FAITES:
-            fautes.append(f"{fichier}:{ligne}")
+def test_plus_aucune_requete_sql_dans_les_ecrans():
+    """Étape 1.4 terminée : 157 requêtes en v108, 0 aujourd'hui. Toute
+    nouvelle requête s'écrit dans noyau/donnees, jamais dans un écran."""
+    fautes = requetes_des_ecrans()
     assert not fautes, "Requête à déplacer dans noyau/donnees : " + ", ".join(fautes)
 
 
-def test_le_nombre_de_requetes_des_ecrans_ne_remonte_pas():
-    # 157 requêtes en v108 → 88 après l'étape 1.4a → 50 après la 1.4b ; ce plafond baisse à chaque étape.
-    assert len(requetes_des_ecrans()) <= 50
+def test_les_ecrans_n_ouvrent_pas_la_base_eux_memes():
+    """Seuls deux écrans gardent une connexion ouverte, pour regrouper un
+    import en lot ou une recherche de passages en une seule opération ;
+    ils n'y écrivent aucune requête."""
+    ouvrent = sorted(chemin.name for chemin in (RACINE / "interface").glob("*.py")
+                     if re.search(r"(?<![\w.])connexion(?:_base)?\(\)", chemin.read_text(encoding="utf-8")))
+    assert ouvrent == ["import_donnees.py", "segments.py"]

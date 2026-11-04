@@ -188,3 +188,17 @@ def avec_trace_recentes(athlete_id, depuis_iso, limite):
         "ORDER BY a.date DESC LIMIT ?",
         (athlete_id, depuis_iso, limite),
     )
+
+
+# ------------------------------------------------------------------
+# Historique des imports (table `importations`)
+# ------------------------------------------------------------------
+
+def noter_import(fichier, source, total, nouvelles, doublons, erreurs, cur=None):
+    """Garde la trace d'un import de fichier (écran « Import »)."""
+    return base.ecrire(
+        "INSERT INTO importations (fichier, source, total, nouvelles, doublons, erreurs) "
+        "VALUES (?, ?, ?, ?, ?, ?)",
+        (fichier, source, total, nouvelles, doublons, erreurs),
+        cur,
+    )

@@ -14,6 +14,10 @@ numérotées, mode serveur), seul ce dossier changera.
   plans         plans d'entraînement et rapports de bloc
   segments      segments précis et passages
   musculation   renforcement, cardio machine et mobilité
+  sante         poids, jambes, fatigue, sommeil, récupération, santé Garmin
+  blessures     blessures et soins
+  courses       courses à venir, résultats, objectifs
+  listes        accès générique de l'écran de liste commun
   recherche     recherche globale (toutes les tables)
 
 Chaque fonction peut recevoir `cur=` (un curseur déjà ouvert) pour

@@ -14,11 +14,11 @@ from PySide6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QGridLayout, QLabel, QPushButton, QFrame,
 )
 
-from data.database import connexion
 from interface.theme import (
     PALETTE, POLICE_TITRE, POLICE_TEXTE, POLICE_TEXTE_DEMI,
     obtenir_couleur_accent, obtenir_couleur_accent_douce,
 )
+from noyau.donnees import sante as dsante
 
 
 NOMS_JOURS = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"]
@@ -136,24 +136,10 @@ class CalendrierSommeil(QDialog):
         dernier_num_jour = calendar.monthrange(self.annee_affichee, self.mois_affiche)[1]
         dernier_jour = date(self.annee_affichee, self.mois_affiche, dernier_num_jour)
 
-        conn = connexion()
-        cur = conn.cursor()
-        if self.athlete_id is not None:
-            cur.execute(
-                "SELECT date, heure_coucher, heure_lever, duree_heures FROM sommeil "
-                "WHERE athlete_id=? AND date >= ? AND date <= ?",
-                (self.athlete_id, premier_jour.isoformat(), dernier_jour.isoformat()),
-            )
-        else:
-            cur.execute(
-                "SELECT date, heure_coucher, heure_lever, duree_heures FROM sommeil "
-                "WHERE date >= ? AND date <= ?",
-                (premier_jour.isoformat(), dernier_jour.isoformat()),
-            )
         resultat = {}
-        for jour_str, coucher, lever, duree in cur.fetchall():
+        for jour_str, coucher, lever, duree in dsante.sommeil_entre(
+                self.athlete_id, premier_jour.isoformat(), dernier_jour.isoformat()):
             resultat[str(jour_str)[:10]] = (coucher, lever, duree)
-        conn.close()
         return resultat
 
     def _construire_calendrier(self):

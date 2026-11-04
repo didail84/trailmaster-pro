@@ -2,26 +2,15 @@ import json
 
 from PySide6.QtWidgets import QDialog, QMessageBox
 
-from data.database import connexion
 from interface.ecran_liste import EcranListe, Champ
 from interface.seances import DialogueChoixActivite
 from interface.apercu_survol import installer_apercu_survol
 from noyau.donnees import activites as dact, parcours as dparc  # accès aux données
+from noyau.donnees import courses as dcourse
 
 
 def _calculer_activite_liee(id_ligne, valeurs):
-    conn = connexion()
-    cur = conn.cursor()
-    cur.execute(
-        """
-        SELECT a.date, a.distance FROM resultats_courses r
-        LEFT JOIN activites a ON r.activite_id = a.id
-        WHERE r.id=? AND r.activite_id IS NOT NULL
-        """,
-        (id_ligne,),
-    )
-    resultat = cur.fetchone()
-    conn.close()
+    resultat = dcourse.sortie_du_resultat(id_ligne)
 
     if not resultat:
         return "Non liée"
@@ -39,15 +28,10 @@ def _lier_activite(ecran):
     id_resultat = ecran.lignes_ids[ligne]
     athlete_id = ecran.athlete_selectionne_id()
 
-    conn = connexion()
-    cur = conn.cursor()
-
     if athlete_id is None:
-        cur.execute("SELECT athlete_id FROM resultats_courses WHERE id=?", (id_resultat,))
-        ligne_athlete = cur.fetchone()
+        ligne_athlete = dcourse.resultat(id_resultat, "athlete_id")
         athlete_id = ligne_athlete[0] if ligne_athlete else None
 
-    conn.close()
     activites_recentes = dact.pour_liaison(athlete_id, 50)
 
     if not activites_recentes:
@@ -60,11 +44,7 @@ def _lier_activite(ecran):
 
     activite_id = dialogue.activite_choisie[0]
 
-    conn = connexion()
-    cur = conn.cursor()
-    cur.execute("UPDATE resultats_courses SET activite_id=? WHERE id=?", (activite_id, id_resultat))
-    conn.commit()
-    conn.close()
+    dcourse.lier_resultat_a_une_sortie(id_resultat, activite_id)
 
     QMessageBox.information(ecran, "Liée", "Le résultat de course est maintenant lié à cette activité.")
     ecran.charger_donnees()
@@ -111,15 +91,8 @@ class ResultatsCourses(EcranListe):
         return None
 
     def _apercu_pour_resultat(self, id_resultat):
-        conn = connexion()
-        cur = conn.cursor()
-        cur.execute(
-            "SELECT nom_course, date, activite_id FROM resultats_courses WHERE id=?",
-            (id_resultat,),
-        )
-        ligne = cur.fetchone()
+        ligne = dcourse.resultat(id_resultat, "nom_course", "date", "activite_id")
         if not ligne:
-            conn.close()
             return None
         nom_course, date, activite_id = ligne
 
@@ -128,6 +101,5 @@ class ResultatsCourses(EcranListe):
             trace_json = dparc.trace_de_l_activite(activite_id)
             if trace_json:
                 points = json.loads(trace_json)
-        conn.close()
 
         return (nom_course, date or "", points)

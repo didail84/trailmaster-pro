@@ -1,26 +1,13 @@
 from PySide6.QtWidgets import QDialog, QMessageBox
 
-from data.database import connexion
 from interface.ecran_liste import EcranListe, Champ
 from interface.seances import DialogueChoixActivite
 from noyau.donnees import activites as dact  # accès aux données
+from noyau.donnees import blessures as dbles
 
 
 def _calculer_origine(id_ligne, valeurs):
-    conn = connexion()
-    cur = conn.cursor()
-    cur.execute(
-        """
-        SELECT a.date, a.type, a.distance, m.date, m.exercice, m.groupe_musculaire
-        FROM blessures b
-        LEFT JOIN activites a ON b.activite_id = a.id
-        LEFT JOIN musculation_suivi m ON b.musculation_suivi_id = m.id
-        WHERE b.id=?
-        """,
-        (id_ligne,),
-    )
-    resultat = cur.fetchone()
-    conn.close()
+    resultat = dbles.origine(id_ligne)
 
     if not resultat:
         return "Saisie manuelle"
@@ -44,15 +31,10 @@ def _lier_activite(ecran):
     id_blessure = ecran.lignes_ids[ligne]
     athlete_id = ecran.athlete_selectionne_id()
 
-    conn = connexion()
-    cur = conn.cursor()
-
     if athlete_id is None:
-        cur.execute("SELECT athlete_id FROM blessures WHERE id=?", (id_blessure,))
-        ligne_athlete = cur.fetchone()
+        ligne_athlete = dbles.valeurs(id_blessure, "athlete_id")
         athlete_id = ligne_athlete[0] if ligne_athlete else None
 
-    conn.close()
     activites_recentes = dact.pour_liaison(athlete_id, 50)
 
     if not activites_recentes:
@@ -65,14 +47,7 @@ def _lier_activite(ecran):
 
     activite_id = dialogue.activite_choisie[0]
 
-    conn = connexion()
-    cur = conn.cursor()
-    cur.execute(
-        "UPDATE blessures SET activite_id=?, musculation_suivi_id=NULL WHERE id=?",
-        (activite_id, id_blessure),
-    )
-    conn.commit()
-    conn.close()
+    dbles.lier_a_une_sortie(id_blessure, activite_id)
 
     QMessageBox.information(ecran, "Liée", "La blessure est maintenant liée à cette sortie.")
     ecran.charger_donnees()

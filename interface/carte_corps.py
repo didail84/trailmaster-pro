@@ -16,10 +16,10 @@ from PySide6.QtWidgets import (
     QLineEdit, QComboBox, QDialogButtonBox, QFrame,
 )
 
-from data.database import connexion
 from interface.forme_evolution import _EcranAthlete
 from interface.theme import PALETTE, obtenir_couleur_accent
 from interface.outils_ui import notifier
+from noyau.donnees import blessures as dbles
 
 # id -> (libellé, vue, rectangle (x, y, l, h) dans un repère 100 x 210, forme)
 ZONES = {
@@ -88,19 +88,14 @@ def zones_pour_texte(texte):
 
 def blessures_par_zone(athlete_id):
     """{zone_id: [dict blessure, …]} d'après les blessures saisies."""
-    conn = connexion()
-    cur = conn.cursor()
-    cur.execute("SELECT id, date_debut, date_fin, zone_corporelle, type_blessure, gravite, statut "
-                "FROM blessures WHERE athlete_id=? ORDER BY date_debut DESC", (athlete_id,))
     res, sans_zone = {}, []
-    for r in cur.fetchall():
+    for r in dbles.de_l_athlete(athlete_id):
         b = dict(zip(("id", "debut", "fin", "zone", "type", "gravite", "statut"), r))
         zs = zones_pour_texte(f"{b['zone']} {b['type'] or ''}")
         if not zs:
             sans_zone.append(b)
         for z in zs:
             res.setdefault(z, []).append(b)
-    conn.close()
     return res, sans_zone
 
 
@@ -292,13 +287,9 @@ class CarteCorps(_EcranAthlete):
             return
         d = DialogueNouvelleBlessureZone(ZONES[zid][0], self)
         if d.exec():
-            conn = connexion()
-            conn.execute("INSERT INTO blessures (athlete_id, date_debut, zone_corporelle, type_blessure, gravite, statut) "
-                         "VALUES (?,?,?,?,?,?)",
-                         (self.athlete_id, date.today().isoformat(), ZONES[zid][0], d.type.text().strip(),
-                          d.gravite.currentText(), d.statut.currentText()))
-            conn.commit()
-            conn.close()
+            dbles.ajouter({"athlete_id": self.athlete_id, "date_debut": date.today().isoformat(),
+                           "zone_corporelle": ZONES[zid][0], "type_blessure": d.type.text().strip(),
+                           "gravite": d.gravite.currentText(), "statut": d.statut.currentText()})
             notifier("Blessure ajoutée", parent=self)
             self.par_zone, _ = blessures_par_zone(self.athlete_id)
             self.silhouette.definir_donnees(self.par_zone)

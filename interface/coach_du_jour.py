@@ -16,13 +16,14 @@ from PySide6.QtWidgets import (
     QTableWidgetItem, QCheckBox,
 )
 
-from data.database import connexion, obtenir_athletes
+from data.database import obtenir_athletes
 from noyau.entrainement import coach_du_jour as cdj
 from noyau.course import predictions_course as pred
 from noyau.course import ravitaillement as rav
 from interface.ecran_liste import obtenir_style_ecran
 from interface.vma import _table, _remplir, duree_texte
 from noyau.donnees import seances as dseance
+from noyau.donnees import sante as dsante
 
 COULEURS = {"vert": "#66BB6A", "orange": "#FFA726", "rouge": "#EF5350"}
 LIBELLES = {"vert": "🟢 Feu vert", "orange": "🟠 Prudence", "rouge": "🔴 Repos conseillé"}
@@ -297,12 +298,7 @@ class CoachDuJour(QMainWindow):
         a = self._athlete()
         if a is None:
             return 70
-        conn = connexion()
-        cur = conn.cursor()
-        cur.execute("SELECT poids_kg FROM suivi_corporel WHERE athlete_id=? AND poids_kg>0 "
-                    "ORDER BY date DESC, id DESC LIMIT 1", (a,))
-        r = cur.fetchone()
-        conn.close()
+        r = dsante.dernier_poids(a)
         return r[0] if r else 70
 
     def _calculer_ravito(self):
