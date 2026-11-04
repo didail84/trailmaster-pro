@@ -26,10 +26,11 @@ from PySide6.QtWidgets import (
     QPushButton,
     QFrame,
 )
+from noyau.donnees import parcours as dparc  # accès aux données
 from PySide6.QtWebEngineWidgets import QWebEngineView
 from PySide6.QtWebEngineCore import QWebEngineSettings
 
-from data.database import connexion, creer_base_de_donnees, obtenir_athletes
+from data.database import creer_base_de_donnees, obtenir_athletes
 from interface.ecran_liste import obtenir_style_ecran
 from noyau.traces.secteurs_utils import regrouper_en_secteurs
 
@@ -240,16 +241,8 @@ class CarteReelle(QMainWindow):
         if athlete_id is None:
             return
 
-        conn = connexion()
-        cur = conn.cursor()
-        cur.execute(
-            "SELECT id, nom, distance_km FROM parcours_gpx WHERE athlete_id=? "
-            "ORDER BY date_ajout DESC LIMIT 300",
-            (athlete_id,),
-        )
-        for id_, nom, distance in cur.fetchall():
+        for id_, nom, distance in dparc.liste_courte(athlete_id, 300):
             self.combo_parcours.addItem(f"{nom} ({distance} km)", id_)
-        conn.close()
 
     def afficher_carte(self):
         athlete_id = self.combo_athlete.currentData()
@@ -307,25 +300,16 @@ class CarteReelle(QMainWindow):
             )
 
     def _trace_unique(self, parcours_id):
-        conn = connexion()
-        cur = conn.cursor()
-        cur.execute("SELECT trace_json FROM parcours_gpx WHERE id=?", (parcours_id,))
-        resultat = cur.fetchone()
-        conn.close()
-
-        if not resultat or not resultat[0]:
+        trace_json = dparc.trace(parcours_id)
+        if not trace_json:
             return []
 
-        points = json.loads(resultat[0])
+        points = json.loads(trace_json)
         sous_echantillon = points[::PAS_SOUS_ECHANTILLONNAGE] or points
         return [[[p[0], p[1]] for p in sous_echantillon]]
 
     def _traces_zone_principale(self, athlete_id):
-        conn = connexion()
-        cur = conn.cursor()
-        cur.execute("SELECT id, trace_json FROM parcours_gpx WHERE athlete_id=?", (athlete_id,))
-        lignes = cur.fetchall()
-        conn.close()
+        lignes = dparc.traces_de_l_athlete(athlete_id)
 
         traces_par_id = {}
         for id_parcours, trace_json in lignes:

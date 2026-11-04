@@ -3,6 +3,7 @@ from PySide6.QtWidgets import QDialog, QMessageBox
 from data.database import connexion
 from interface.ecran_liste import EcranListe, Champ
 from interface.seances import DialogueChoixActivite
+from noyau.donnees import activites as dact  # accès aux données
 
 
 def _calculer_origine(id_ligne, valeurs):
@@ -51,13 +52,8 @@ def _lier_activite(ecran):
         ligne_athlete = cur.fetchone()
         athlete_id = ligne_athlete[0] if ligne_athlete else None
 
-    cur.execute(
-        "SELECT id, date, type, distance, duree FROM activites "
-        "WHERE athlete_id=? ORDER BY date DESC LIMIT 50",
-        (athlete_id,),
-    )
-    activites_recentes = cur.fetchall()
     conn.close()
+    activites_recentes = dact.pour_liaison(athlete_id, 50)
 
     if not activites_recentes:
         QMessageBox.information(ecran, "Aucune activité", "Aucune activité trouvée pour cet athlète.")

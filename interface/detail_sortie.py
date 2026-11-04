@@ -30,6 +30,7 @@ from PySide6.QtWidgets import (
     QDoubleSpinBox,
     QMessageBox,
 )
+from noyau.donnees import activites as dact, parcours as dparc  # accès aux données
 
 from data.database import connexion, supprimer_activite
 from interface.ecran_liste import obtenir_style_ecran, configurer_table_redimensionnable
@@ -533,11 +534,7 @@ class DialogueDetailSortie(QDialog):
         self._afficher_analyse_en_cache()
 
     def _naviguer(self, sens):
-        conn = connexion()
-        cur = conn.cursor()
-        cur.execute("SELECT id FROM activites WHERE athlete_id=? ORDER BY date, id", (self.athlete_id,))
-        ids = [r[0] for r in cur.fetchall()]
-        conn.close()
+        ids = dact.ids_chronologiques(self.athlete_id)
         if self.activite_id not in ids:
             return
         i = ids.index(self.activite_id) + sens
@@ -634,22 +631,18 @@ class DialogueDetailSortie(QDialog):
     # ------------------------------------------------------------
 
     def _charger_activite(self):
-        conn = connexion()
-        cur = conn.cursor()
-        cur.execute(
-            "SELECT date, nom, type, distance, denivele, denivele_negatif, duree, "
-            "vitesse_moyenne, vitesse_max, allure_moyenne, allure_max, "
-            "frequence_cardiaque_moyenne, frequence_cardiaque_max, calories, "
-            "cadence_moyenne, vo2max, source, notes, "
-            "te_aerobie, te_anaerobie, charge_garmin, "
-            "temps_zone_1, temps_zone_2, temps_zone_3, temps_zone_4, temps_zone_5, "
-            "puissance_moyenne, puissance_max, oscillation_verticale, temps_contact_sol, "
-            "longueur_foulee, temperature_moyenne, effort_percu, suffer_score "
-            "FROM activites WHERE id=? AND athlete_id=?",
-            (self.activite_id, self.athlete_id),
+        ligne = dact.valeurs(
+            self.activite_id,
+            "date", "nom", "type", "distance", "denivele", "denivele_negatif", "duree",
+            "vitesse_moyenne", "vitesse_max", "allure_moyenne", "allure_max",
+            "frequence_cardiaque_moyenne", "frequence_cardiaque_max", "calories",
+            "cadence_moyenne", "vo2max", "source", "notes",
+            "te_aerobie", "te_anaerobie", "charge_garmin",
+            "temps_zone_1", "temps_zone_2", "temps_zone_3", "temps_zone_4", "temps_zone_5",
+            "puissance_moyenne", "puissance_max", "oscillation_verticale", "temps_contact_sol",
+            "longueur_foulee", "temperature_moyenne", "effort_percu", "suffer_score",
+            athlete_id=self.athlete_id,
         )
-        ligne = cur.fetchone()
-        conn.close()
         if not ligne:
             return None
 
@@ -773,14 +766,7 @@ class DialogueDetailSortie(QDialog):
             self.zone_photos.ouvrir_photo(self._photos_sur_carte[indice])
 
     def _charger_parcours_lie(self):
-        conn = connexion()
-        cur = conn.cursor()
-        cur.execute(
-            "SELECT id, trace_json FROM parcours_gpx WHERE activite_id=? AND trace_json IS NOT NULL",
-            (self.activite_id,),
-        )
-        resultat = cur.fetchone()
-        conn.close()
+        resultat = dparc.lie_a_l_activite(self.activite_id)
         if not resultat or not resultat[1]:
             return None
         return {"id": resultat[0], "trace_json": resultat[1]}
@@ -854,17 +840,7 @@ class DialogueDetailSortie(QDialog):
             ("notes", self.champ_notes.toPlainText().strip() or None),
         ]
 
-        affectations = ", ".join(f"{nom}=?" for nom, _ in colonnes_valeurs)
-        valeurs = [valeur for _, valeur in colonnes_valeurs] + [self.activite_id, self.athlete_id]
-
-        conn = connexion()
-        cur = conn.cursor()
-        cur.execute(
-            f"UPDATE activites SET {affectations} WHERE id=? AND athlete_id=?",
-            valeurs,
-        )
-        conn.commit()
-        conn.close()
+        dact.modifier(self.activite_id, self.athlete_id, colonnes_valeurs)
 
         # Rafraîchit la charge affichée (recalculée à partir des nouvelles
         # valeurs) sans avoir à fermer/rouvrir la fenêtre.

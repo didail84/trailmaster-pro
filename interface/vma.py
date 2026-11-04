@@ -4,12 +4,12 @@ sont dans noyau/entrainement/vma.py ; ils restent importables d'ici
 pour les écrans qui les utilisent déjà.
 """
 
-from data.database import connexion  # noqa: F401
 from noyau.entrainement.vma import *  # noqa: F401,F403
 from noyau.entrainement.vma import (  # noqa: F401
     _efforts_course, FENETRE_JOURS, NB_MEILLEURS,
     allure_texte, allures_reference, calculer_vma, duree_texte, lister_circuits, texte_evolution,
 )
+from noyau.donnees import athletes as dath  # accès aux données
 
 # ----------------------------------------------------------------------
 #  Écran
@@ -374,11 +374,7 @@ class VMACircuits(QMainWindow):
             self._afficher_detail(None)
 
     def _vma_profil(self, athlete_id):
-        conn = connexion()
-        cur = conn.cursor()
-        cur.execute("SELECT vma FROM athletes WHERE id=?", (athlete_id,))
-        r = cur.fetchone()
-        conn.close()
+        r = dath.valeurs(athlete_id, "vma")
         return r[0] if r and r[0] else None
 
     def _circuit_clique(self):
@@ -423,9 +419,5 @@ class VMACircuits(QMainWindow):
             "(Elle sert au calcul des zones et des plans d'entraînement.)")
         if rep != QMessageBox.StandardButton.Yes:
             return
-        conn = connexion()
-        cur = conn.cursor()
-        cur.execute("UPDATE athletes SET vma=? WHERE id=?", (v, athlete_id))
-        conn.commit()
-        conn.close()
+        dath.definir_vma(athlete_id, v)
         self.actualiser()

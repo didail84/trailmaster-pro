@@ -6,6 +6,7 @@ from data.database import connexion
 from interface.ecran_liste import EcranListe, Champ
 from interface.seances import DialogueChoixActivite
 from interface.apercu_survol import installer_apercu_survol
+from noyau.donnees import activites as dact, parcours as dparc  # accès aux données
 
 
 def _calculer_activite_liee(id_ligne, valeurs):
@@ -46,13 +47,8 @@ def _lier_activite(ecran):
         ligne_athlete = cur.fetchone()
         athlete_id = ligne_athlete[0] if ligne_athlete else None
 
-    cur.execute(
-        "SELECT id, date, type, distance, duree FROM activites "
-        "WHERE athlete_id=? ORDER BY date DESC LIMIT 50",
-        (athlete_id,),
-    )
-    activites_recentes = cur.fetchall()
     conn.close()
+    activites_recentes = dact.pour_liaison(athlete_id, 50)
 
     if not activites_recentes:
         QMessageBox.information(ecran, "Aucune activité", "Aucune activité trouvée pour cet athlète.")
@@ -129,12 +125,9 @@ class ResultatsCourses(EcranListe):
 
         points = []
         if activite_id is not None:
-            cur.execute(
-                "SELECT trace_json FROM parcours_gpx WHERE activite_id=? LIMIT 1", (activite_id,)
-            )
-            resultat = cur.fetchone()
-            if resultat and resultat[0]:
-                points = json.loads(resultat[0])
+            trace_json = dparc.trace_de_l_activite(activite_id)
+            if trace_json:
+                points = json.loads(trace_json)
         conn.close()
 
         return (nom_course, date or "", points)

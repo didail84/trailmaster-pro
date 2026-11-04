@@ -58,8 +58,11 @@ from PySide6.QtWidgets import (
 from PySide6.QtWebEngineWidgets import QWebEngineView
 from PySide6.QtWebEngineCore import QWebEngineSettings
 
-from data.database import connexion, CHEMIN_BDD, obtenir_parametre, definir_parametre, obtenir_athletes
+from data.database import CHEMIN_BDD, obtenir_parametre, definir_parametre, obtenir_athletes
 from interface.ecran_liste import obtenir_style_ecran
+from noyau.donnees import activites as dact, parcours as dparc  # accès aux données
+from noyau.donnees.base import transaction
+from noyau.outils.evenements import emettre, DONNEES_MODIFIEES
 
 
 # ------------------------------------------------------------------
@@ -354,47 +357,26 @@ def terminer_session(nom_sortie=None):
     date_debut = datetime.fromtimestamp(s["debut_epoch"]).strftime("%Y-%m-%d %H:%M:%S")
     nom = nom_sortie or f"Sortie du {datetime.fromtimestamp(s['debut_epoch']).strftime('%d/%m/%Y')} (suivi en direct)"
 
-    conn = connexion()
-    cur = conn.cursor()
-    cur.execute(
-        """
-        INSERT INTO activites (
-            athlete_id, date, nom, type, distance, denivele, duree,
-            vitesse_moyenne, allure_moyenne, frequence_cardiaque_moyenne,
-            frequence_cardiaque_max, source, cadence_moyenne, notes
-        ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)
-        """,
-        (
-            athlete_id, date_debut, nom, "Trail", distance_km,
-            s["denivele_positif"], duree_s, vitesse_moyenne, allure_moyenne,
-            fc_moyenne, fc_max, "Suivi en direct (téléphone)", cadence_moyenne,
-            "Sortie enregistrée en direct depuis le téléphone — GPS de téléphone, "
-            "moins précis qu'une montre dédiée. Une synchro Garmin/Strava ultérieure "
-            "de la même sortie peut être fusionnée depuis Nettoyage des doublons.",
-        ),
-    )
-    activite_id = cur.lastrowid
-
     points_json = [[p["lat"], p["lon"], p["alt"], p["t"], p["hr"], p["cad"]] for p in s["points"]]
-    cur.execute(
-        """
-        INSERT INTO parcours_gpx (
-            athlete_id, nom, distance_km, denivele_positif, denivele_negatif,
-            trace_json, activite_id
-        ) VALUES (?,?,?,?,?,?,?)
-        """,
-        (athlete_id, nom, distance_km, s["denivele_positif"], s["denivele_negatif"],
-         json.dumps(points_json), activite_id),
-    )
+    # La sortie et sa trace sont enregistrées ensemble, ou pas du tout.
+    with transaction() as cur:
+        activite_id = dact.inserer({
+            "athlete_id": athlete_id, "date": date_debut, "nom": nom, "type": "Trail",
+            "distance": distance_km, "denivele": s["denivele_positif"], "duree": duree_s,
+            "vitesse_moyenne": vitesse_moyenne, "allure_moyenne": allure_moyenne,
+            "frequence_cardiaque_moyenne": fc_moyenne, "frequence_cardiaque_max": fc_max,
+            "source": "Suivi en direct (téléphone)", "cadence_moyenne": cadence_moyenne,
+            "notes": "Sortie enregistrée en direct depuis le téléphone — GPS de téléphone, "
+                     "moins précis qu'une montre dédiée. Une synchro Garmin/Strava ultérieure "
+                     "de la même sortie peut être fusionnée depuis Nettoyage des doublons.",
+        }, cur=cur)
+        dparc.inserer({
+            "athlete_id": athlete_id, "nom": nom, "distance_km": distance_km,
+            "denivele_positif": s["denivele_positif"], "denivele_negatif": s["denivele_negatif"],
+            "trace_json": json.dumps(points_json), "activite_id": activite_id,
+        }, cur=cur)
 
-    conn.commit()
-    conn.close()
-
-    try:
-        from noyau.entrainement.coach import invalider_cache_coach
-        invalider_cache_coach()
-    except ImportError:
-        pass
+    emettre(DONNEES_MODIFIEES)
 
     return True, "Sortie enregistrée.", activite_id
 

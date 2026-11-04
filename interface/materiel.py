@@ -1,5 +1,6 @@
 from data.database import connexion
 from interface.ecran_liste import EcranListe, Champ
+from noyau.donnees import activites as dact  # accès aux données
 
 
 # Types d'activités pertinents pour calculer l'usure réelle de chaque
@@ -26,21 +27,9 @@ def _calculer_km_reel(id_ligne, valeurs):
         return "—"
     athlete_id = resultat[0]
 
-    types_pertinents = TYPES_MATERIEL_VERS_ACTIVITES.get(type_materiel)
-    if types_pertinents:
-        marqueurs = ",".join("?" * len(types_pertinents))
-        cur.execute(
-            f"SELECT SUM(distance) FROM activites WHERE athlete_id=? AND date >= ? "
-            f"AND type IN ({marqueurs})",
-            (athlete_id, date_achat, *types_pertinents),
-        )
-    else:
-        cur.execute(
-            "SELECT SUM(distance) FROM activites WHERE athlete_id=? AND date >= ?",
-            (athlete_id, date_achat),
-        )
-    total = cur.fetchone()[0]
     conn.close()
+    types_pertinents = TYPES_MATERIEL_VERS_ACTIVITES.get(type_materiel)
+    total = dact.somme_distance_depuis(athlete_id, date_achat, types_pertinents)
 
     return f"{round(total or 0, 1)} km"
 

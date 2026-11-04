@@ -18,11 +18,11 @@ from PySide6.QtGui import (
     QImage, QPainter, QColor, QPen, QLinearGradient, QFont, QPainterPath, QBrush, QPdfWriter, QPageSize,
     QPageLayout, QImageReader, QGuiApplication, QRadialGradient,
 )
+from noyau.donnees import activites as dact, athletes as dath  # accès aux données
 
 import noyau.traces.analyse_traces as at
 import noyau.entrainement.metriques as met
 import data.photos_sorties as ph
-from data.database import connexion
 from interface.theme import obtenir_couleur_accent as _accent_brut, eclaircir, POLICE_TITRE, POLICE_TEXTE
 
 
@@ -119,12 +119,8 @@ def _date_longue(d):
 
 def rendre_fiche_sortie(activite_id, avec_photo=True, largeur=1080, hauteur=1350):
     """QImage de la fiche (None si la sortie n'existe pas)."""
-    conn = connexion()
-    cur = conn.cursor()
-    cur.execute("SELECT nom, date, type, distance, denivele, duree, frequence_cardiaque_moyenne, athlete_id "
-                "FROM activites WHERE id=?", (activite_id,))
-    r = cur.fetchone()
-    conn.close()
+    r = dact.valeurs(activite_id, "nom", "date", "type", "distance", "denivele", "duree",
+                     "frequence_cardiaque_moyenne", "athlete_id")
     if not r:
         return None
     nom, d, type_, km, dplus, duree, fc, athlete_id = r
@@ -239,15 +235,8 @@ def copier_dans_presse_papiers(img):
 # ======================================================================
 
 def _traces_de_l_annee(athlete_id, annee, maxi=260):
-    conn = connexion()
-    cur = conn.cursor()
-    cur.execute(
-        "SELECT a.id, a.date, a.distance, a.type, p.trace_json FROM activites a "
-        "JOIN parcours_gpx p ON p.activite_id=a.id WHERE a.athlete_id=? AND a.date>=? AND a.date<? "
-        "AND p.trace_json IS NOT NULL ORDER BY a.date",
-        (athlete_id, f"{annee}-01-01", f"{annee + 1}-01-01"))
     res = []
-    for id_, d, km, type_, tj in cur.fetchall():
+    for id_, d, km, type_, tj in dact.avec_trace_entre(athlete_id, f"{annee}-01-01", f"{annee + 1}-01-01"):
         try:
             pts = json.loads(tj)
         except (ValueError, TypeError):
@@ -255,7 +244,6 @@ def _traces_de_l_annee(athlete_id, annee, maxi=260):
         if isinstance(pts, list) and len(pts) > 5 and (km or 0) >= 1:
             pas = max(1, len(pts) // 120)
             res.append({"id": id_, "date": d, "km": km or 0, "type": type_, "points": pts[::pas]})
-    conn.close()
     if len(res) > maxi:
         res = sorted(res, key=lambda t: -t["km"])[:maxi]
         res.sort(key=lambda t: t["date"])
@@ -266,11 +254,7 @@ def rendre_affiche_annee(athlete_id, annee, largeur=2400, hauteur=3400):
     """QImage de l'affiche. Contient : titre, vignettes de toutes les
     sorties avec trace, 4 totaux, rythme mensuel et records."""
     accent = obtenir_couleur_accent()
-    conn = connexion()
-    cur = conn.cursor()
-    cur.execute("SELECT prenom, nom FROM athletes WHERE id=?", (athlete_id,))
-    a = cur.fetchone() or ("", "")
-    conn.close()
+    a = dath.valeurs(athlete_id, "prenom", "nom") or ("", "")
     prenom = a[0] or ""
     mois = met.totaux(athlete_id, "mois", 12) if annee == date.today().year else None
     # totaux par mois de l'année demandée

@@ -18,6 +18,7 @@ from PySide6.QtWidgets import (
     QMessageBox,
     QScrollArea,
 )
+from noyau.donnees import activites as dact, parcours as dparc  # accès aux données
 
 from data.database import connexion, creer_base_de_donnees, obtenir_athletes
 from interface.ecran_liste import obtenir_style_ecran, configurer_table_redimensionnable
@@ -196,15 +197,7 @@ class Segments(QMainWindow):
         self.parcours_disponibles = []
 
         if athlete_id is not None:
-            conn = connexion()
-            cur = conn.cursor()
-            cur.execute(
-                "SELECT id, nom, distance_km FROM parcours_gpx WHERE athlete_id=? "
-                "ORDER BY date_ajout DESC LIMIT 200",
-                (athlete_id,),
-            )
-            self.parcours_disponibles = cur.fetchall()
-            conn.close()
+            self.parcours_disponibles = dparc.liste_courte(athlete_id, 200)
             for id_, nom, distance in self.parcours_disponibles:
                 self.combo_parcours.addItem(f"{nom} ({distance} km)", id_)
 
@@ -213,14 +206,10 @@ class Segments(QMainWindow):
         self.charger_segments()
 
     def _points_parcours(self, parcours_id):
-        conn = connexion()
-        cur = conn.cursor()
-        cur.execute("SELECT trace_json FROM parcours_gpx WHERE id=?", (parcours_id,))
-        resultat = cur.fetchone()
-        conn.close()
-        if not resultat or not resultat[0]:
+        trace_json = dparc.trace(parcours_id)
+        if not trace_json:
             return None
-        return json.loads(resultat[0])
+        return json.loads(trace_json)
 
     def previsualiser(self):
         parcours_id = self.combo_parcours.currentData()
@@ -313,11 +302,7 @@ class Segments(QMainWindow):
     def _rechercher_passages(self, segment_id, athlete_id, points_reference):
         conn = connexion()
         cur = conn.cursor()
-        cur.execute(
-            "SELECT id, trace_json, activite_id FROM parcours_gpx WHERE athlete_id=?",
-            (athlete_id,),
-        )
-        tous_parcours = cur.fetchall()
+        tous_parcours = dparc.traces_et_activites(athlete_id)
 
         cur.execute("SELECT parcours_id FROM segments_efforts WHERE segment_id=?", (segment_id,))
         deja_trouves = set(r[0] for r in cur.fetchall())
@@ -338,8 +323,7 @@ class Segments(QMainWindow):
 
             date_activite = None
             if activite_id:
-                cur.execute("SELECT date FROM activites WHERE id=?", (activite_id,))
-                ligne = cur.fetchone()
+                ligne = dact.valeurs(activite_id, "date", cur=cur)
                 date_activite = ligne[0] if ligne else None
 
             cur.execute(

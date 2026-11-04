@@ -12,20 +12,16 @@ from PySide6.QtGui import QPixmap, QImageReader, QPainter, QColor, QPen, QPdfWri
 from PySide6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QFileDialog, QWidget,
 )
+from noyau.donnees import activites as dact  # accès aux données
 
 import noyau.entrainement.metriques as met
 import data.photos_sorties as ph
-from data.database import connexion
 from interface.theme import PALETTE, obtenir_couleur_accent
 from interface.outils_ui import notifier
 
 
 def _infos_sortie(activite_id):
-    conn = connexion()
-    cur = conn.cursor()
-    cur.execute("SELECT nom, date, type, distance, denivele, duree FROM activites WHERE id=?", (activite_id,))
-    r = cur.fetchone()
-    conn.close()
+    r = dact.valeurs(activite_id, "nom", "date", "type", "distance", "denivele", "duree")
     if not r:
         return {}
     return dict(zip(("nom", "date", "type", "distance", "denivele", "duree"), r))

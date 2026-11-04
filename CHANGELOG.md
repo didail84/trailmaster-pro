@@ -1,5 +1,13 @@
 # Historique des versions
 
+## Trail Hub Center — étape 1.4a (accès aux données : sorties, parcours, athlètes)
+- Nouveau dossier `noyau/donnees/` : c'est désormais le seul endroit où s'écrivent les requêtes sur les sorties, les parcours GPX et les athlètes. 70 requêtes ont quitté 28 écrans (157 → 88 requêtes restantes dans les écrans).
+- La recherche globale est rangée dans le noyau.
+- Correction : l'écran « Import » (CSV Strava, JSON Garmin) écrivait dans `data/trailmaster.db` à côté du programme et non dans la vraie base du logiciel ; dans l'application installée, les sorties importées depuis cet écran n'arrivaient donc pas dans la base utilisée.
+- Correction : une sortie modifiée dans sa fiche met aussitôt à jour la forme et l'ACWR (le cache du coach était conservé jusqu'à 90 secondes).
+- Le suivi en direct enregistre la sortie et sa trace ensemble, ou rien en cas d'erreur.
+- Tests : 194 (dont 21 qui comparent chaque fonction de données à la requête d'origine, et un garde-fou qui interdit le retour de requêtes dans les écrans).
+
 ## Trail Hub Center — confidentialité
 - Retrait du fichier `data/suivi_corporel_initial.py`, qui contenait en clair des relevés personnels de poids et de fatigue (septembre-octobre 2026). Ces relevés avaient déjà été importés une fois pour toutes dans la base de l'utilisateur : rien n'est perdu, l'écran « Poids & récupération » les affiche toujours.
 

@@ -12,6 +12,7 @@ from PySide6.QtCore import Qt, QUrl, QRectF, QSizeF, QMarginsF
 from PySide6.QtGui import (
     QImage, QPainter, QColor, QPen, QFont, QTextDocument, QPdfWriter, QPageSize, QPageLayout, QDesktopServices,
 )
+from noyau.donnees import athletes as dath  # accès aux données
 from PySide6.QtWidgets import QComboBox, QLabel, QPushButton, QFileDialog, QTextBrowser
 
 import noyau.entrainement.metriques as met
@@ -104,11 +105,7 @@ def construire_rapport(athlete_id, type_periode="semaine", ref=None):
     ref = ref or date.today()
     debut, fin = bornes(type_periode, ref)
     p_debut, p_fin = periode_precedente(type_periode, debut)
-    conn = connexion()
-    cur = conn.cursor()
-    cur.execute("SELECT prenom, nom FROM athletes WHERE id=?", (athlete_id,))
-    ath = cur.fetchone() or ("", "")
-    conn.close()
+    ath = dath.valeurs(athlete_id, "prenom", "nom") or ("", "")
     cur_ = met.totaux_periode(athlete_id, debut, min(fin, date.today()))
     prec = met.totaux_periode(athlete_id, p_debut, p_fin)
     sorties = met.activites_periode(athlete_id, debut, fin)

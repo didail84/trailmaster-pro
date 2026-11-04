@@ -14,9 +14,10 @@ from PySide6.QtWidgets import (
     QLineEdit, QComboBox, QFrame, QListWidget, QListWidgetItem, QFileDialog,
     QMessageBox, QInputDialog, QProgressDialog, QApplication, QScrollArea, QAbstractItemView,
 )
+from noyau.donnees import activites as dact  # accès aux données
 
 from data import photos_sorties as ph
-from data.database import connexion, obtenir_athletes
+from data.database import obtenir_athletes
 from interface.ecran_liste import obtenir_style_ecran
 
 TAILLE_MINIATURE = 150
@@ -54,12 +55,7 @@ def miniature(fichier, cote=TAILLE_MINIATURE):
 
 def choisir_sortie(parent, athlete_id, date_photo=None):
     """Demande à quelle sortie rattacher une photo. Retourne (ok, activite_id|None)."""
-    conn = connexion()
-    cur = conn.cursor()
-    cur.execute("SELECT id, date, nom, type FROM activites WHERE athlete_id=? ORDER BY date DESC",
-                (athlete_id,))
-    lignes = cur.fetchall()
-    conn.close()
+    lignes = dact.pour_choix_photo(athlete_id)
     if date_photo:
         try:
             ref = datetime.fromisoformat(str(date_photo)[:19])
@@ -188,11 +184,7 @@ class DialogueVisionneuse(QDialog):
     def _nom_sortie(activite_id):
         if not activite_id:
             return None
-        conn = connexion()
-        cur = conn.cursor()
-        cur.execute("SELECT nom, type, date FROM activites WHERE id=?", (activite_id,))
-        l = cur.fetchone()
-        conn.close()
+        l = dact.valeurs(activite_id, "nom", "type", "date")
         return f"{(l[0] or l[1] or 'Sortie')} ({str(l[2])[:10]})" if l else None
 
     def _ajuster(self):

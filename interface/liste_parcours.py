@@ -24,8 +24,9 @@ from PySide6.QtWidgets import (
     QHeaderView,
     QMessageBox,
 )
+from noyau.donnees import parcours as dparc  # accès aux données
 
-from data.database import connexion, creer_base_de_donnees, obtenir_athletes
+from data.database import creer_base_de_donnees, obtenir_athletes
 from interface.ecran_liste import obtenir_style_ecran, configurer_table_redimensionnable
 from interface.theme import charger_polices
 from interface.apercu_survol import installer_apercu_survol
@@ -130,11 +131,7 @@ class ListeParcours(QMainWindow):
         return None
 
     def _apercu_pour_parcours(self, parcours_id):
-        conn = connexion()
-        cur = conn.cursor()
-        cur.execute("SELECT nom, distance_km, trace_json FROM parcours_gpx WHERE id=?", (parcours_id,))
-        ligne = cur.fetchone()
-        conn.close()
+        ligne = dparc.valeurs(parcours_id, "nom", "distance_km", "trace_json")
         if not ligne:
             return None
         nom, distance, trace_json = ligne
@@ -145,22 +142,7 @@ class ListeParcours(QMainWindow):
     def charger_parcours(self):
         athlete_id = self.combo_athlete.currentData()
 
-        conn = connexion()
-        cur = conn.cursor()
-        if athlete_id is None:
-            cur.execute(
-                "SELECT id, nom, distance_km, denivele_positif, denivele_negatif, "
-                "date_ajout, activite_id FROM parcours_gpx ORDER BY date_ajout DESC LIMIT 500"
-            )
-        else:
-            cur.execute(
-                "SELECT id, nom, distance_km, denivele_positif, denivele_negatif, "
-                "date_ajout, activite_id FROM parcours_gpx WHERE athlete_id=? "
-                "ORDER BY date_ajout DESC LIMIT 500",
-                (athlete_id,),
-            )
-        lignes = cur.fetchall()
-        conn.close()
+        lignes = dparc.liste_pour_tableau(athlete_id, 500)
 
         self._lignes_ids = [l[0] for l in lignes]
         self.table.setRowCount(len(lignes))
@@ -211,10 +193,6 @@ class ListeParcours(QMainWindow):
         if reponse != QMessageBox.StandardButton.Yes:
             return
 
-        conn = connexion()
-        cur = conn.cursor()
-        cur.execute("DELETE FROM parcours_gpx WHERE id=?", (parcours_id,))
-        conn.commit()
-        conn.close()
+        dparc.supprimer(parcours_id)
 
         self.charger_parcours()

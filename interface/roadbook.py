@@ -18,6 +18,7 @@ from PySide6.QtWidgets import (
     QDoubleSpinBox, QCheckBox, QDateEdit, QTimeEdit, QFrame, QTableWidget, QTableWidgetItem,
     QListWidget, QListWidgetItem, QFileDialog, QMessageBox, QAbstractItemView,
 )
+from noyau.donnees import parcours as dparc  # accès aux données
 
 import noyau.course.roadbook as rbk
 import noyau.entrainement.metriques as met
@@ -391,8 +392,7 @@ class RoadbookCourse(_EcranAthlete):
                         "WHERE athlete_id=? ORDER BY COALESCE(date,'9999')", (a,))
             for id_, nom, d, km, dp in cur.fetchall():
                 self.combo_course.addItem(f"{nom}" + (f" — {km:g} km" if km else ""), id_)
-            cur.execute("SELECT id, nom, distance_km FROM parcours_gpx WHERE athlete_id=? ORDER BY id DESC", (a,))
-            for id_, nom, km in cur.fetchall():
+            for id_, nom, km in dparc.liste_courte(a, par_id=True):
                 self.combo_parcours.addItem(f"{nom} — {km:g} km" if km else nom, id_)
             conn.close()
             if rb_selectionne is None:

@@ -33,6 +33,8 @@ from PySide6.QtWidgets import (
     QProgressBar,
     QScrollArea,
 )
+from noyau.donnees import activites as dact  # accès aux données
+from noyau.donnees.base import connexion as connexion_base
 
 
 class ImportDonnees(QMainWindow):
@@ -64,7 +66,10 @@ class ImportDonnees(QMainWindow):
     # ==========================================================
 
     def connexion(self):
-        return sqlite3.connect(self.db_path)
+        # La base réelle du logiciel (dossier utilisateur ou dossier
+        # synchronisé), et non plus data/trailmaster.db à côté du programme,
+        # qui n'est pas la même dans l'application installée.
+        return connexion_base()
 
     def creer_tables(self):
         # Le schéma (tables "activites" et "importations" incluses) est
@@ -572,44 +577,35 @@ class ImportDonnees(QMainWindow):
             for index, activite in enumerate(activites):
                 total += 1
                 try:
-                    cur.execute(
-                        "SELECT id FROM activites WHERE empreinte = ?",
-                        (activite["empreinte"],),
-                    )
-                    existante = cur.fetchone()
+                    existante = dact.id_par_empreinte(activite["empreinte"], cur=cur)
                     if existante:
                         doublons += 1
                         # Activité déjà connue : on récupère au passage les
                         # paramètres que les anciennes versions ignoraient.
-                        if completer_activite(cur, existante[0], activite):
+                        if completer_activite(cur, existante, activite):
                             completees += 1
                     else:
-                        cur.execute(
-                            """
-                            INSERT INTO activites (
-                                athlete_id, date, nom, type, distance, denivele, duree,
-                                vitesse_moyenne, allure_moyenne, frequence_cardiaque_moyenne,
-                                frequence_cardiaque_max, calories, source, fichier_source,
-                                identifiant_externe, empreinte, notes,
-                                denivele_negatif, vitesse_max, allure_max,
-                                cadence_moyenne, vo2max
-                            ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
-                            """,
-                            (
-                                athlete_id, activite["date"], activite["nom"], activite["type"],
-                                activite["distance"], activite["denivele"], activite["duree"],
-                                activite["vitesse_moyenne"], activite["allure_moyenne"],
-                                activite["frequence_cardiaque_moyenne"], activite["frequence_cardiaque_max"],
-                                activite["calories"], activite["source"], activite["fichier_source"],
-                                activite["identifiant_externe"], activite["empreinte"], activite["notes"],
-                                activite.get("denivele_negatif"), activite.get("vitesse_max"),
-                                activite.get("allure_max"), activite.get("cadence_moyenne"),
-                                activite.get("vo2max"),
-                            ),
-                        )
+                        nouvel_id = dact.inserer({
+                            "athlete_id": athlete_id, "date": activite["date"], "nom": activite["nom"],
+                            "type": activite["type"], "distance": activite["distance"],
+                            "denivele": activite["denivele"], "duree": activite["duree"],
+                            "vitesse_moyenne": activite["vitesse_moyenne"],
+                            "allure_moyenne": activite["allure_moyenne"],
+                            "frequence_cardiaque_moyenne": activite["frequence_cardiaque_moyenne"],
+                            "frequence_cardiaque_max": activite["frequence_cardiaque_max"],
+                            "calories": activite["calories"], "source": activite["source"],
+                            "fichier_source": activite["fichier_source"],
+                            "identifiant_externe": activite["identifiant_externe"],
+                            "empreinte": activite["empreinte"], "notes": activite["notes"],
+                            "denivele_negatif": activite.get("denivele_negatif"),
+                            "vitesse_max": activite.get("vitesse_max"),
+                            "allure_max": activite.get("allure_max"),
+                            "cadence_moyenne": activite.get("cadence_moyenne"),
+                            "vo2max": activite.get("vo2max"),
+                        }, cur=cur)
                         nouvelles += 1
                         # Paramètres avancés (effet d'entraînement, zones de FC…)
-                        completer_activite(cur, cur.lastrowid, activite)
+                        completer_activite(cur, nouvel_id, activite)
 
                         self.ajouter_ligne_tableau({
                             "date": activite["date"],
@@ -758,18 +754,12 @@ class ImportDonnees(QMainWindow):
 
                     activite["empreinte"] = empreinte
 
-                    cur.execute("""
-                        SELECT id
-                        FROM activites
-                        WHERE empreinte = ?
-                    """, (empreinte,))
-
-                    existe = cur.fetchone()
+                    existe = dact.id_par_empreinte(empreinte, cur=cur)
 
                     if existe:
 
                         doublons += 1
-                        if completer_activite(cur, existe[0], {
+                        if completer_activite(cur, existe, {
                             "frequence_cardiaque_moyenne": activite["fc_moyenne"],
                             "frequence_cardiaque_max": activite["fc_max"],
                             "calories": activite["calories"],
@@ -784,57 +774,29 @@ class ImportDonnees(QMainWindow):
 
                     else:
 
-                        cur.execute("""
-                            INSERT INTO activites (
-                                athlete_id,
-                                date,
-                                nom,
-                                type,
-                                distance,
-                                denivele,
-                                duree,
-                                vitesse_moyenne,
-                                allure_moyenne,
-                                frequence_cardiaque_moyenne,
-                                frequence_cardiaque_max,
-                                calories,
-                                source,
-                                fichier_source,
-                                identifiant_externe,
-                                empreinte,
-                                notes,
-                                denivele_negatif,
-                                vitesse_max,
-                                allure_max,
-                                cadence_moyenne
-                            )
-                            VALUES (
-                                ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
-                                ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
-                            )
-                        """, (
-                            activite["athlete_id"],
-                            activite["date"],
-                            activite["nom"],
-                            activite["type"],
-                            activite["distance"],
-                            activite["denivele"],
-                            activite["duree"],
-                            activite["vitesse_moyenne"],
-                            activite["allure_moyenne"],
-                            activite["fc_moyenne"],
-                            activite["fc_max"],
-                            activite["calories"],
-                            activite["source"],
-                            activite["fichier_source"],
-                            activite["identifiant_externe"],
-                            activite["empreinte"],
-                            activite["notes"],
-                            activite.get("denivele_negatif"),
-                            activite.get("vitesse_max"),
-                            activite.get("allure_max"),
-                            activite.get("cadence_moyenne"),
-                        ))
+                        dact.inserer({
+                            "athlete_id": activite["athlete_id"],
+                            "date": activite["date"],
+                            "nom": activite["nom"],
+                            "type": activite["type"],
+                            "distance": activite["distance"],
+                            "denivele": activite["denivele"],
+                            "duree": activite["duree"],
+                            "vitesse_moyenne": activite["vitesse_moyenne"],
+                            "allure_moyenne": activite["allure_moyenne"],
+                            "frequence_cardiaque_moyenne": activite["fc_moyenne"],
+                            "frequence_cardiaque_max": activite["fc_max"],
+                            "calories": activite["calories"],
+                            "source": activite["source"],
+                            "fichier_source": activite["fichier_source"],
+                            "identifiant_externe": activite["identifiant_externe"],
+                            "empreinte": activite["empreinte"],
+                            "notes": activite["notes"],
+                            "denivele_negatif": activite.get("denivele_negatif"),
+                            "vitesse_max": activite.get("vitesse_max"),
+                            "allure_max": activite.get("allure_max"),
+                            "cadence_moyenne": activite.get("cadence_moyenne"),
+                        }, cur=cur)
 
                         nouvelles += 1
 

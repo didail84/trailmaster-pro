@@ -25,6 +25,7 @@ from PySide6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QGridLayout, QLabel, QPushButton, QFrame,
     QMenu, QMessageBox, QScrollArea, QWidget, QSizePolicy,
 )
+from noyau.donnees import activites as dact  # accès aux données
 
 from data.database import connexion
 from interface.theme import (
@@ -85,13 +86,7 @@ def charger_jours(athlete_id, debut_iso, fin_iso):
         return jours
     conn = connexion()
     cur = conn.cursor()
-    cur.execute(
-        "SELECT id, date, nom, type, distance, denivele, duree, frequence_cardiaque_moyenne "
-        "FROM activites WHERE athlete_id=? AND substr(date,1,10) BETWEEN ? AND ? "
-        "ORDER BY date",
-        (athlete_id, debut_iso, fin_iso),
-    )
-    for id_, d, nom, type_, dist, dp, duree, fc in cur.fetchall():
+    for id_, d, nom, type_, dist, dp, duree, fc in dact.par_jour_entre(athlete_id, debut_iso, fin_iso):
         jours.setdefault(str(d)[:10], []).append({
             "genre": "sortie", "id": id_, "nom": nom or type_ or "Sortie",
             "type": type_ or "", "distance": dist, "denivele": dp,

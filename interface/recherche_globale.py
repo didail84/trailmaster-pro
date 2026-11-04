@@ -25,11 +25,12 @@ from PySide6.QtWidgets import (
     QHeaderView,
 )
 
-from data.database import connexion, creer_base_de_donnees, obtenir_athletes, obtenir_parametre, definir_parametre
+from data.database import creer_base_de_donnees, obtenir_athletes, obtenir_parametre, definir_parametre
 from interface.ecran_liste import (
     obtenir_style_ecran, configurer_table_redimensionnable, creer_bouton_retour_tableau_bord,
 )
 from interface.theme import charger_polices
+from noyau.donnees.recherche import rechercher_partout as recherche_donnees
 
 NB_RESULTATS_MAX_PAR_CATEGORIE_DEFAUT = 50
 CLE_PARAMETRE_NB_RESULTATS = "recherche_nb_resultats_max"
@@ -53,61 +54,7 @@ def rechercher_partout(athlete_id, texte):
     None). Retourne une liste de tuples
     (categorie, nom, date_ou_vide, id_ligne)."""
 
-    if not texte or not texte.strip():
-        return []
-
-    motif = f"%{texte.strip()}%"
-    resultats = []
-    conn = connexion()
-    cur = conn.cursor()
-
-    condition_athlete = "AND athlete_id = ?" if athlete_id else ""
-    parametres_base = (athlete_id,) if athlete_id else ()
-    NB_RESULTATS_MAX_PAR_CATEGORIE = obtenir_nb_resultats_max()
-
-    cur.execute(
-        f"SELECT id, nom, date, type FROM activites "
-        f"WHERE nom LIKE ? {condition_athlete} ORDER BY date DESC LIMIT ?",
-        (motif, *parametres_base, NB_RESULTATS_MAX_PAR_CATEGORIE),
-    )
-    for id_, nom, date, type_ in cur.fetchall():
-        resultats.append(("Activité", nom or type_ or "(sans nom)", date or "", id_))
-
-    cur.execute(
-        f"SELECT id, nom, date_prevue FROM seances_structurees "
-        f"WHERE nom LIKE ? {condition_athlete} ORDER BY date_prevue DESC LIMIT ?",
-        (motif, *parametres_base, NB_RESULTATS_MAX_PAR_CATEGORIE),
-    )
-    for id_, nom, date in cur.fetchall():
-        resultats.append(("Séance", nom, date or "", id_))
-
-    cur.execute(
-        f"SELECT id, nom_course, date FROM resultats_courses "
-        f"WHERE nom_course LIKE ? {condition_athlete} ORDER BY date DESC LIMIT ?",
-        (motif, *parametres_base, NB_RESULTATS_MAX_PAR_CATEGORIE),
-    )
-    for id_, nom, date in cur.fetchall():
-        resultats.append(("Résultat de course", nom, date or "", id_))
-
-    cur.execute(
-        f"SELECT id, titre, date_cible FROM objectifs "
-        f"WHERE (titre LIKE ? OR description LIKE ?) {condition_athlete} "
-        f"ORDER BY date_cible DESC LIMIT ?",
-        (motif, motif, *parametres_base, NB_RESULTATS_MAX_PAR_CATEGORIE),
-    )
-    for id_, titre, date in cur.fetchall():
-        resultats.append(("Objectif", titre, date or "", id_))
-
-    cur.execute(
-        f"SELECT id, nom, date_ajout FROM parcours_gpx "
-        f"WHERE nom LIKE ? {condition_athlete} ORDER BY date_ajout DESC LIMIT ?",
-        (motif, *parametres_base, NB_RESULTATS_MAX_PAR_CATEGORIE),
-    )
-    for id_, nom, date in cur.fetchall():
-        resultats.append(("Parcours", nom, date or "", id_))
-
-    conn.close()
-    return resultats
+    return recherche_donnees(texte, athlete_id, obtenir_nb_resultats_max())
 
 
 class RechercheGlobale(QMainWindow):

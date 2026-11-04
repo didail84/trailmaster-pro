@@ -26,6 +26,7 @@ from data.database import connexion
 from noyau.course.estimation_temps_course import estimer_temps_course
 from interface.ecran_liste import EcranListe, Champ
 from interface.materiel_course import MaterielCourse
+from noyau.donnees import activites as dact  # accès aux données
 
 
 REGIONS = ["Provence-Alpes-Côte d'Azur", "Auvergne-Rhône-Alpes", "Occitanie", "Autre"]
@@ -35,16 +36,8 @@ def _plus_grosses_sorties_recentes(athlete_id, jours=120):
     """Retourne (plus_longue_distance_km, plus_gros_denivele_m) parmi les
     sorties Trail/Course/Randonnée des N derniers jours de l'athlète."""
 
-    conn = connexion()
-    cur = conn.cursor()
     limite = (date.today() - timedelta(days=jours)).isoformat()
-    cur.execute(
-        "SELECT MAX(distance), MAX(denivele) FROM activites "
-        "WHERE athlete_id=? AND date >= ? AND type IN ('Trail','Course','Randonnée')",
-        (athlete_id, limite),
-    )
-    resultat = cur.fetchone()
-    conn.close()
+    resultat = dact.maxima_depuis(athlete_id, limite)
 
     if not resultat:
         return 0.0, 0

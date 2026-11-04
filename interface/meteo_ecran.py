@@ -13,9 +13,10 @@ from PySide6.QtWidgets import (
     QHeaderView,
     QScrollArea,
 )
+from noyau.donnees import parcours as dparc  # accès aux données
 from PySide6.QtCore import QDate, Qt
 
-from data.database import connexion, obtenir_athletes
+from data.database import obtenir_athletes
 from interface.ecran_liste import (
     obtenir_style_ecran, configurer_table_redimensionnable, creer_bouton_retour_tableau_bord,
 )
@@ -27,11 +28,7 @@ def _localisation_principale(athlete_id):
     """Centre de la zone la plus fréquentée de l'athlète (voir Secteurs/
     Carte thermique) — sert de position par défaut pour la météo."""
 
-    conn = connexion()
-    cur = conn.cursor()
-    cur.execute("SELECT id, trace_json FROM parcours_gpx WHERE athlete_id=?", (athlete_id,))
-    lignes = cur.fetchall()
-    conn.close()
+    lignes = dparc.traces_de_l_athlete(athlete_id)
 
     import json
     traces = []

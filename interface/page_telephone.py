@@ -17,6 +17,7 @@ from PySide6.QtWidgets import QLabel, QPushButton, QFileDialog
 from data.database import connexion
 from interface.forme_evolution import _EcranAthlete
 from interface.outils_ui import notifier
+from noyau.donnees import activites as dact  # accès aux données
 
 MODELE = Path(__file__).with_name("modele_suivi_telephone.html")
 
@@ -25,10 +26,8 @@ def generer_page(athlete_id):
     from noyau.entrainement.vo2max import estimer_vo2max
     conn = connexion()
     cur = conn.cursor()
-    cur.execute("SELECT date, nom, type, distance, denivele, duree, frequence_cardiaque_moyenne, allure_moyenne, vo2max "
-                "FROM activites WHERE athlete_id=? ORDER BY date", (athlete_id,))
     acts = []
-    for d, n, t, di, de, du, fc, al, vo in cur.fetchall():
+    for d, n, t, di, de, du, fc, al, vo in dact.pour_page_telephone(athlete_id):
         v = None
         if t in ("Trail", "Course") and (di or 0) >= 3 and (du or 0) > 0 and du / di >= 230:
             v = vo if vo else estimer_vo2max(di, du)

@@ -22,8 +22,9 @@ from PySide6.QtWidgets import (
     QAbstractItemView,
     QFileDialog,
 )
+from noyau.donnees import athletes as dath  # accès aux données
 
-from data.database import ajouter_athlete, definir_photo_athlete, connexion
+from data.database import ajouter_athlete, definir_photo_athlete
 from interface.photo_athlete import enregistrer_photo_athlete, chemin_photo_absolu, pixmap_circulaire
 from interface.ecran_liste import configurer_table_redimensionnable
 from interface.theme import (
@@ -285,17 +286,8 @@ class Athletes(QMainWindow):
         self.charger_athletes()
 
     def charger_athletes(self):
-        conn = None
         try:
-            conn = connexion()
-            cur = conn.cursor()
-            cur.execute("""
-                SELECT id, nom, prenom, age, sexe, taille, poids,
-                       fc_repos, vma, niveau
-                FROM athletes
-                ORDER BY id DESC
-            """)
-            athletes = cur.fetchall()
+            athletes = dath.lister_pour_tableau()
 
             self.table_athletes.setRowCount(len(athletes))
 
@@ -335,9 +327,6 @@ class Athletes(QMainWindow):
                 self, "Erreur",
                 f"Impossible de charger les athlètes.\n\n{e}"
             )
-        finally:
-            if conn is not None:
-                conn.close()
 
     def enregistrer_athlete(self):
         nom = self.nom.text().strip()
@@ -470,23 +459,14 @@ class Athletes(QMainWindow):
             )
             return
 
-        conn = None
         try:
-            conn = connexion()
-            cur = conn.cursor()
-            cur.execute("""
-                UPDATE athletes
-                SET nom=?, prenom=?, age=?, sexe=?, taille=?, poids=?,
-                    fc_repos=?, fc_max=?, fc_seuil=?, vma=?, vo2max=?, niveau=?
-                WHERE id=?
-            """, (
-                nom, prenom, self.age.value(), self.sexe.currentText(),
+            dath.modifier_profil(
+                athlete_id, nom, prenom, self.age.value(), self.sexe.currentText(),
                 self.taille.value(), self.poids.value(),
                 self.fc_repos.value(), self.fc_max.value(),
                 self.fc_seuil.value(), self.vma.value(),
-                self.vo2max.value(), self.niveau.currentText(), athlete_id
-            ))
-            conn.commit()
+                self.vo2max.value(), self.niveau.currentText(),
+            )
 
             if self._photo_temp_path:
                 enregistrer_photo_athlete(athlete_id, self._photo_temp_path)
@@ -505,9 +485,6 @@ class Athletes(QMainWindow):
                 self, "Erreur de modification",
                 f"Impossible de modifier l'athlète.\n\n{e}"
             )
-        finally:
-            if conn is not None:
-                conn.close()
 
     def supprimer_athlete(self, athlete_id):
         athlete = self._get_athlete(athlete_id)
@@ -532,12 +509,8 @@ class Athletes(QMainWindow):
         if confirmation != QMessageBox.StandardButton.Yes:
             return
 
-        conn = None
         try:
-            conn = connexion()
-            cur = conn.cursor()
-            cur.execute("DELETE FROM athletes WHERE id=?", (athlete_id,))
-            conn.commit()
+            dath.supprimer(athlete_id)
 
             self.charger_athletes()
 
@@ -550,25 +523,9 @@ class Athletes(QMainWindow):
                 self, "Erreur de suppression",
                 f"Impossible de supprimer l'athlète.\n\n{e}"
             )
-        finally:
-            if conn is not None:
-                conn.close()
 
     def _get_athlete(self, athlete_id):
-        conn = None
-        try:
-            conn = connexion()
-            cur = conn.cursor()
-            cur.execute("""
-                SELECT id, nom, prenom, age, sexe, taille, poids,
-                       fc_repos, fc_max, fc_seuil, vma, vo2max, niveau, photo_path
-                FROM athletes
-                WHERE id=?
-            """, (athlete_id,))
-            return cur.fetchone()
-        finally:
-            if conn is not None:
-                conn.close()
+        return dath.fiche(athlete_id)
 
     def remettre_bouton_enregistrement(self):
         try:

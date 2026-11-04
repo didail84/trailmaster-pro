@@ -27,9 +27,10 @@ from PySide6.QtWidgets import (
     QMessageBox,
     QMenu,
 )
+from noyau.donnees import activites as dact, parcours as dparc  # accès aux données
 
 from data.database import (
-    connexion, obtenir_athletes, obtenir_parametre, definir_parametre,
+    obtenir_athletes, obtenir_parametre, definir_parametre,
     supprimer_activite,
 )
 from interface.ecran_liste import (
@@ -661,20 +662,13 @@ class HistoriqueActivites(QMainWindow):
         return item_date.data(Qt.ItemDataRole.UserRole) if item_date else None
 
     def _apercu_pour_activite(self, activite_id):
-        conn = connexion()
-        cur = conn.cursor()
-        cur.execute("SELECT nom, date, type FROM activites WHERE id=?", (activite_id,))
-        ligne = cur.fetchone()
+        ligne = dact.valeurs(activite_id, "nom", "date", "type")
         if not ligne:
-            conn.close()
             return None
         nom, date, type_ = ligne
 
-        cur.execute("SELECT trace_json FROM parcours_gpx WHERE activite_id=? LIMIT 1", (activite_id,))
-        resultat = cur.fetchone()
-        conn.close()
-
-        points = json.loads(resultat[0]) if resultat and resultat[0] else []
+        trace_json = dparc.trace_de_l_activite(activite_id)
+        points = json.loads(trace_json) if trace_json else []
         return (nom or type_ or "(sans nom)", date or "", points)
 
     def charger_activites(self):
@@ -688,11 +682,7 @@ class HistoriqueActivites(QMainWindow):
             return
 
         mode_repos = self.case_jours_repos.isChecked()
-        colonnes_sql = ", ".join(["id", "date"] + CHAMPS_DB)
         noms_colonnes = ["id", "date"] + CHAMPS_DB
-
-        conn = connexion()
-        cur = conn.cursor()
 
         if mode_repos:
             # Vue combinée sorties + repos : toujours « Tous » les types,
@@ -702,12 +692,9 @@ class HistoriqueActivites(QMainWindow):
             dernier_num_jour = _calendar.monthrange(self.annee_repos, self.mois_repos)[1]
             dernier_jour = _date(self.annee_repos, self.mois_repos, dernier_num_jour)
 
-            cur.execute(
-                f"SELECT {colonnes_sql} FROM activites WHERE athlete_id=? AND date >= ? AND date <= ?",
-                (athlete_id, premier_jour.isoformat(), f"{dernier_jour.isoformat()}T23:59:59"),
-            )
-            lignes = [list(l) for l in cur.fetchall()]
-            conn.close()
+            lignes = [list(l) for l in dact.colonnes_de_l_athlete(
+                athlete_id, noms_colonnes,
+                debut=premier_jour.isoformat(), fin=f"{dernier_jour.isoformat()}T23:59:59")]
 
             index_date = noms_colonnes.index("date")
             index_nom = noms_colonnes.index("nom")
@@ -730,18 +717,8 @@ class HistoriqueActivites(QMainWindow):
             type_filtre = self.combo_type.currentText()
             recherche = self.champ_recherche.text().strip().lower()
 
-            if type_filtre == "Tous":
-                cur.execute(
-                    f"SELECT {colonnes_sql} FROM activites WHERE athlete_id=?",
-                    (athlete_id,),
-                )
-            else:
-                cur.execute(
-                    f"SELECT {colonnes_sql} FROM activites WHERE athlete_id=? AND type=?",
-                    (athlete_id, type_filtre),
-                )
-            lignes = cur.fetchall()
-            conn.close()
+            lignes = dact.colonnes_de_l_athlete(
+                athlete_id, noms_colonnes, type_=None if type_filtre == "Tous" else type_filtre)
 
             if recherche:
                 index_nom = noms_colonnes.index("nom")

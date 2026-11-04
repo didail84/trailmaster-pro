@@ -19,6 +19,7 @@ from PySide6.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QFrame,
     QComboBox, QScrollArea, QTableWidget, QTableWidgetItem,
 )
+from noyau.donnees import activites as dact, athletes as dath  # accès aux données
 
 from data.database import connexion, obtenir_athletes
 from interface.courbe_multiligne import CourbeMultiLignes
@@ -175,20 +176,10 @@ def _lundi(iso_jour):
 
 def _sorties(athlete_id, nb_jours):
     debut = (date.today() - timedelta(days=nb_jours)).isoformat()
-    conn = connexion()
-    cur = conn.cursor()
-    cur.execute(
-        "SELECT id, date, nom, type, distance, denivele, duree, frequence_cardiaque_moyenne, "
-        "te_aerobie, te_anaerobie, charge_garmin, "
-        "temps_zone_1, temps_zone_2, temps_zone_3, temps_zone_4, temps_zone_5 "
-        "FROM activites WHERE athlete_id=? AND date>=? ORDER BY date",
-        (athlete_id, debut),
-    )
     cles = ("id", "date", "nom", "type", "distance", "denivele", "duree", "fc_moy",
             "te_aerobie", "te_anaerobie", "charge_garmin",
             "z1", "z2", "z3", "z4", "z5")
-    res = [dict(zip(cles, l)) for l in cur.fetchall()]
-    conn.close()
+    res = [dict(zip(cles, l)) for l in dact.detaillees_depuis(athlete_id, debut)]
     return res
 
 
@@ -252,11 +243,7 @@ def repartition_intensite(athlete_id, nb_semaines=12):
     """[(lundi_iso, % facile, % moyen, % dur)] par semaine, tous types confondus
     (sorties avec FC ou zones). Retourne aussi la part de sorties estimées."""
     fc_max = None
-    conn = connexion()
-    cur = conn.cursor()
-    cur.execute("SELECT fc_max FROM athletes WHERE id=?", (athlete_id,))
-    r = cur.fetchone()
-    conn.close()
+    r = dath.valeurs(athlete_id, "fc_max")
     if r and r[0]:
         fc_max = r[0]
 
@@ -285,17 +272,7 @@ def derives_cardiaques(athlete_id, nb_jours=365, limite=40):
     [(date, nom, km, decouplage_pct, interpretation)] du plus récent au plus ancien."""
     from noyau.traces.dynamique_course import calculer_decouplage_cardiaque
     debut = (date.today() - timedelta(days=nb_jours)).isoformat()
-    conn = connexion()
-    cur = conn.cursor()
-    cur.execute(
-        "SELECT a.date, a.nom, a.distance, p.trace_json FROM activites a "
-        "JOIN parcours_gpx p ON p.activite_id = a.id "
-        "WHERE a.athlete_id=? AND a.date>=? AND p.trace_json IS NOT NULL "
-        "ORDER BY a.date DESC LIMIT ?",
-        (athlete_id, debut, limite),
-    )
-    lignes = cur.fetchall()
-    conn.close()
+    lignes = dact.avec_trace_recentes(athlete_id, debut, limite)
     sortie = []
     for d, nom, km, trace in lignes:
         try:

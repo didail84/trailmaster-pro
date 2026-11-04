@@ -23,6 +23,7 @@ from PySide6.QtWidgets import (
     QDialog,
     QDialogButtonBox,
 )
+from noyau.donnees import activites as dact, parcours as dparc  # accès aux données
 
 from data.database import connexion, creer_base_de_donnees, obtenir_athletes
 from interface.ecran_liste import obtenir_style_ecran, configurer_table_redimensionnable
@@ -261,16 +262,8 @@ class Seances(QMainWindow):
         if athlete_id is None:
             return
 
-        conn = connexion()
-        cur = conn.cursor()
-        cur.execute(
-            "SELECT id, nom, distance_km FROM parcours_gpx WHERE athlete_id=? "
-            "ORDER BY date_ajout DESC LIMIT 300",
-            (athlete_id,),
-        )
-        for id_, nom, distance in cur.fetchall():
+        for id_, nom, distance in dparc.liste_courte(athlete_id, 300):
             self.combo_parcours.addItem(f"{nom} ({distance} km)", id_)
-        conn.close()
 
     # ------------------------------------------------------------
     # CONSTRUCTION DES ÉTAPES
@@ -547,13 +540,8 @@ class Seances(QMainWindow):
         athlete_id, etapes_json = cur.fetchone()
         etapes = json.loads(etapes_json) if etapes_json else []
 
-        cur.execute(
-            "SELECT id, date, type, distance, duree FROM activites "
-            "WHERE athlete_id=? ORDER BY date DESC LIMIT 30",
-            (athlete_id,),
-        )
-        activites_recentes = cur.fetchall()
         conn.close()
+        activites_recentes = dact.pour_liaison(athlete_id, 30)
 
         if not activites_recentes:
             QMessageBox.information(

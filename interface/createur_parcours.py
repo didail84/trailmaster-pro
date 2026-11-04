@@ -35,10 +35,11 @@ from PySide6.QtWidgets import (
     QMessageBox,
     QFileDialog,
 )
+from noyau.donnees import parcours as dparc  # accès aux données
 from PySide6.QtWebEngineWidgets import QWebEngineView
 from PySide6.QtWebEngineCore import QWebEngineSettings
 
-from data.database import connexion, creer_base_de_donnees, obtenir_athletes
+from data.database import creer_base_de_donnees, obtenir_athletes
 from interface.ecran_liste import obtenir_style_ecran
 from noyau.traces.elevation import obtenir_altitudes
 from noyau.traces.export_gpx import exporter_gpx
@@ -421,17 +422,10 @@ class CreateurParcours(QMainWindow):
         distance_km = self._distance_totale(points_complets)
         denivele_positif = self._denivele_positif(points_complets)
 
-        conn = connexion()
-        cur = conn.cursor()
-        cur.execute(
-            """INSERT INTO parcours_gpx
-               (athlete_id, nom, distance_km, denivele_positif, trace_json)
-               VALUES (?,?,?,?,?)""",
-            (athlete_id, nom, round(distance_km, 2), round(denivele_positif),
-             json.dumps(points_complets)),
-        )
-        conn.commit()
-        conn.close()
+        dparc.inserer({
+            "athlete_id": athlete_id, "nom": nom, "distance_km": round(distance_km, 2),
+            "denivele_positif": round(denivele_positif), "trace_json": json.dumps(points_complets),
+        })
 
         message = f"✅ Parcours « {nom} » enregistré : {distance_km:.2f} km, {round(denivele_positif)} m D+."
         if erreur_altitude:

@@ -22,8 +22,9 @@ from PySide6.QtWidgets import (
     QDoubleSpinBox,
     QFormLayout,
 )
+from noyau.donnees import parcours as dparc, athletes as dath  # accès aux données
 
-from data.database import connexion, creer_base_de_donnees, obtenir_athletes, affichage_simplifie_actif
+from data.database import creer_base_de_donnees, obtenir_athletes, affichage_simplifie_actif
 from noyau.traces.gpx_utils import parser_gpx
 from noyau.traces.fit_utils import parser_fit
 from interface.trace_widget import TraceCanvas
@@ -294,46 +295,23 @@ class ParcoursGPX(QMainWindow):
         nom = self.champ_nom.text().strip() or "Parcours sans nom"
         trace_json = json.dumps(self.trace_courante["points"])
 
-        conn = connexion()
-        cur = conn.cursor()
-        cur.execute(
-            """
-            INSERT INTO parcours_gpx (
-                athlete_id, nom, fichier_source, distance_km,
-                denivele_positif, denivele_negatif, altitude_min, altitude_max, trace_json
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """,
-            (
-                athlete_id,
-                nom,
-                self.fichier_courant,
-                self.trace_courante["distance_km"],
-                self.trace_courante["denivele_positif"],
-                self.trace_courante["denivele_negatif"],
-                self.trace_courante["altitude_min"],
-                self.trace_courante["altitude_max"],
-                trace_json,
-            ),
-        )
-        conn.commit()
-        conn.close()
+        dparc.inserer({
+            "athlete_id": athlete_id,
+            "nom": nom,
+            "fichier_source": self.fichier_courant,
+            "distance_km": self.trace_courante["distance_km"],
+            "denivele_positif": self.trace_courante["denivele_positif"],
+            "denivele_negatif": self.trace_courante["denivele_negatif"],
+            "altitude_min": self.trace_courante["altitude_min"],
+            "altitude_max": self.trace_courante["altitude_max"],
+            "trace_json": trace_json,
+        })
 
         QMessageBox.information(self, "Enregistré", f"Le parcours « {nom} » a été enregistré.")
         self.charger_liste()
 
     def charger_liste(self):
-        conn = connexion()
-        cur = conn.cursor()
-        cur.execute(
-            """
-            SELECT id, nom, date_ajout, distance_km, denivele_positif, denivele_negatif,
-                   altitude_min, altitude_max
-            FROM parcours_gpx
-            ORDER BY date_ajout DESC
-            """
-        )
-        lignes = cur.fetchall()
-        conn.close()
+        lignes = dparc.liste_complete()
 
         self.parcours_ids = [l[0] for l in lignes]
         self.table.setRowCount(len(lignes))
@@ -352,19 +330,7 @@ class ParcoursGPX(QMainWindow):
     def charger_parcours_selectionne(self, ligne, colonne):
         id_parcours = self.parcours_ids[ligne]
 
-        conn = connexion()
-        cur = conn.cursor()
-        cur.execute(
-            """
-            SELECT p.trace_json, p.athlete_id, a.distance, a.duree
-            FROM parcours_gpx p
-            LEFT JOIN activites a ON p.activite_id = a.id
-            WHERE p.id=?
-            """,
-            (id_parcours,),
-        )
-        resultat = cur.fetchone()
-        conn.close()
+        resultat = dparc.avec_son_activite(id_parcours)
 
         if not resultat or not resultat[0]:
             return
@@ -394,11 +360,7 @@ class ParcoursGPX(QMainWindow):
         if confirmation != QMessageBox.StandardButton.Yes:
             return
 
-        conn = connexion()
-        cur = conn.cursor()
-        cur.execute("DELETE FROM parcours_gpx WHERE id=?", (id_parcours,))
-        conn.commit()
-        conn.close()
+        dparc.supprimer(id_parcours)
 
         self.charger_liste()
 
@@ -424,11 +386,7 @@ class ParcoursGPX(QMainWindow):
         poids_kg = None
         athlete_cible = athlete_id or self.combo_athlete.currentData()
         if athlete_cible:
-            conn = connexion()
-            cur = conn.cursor()
-            cur.execute("SELECT poids FROM athletes WHERE id=?", (athlete_cible,))
-            ligne_poids = cur.fetchone()
-            conn.close()
+            ligne_poids = dath.valeurs(athlete_cible, "poids")
             if ligne_poids and ligne_poids[0]:
                 poids_kg = ligne_poids[0]
 

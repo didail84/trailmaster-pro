@@ -13,8 +13,9 @@ from PySide6.QtWidgets import (
     QCheckBox,
     QScrollArea,
 )
+from noyau.donnees import parcours as dparc  # accès aux données
 
-from data.database import connexion, creer_base_de_donnees, obtenir_athletes
+from data.database import creer_base_de_donnees, obtenir_athletes
 from interface.ecran_liste import obtenir_style_ecran
 from interface.carte_thermique import CarteThermique
 from noyau.traces.secteurs_utils import regrouper_en_secteurs
@@ -113,24 +114,7 @@ class CarteThermiqueEcran(QMainWindow):
 
         type_filtre = self.combo_type.currentText()
 
-        conn = connexion()
-        cur = conn.cursor()
-        if type_filtre == "Tous":
-            cur.execute(
-                "SELECT id, trace_json FROM parcours_gpx WHERE athlete_id=?",
-                (athlete_id,),
-            )
-        else:
-            cur.execute(
-                """
-                SELECT p.id, p.trace_json FROM parcours_gpx p
-                LEFT JOIN activites a ON p.activite_id = a.id
-                WHERE p.athlete_id=? AND a.type=?
-                """,
-                (athlete_id, type_filtre),
-            )
-        lignes = cur.fetchall()
-        conn.close()
+        lignes = dparc.traces_de_l_athlete(athlete_id, None if type_filtre == "Tous" else type_filtre)
 
         traces = []
         traces_par_id = {}

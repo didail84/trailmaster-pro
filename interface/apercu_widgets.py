@@ -15,6 +15,7 @@ from PySide6.QtWidgets import (
     QStyle, QStyledItemDelegate, QFrame, QVBoxLayout, QHBoxLayout, QGridLayout, QLabel, QTableWidget,
     QTableWidgetItem, QHeaderView, QAbstractItemView, QPushButton,
 )
+from noyau.donnees import activites as dact  # accès aux données
 
 from data.database import connexion
 from noyau.entrainement.coach import calculer_serie_forme
@@ -224,15 +225,7 @@ class ApercuCartes(QFrame):
 
     @staticmethod
     def _record_vo2max(athlete_id):
-        conn = connexion()
-        cur = conn.cursor()
-        cur.execute(
-            "SELECT date, distance, duree, vo2max FROM activites WHERE athlete_id=? "
-            "AND type IN ('Trail','Course') AND distance >= 3 AND duree > 0",
-            (athlete_id,),
-        )
-        lignes = cur.fetchall()
-        conn.close()
+        lignes = dact.pour_record_vo2max(athlete_id)
         meilleur = None
         for d, dist, duree, vo2 in lignes:
             if duree / dist < 230:      # plus rapide que 3:50/km : donnée aberrante
@@ -368,15 +361,7 @@ class DernieresSorties(QFrame):
         self._ids = []
         if athlete_id is None:
             return
-        conn = connexion()
-        cur = conn.cursor()
-        cur.execute(
-            "SELECT id, date, nom, type, distance, denivele, duree, frequence_cardiaque_moyenne "
-            "FROM activites WHERE athlete_id=? ORDER BY date DESC LIMIT ?",
-            (athlete_id, self._nombre),
-        )
-        lignes = cur.fetchall()
-        conn.close()
+        lignes = dact.recentes(athlete_id, self._nombre)
         self.table.setRowCount(len(lignes))
         for r, (id_, d, nom, type_, km, dp, duree, fc) in enumerate(lignes):
             self._ids.append(id_)
