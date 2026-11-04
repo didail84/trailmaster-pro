@@ -322,6 +322,15 @@ class Reglages(QMainWindow):
         note_ia.setWordWrap(True)
         ia_layout.addWidget(note_ia)
 
+        # Trail Hub Center : analyses lancées sans clic
+        from noyau.ia import analyse_auto
+        self.case_analyses_auto = QCheckBox(
+            "Analyses automatiques : chaque nouvelle sortie et chaque écran d'analyse reçoivent leur "
+            "analyse sans cliquer (IA si une clé est réglée, sinon analyse hors ligne par les règles du logiciel)")
+        self.case_analyses_auto.setChecked(analyse_auto.actif())
+        self.case_analyses_auto.toggled.connect(analyse_auto.definir_actif)
+        ia_layout.addWidget(self.case_analyses_auto)
+
         # --- Gemini (fournisseur principal) ---
 
         label_gemini = QLabel("Gemini (Google) — aistudio.google.com/apikey")

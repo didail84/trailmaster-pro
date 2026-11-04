@@ -83,9 +83,137 @@ def _m001_identifiants_universels(cur):
         )
 
 
+def _ajouter_uuid(cur, table):
+    """Même traitement que la migration 1, pour une table créée plus tard."""
+    if "uuid" not in _colonnes(cur, table):
+        cur.execute(f"ALTER TABLE {table} ADD COLUMN uuid TEXT")
+    cur.execute(f"UPDATE {table} SET uuid = {EXPRESSION_UUID} WHERE uuid IS NULL")
+    cur.execute(f"CREATE UNIQUE INDEX IF NOT EXISTS idx_{table}_uuid ON {table}(uuid)")
+    cur.execute(
+        f"CREATE TRIGGER IF NOT EXISTS uuid_{table} AFTER INSERT ON {table} "
+        f"FOR EACH ROW WHEN NEW.uuid IS NULL BEGIN "
+        f"UPDATE {table} SET uuid = {EXPRESSION_UUID} WHERE rowid = NEW.rowid; END"
+    )
+
+
+# ------------------------------------------------------------------
+# Migration 2 — fiche Personne unique et rôles (étape 2.2)
+# ------------------------------------------------------------------
+
+# Rôles possibles d'une personne (bloc 1 du Master Plan) : (code, libellé)
+ROLES = (
+    ("coureur", "Coureur"),
+    ("licencie", "Licencié"),
+    ("enfant", "Enfant"),
+    ("parent", "Parent"),
+    ("entraineur", "Entraîneur"),
+    ("benevole", "Bénévole"),
+    ("organisateur", "Organisateur"),
+)
+
+
+def _m002_personnes_et_roles(cur):
+    """Une fiche par personne (identité), lue par tous les modules ;
+    le profil sportif de la table `athletes` devient le rôle « coureur »
+    de cette personne. Chaque athlète existant reçoit sa fiche."""
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS personnes (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            nom TEXT NOT NULL,
+            prenom TEXT NOT NULL DEFAULT '',
+            date_naissance TEXT,
+            sexe TEXT,
+            email TEXT,
+            telephone TEXT,
+            adresse TEXT,
+            code_postal TEXT,
+            ville TEXT,
+            photo_path TEXT,
+            notes TEXT,
+            date_creation TEXT DEFAULT CURRENT_TIMESTAMP
+        )""")
+    _ajouter_uuid(cur, "personnes")
+    codes = ", ".join(f"'{c}'" for c, _ in ROLES)
+    cur.execute(f"""
+        CREATE TABLE IF NOT EXISTS personnes_roles (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            personne_id INTEGER NOT NULL REFERENCES personnes(id) ON DELETE CASCADE,
+            role TEXT NOT NULL CHECK (role IN ({codes})),
+            depuis TEXT,
+            notes TEXT,
+            UNIQUE (personne_id, role)
+        )""")
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS personnes_liens (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            parent_id INTEGER NOT NULL REFERENCES personnes(id) ON DELETE CASCADE,
+            enfant_id INTEGER NOT NULL REFERENCES personnes(id) ON DELETE CASCADE,
+            lien TEXT NOT NULL DEFAULT 'parent',
+            UNIQUE (parent_id, enfant_id),
+            CHECK (parent_id <> enfant_id)
+        )""")
+    cur.execute("CREATE INDEX IF NOT EXISTS idx_personnes_roles_role ON personnes_roles(role)")
+
+    cols = _colonnes(cur, "athletes")
+    if "personne_id" not in cols:
+        cur.execute("ALTER TABLE athletes ADD COLUMN personne_id INTEGER REFERENCES personnes(id)")
+    cur.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_athletes_personne ON athletes(personne_id)")
+    photo = "NEW.photo_path" if "photo_path" in cols else "NULL"
+
+    # Les athlètes déjà présents reçoivent chacun leur fiche et le rôle coureur
+    for (athlete_id,) in cur.execute("SELECT id FROM athletes WHERE personne_id IS NULL ORDER BY id").fetchall():
+        cur.execute(
+            "INSERT INTO personnes (nom, prenom, sexe, photo_path, date_creation) "
+            f"SELECT nom, COALESCE(prenom, ''), sexe, {'photo_path' if 'photo_path' in cols else 'NULL'}, "
+            "COALESCE(date_creation, CURRENT_TIMESTAMP) FROM athletes WHERE id=?", (athlete_id,))
+        personne_id = cur.lastrowid
+        cur.execute("UPDATE athletes SET personne_id=? WHERE id=?", (personne_id, athlete_id))
+        cur.execute("INSERT OR IGNORE INTO personnes_roles (personne_id, role, depuis) "
+                    "SELECT ?, 'coureur', substr(COALESCE(date_creation, CURRENT_TIMESTAMP), 1, 10) FROM athletes WHERE id=?",
+                    (personne_id, athlete_id))
+
+    # Tout athlète créé ensuite (écran Athlètes, import, restauration…)
+    # reçoit automatiquement sa fiche, sans changer le code qui le crée.
+    cur.execute(f"""
+        CREATE TRIGGER IF NOT EXISTS personne_nouvel_athlete AFTER INSERT ON athletes
+        FOR EACH ROW WHEN NEW.personne_id IS NULL BEGIN
+            INSERT INTO personnes (nom, prenom, sexe, photo_path)
+                VALUES (NEW.nom, COALESCE(NEW.prenom, ''), NEW.sexe, {photo});
+            UPDATE athletes SET personne_id = last_insert_rowid() WHERE rowid = NEW.rowid;
+            INSERT OR IGNORE INTO personnes_roles (personne_id, role, depuis)
+                SELECT personne_id, 'coureur', date('now') FROM athletes WHERE rowid = NEW.rowid;
+        END""")
+    cur.execute("""
+        CREATE TRIGGER IF NOT EXISTS personne_athlete_lie AFTER INSERT ON athletes
+        FOR EACH ROW WHEN NEW.personne_id IS NOT NULL BEGIN
+            INSERT OR IGNORE INTO personnes_roles (personne_id, role, depuis)
+                VALUES (NEW.personne_id, 'coureur', date('now'));
+        END""")
+    # Le nom, le sexe et la photo modifiés dans l'écran Athlètes suivent sur la fiche
+    suivies = "nom, prenom, sexe" + (", photo_path" if "photo_path" in cols else "")
+    maj_photo = ", photo_path = NEW.photo_path" if "photo_path" in cols else ""
+    cur.execute(f"""
+        CREATE TRIGGER IF NOT EXISTS personne_suit_athlete AFTER UPDATE OF {suivies} ON athletes
+        FOR EACH ROW WHEN NEW.personne_id IS NOT NULL BEGIN
+            UPDATE personnes SET nom = NEW.nom, prenom = COALESCE(NEW.prenom, ''), sexe = NEW.sexe{maj_photo}
+            WHERE id = NEW.personne_id;
+        END""")
+    # Un athlète supprimé perd son rôle coureur ; une fiche sans plus aucun
+    # rôle ni lien est supprimée aussi (aucune fiche orpheline).
+    cur.execute("""
+        CREATE TRIGGER IF NOT EXISTS personne_athlete_supprime AFTER DELETE ON athletes
+        FOR EACH ROW WHEN OLD.personne_id IS NOT NULL BEGIN
+            DELETE FROM personnes_roles WHERE personne_id = OLD.personne_id AND role = 'coureur';
+            DELETE FROM personnes WHERE id = OLD.personne_id
+                AND NOT EXISTS (SELECT 1 FROM personnes_roles WHERE personne_id = OLD.personne_id)
+                AND NOT EXISTS (SELECT 1 FROM personnes_liens WHERE parent_id = OLD.personne_id OR enfant_id = OLD.personne_id);
+        END""")
+
+
 # (numéro, description lisible, fonction) — dans l'ordre, sans trou
 MIGRATIONS = [
     (1, "Identifiant universel (UUID) pour chaque donnée", _m001_identifiants_universels),
+    (2, "Fiche Personne unique et rôles", _m002_personnes_et_roles),
 ]
 VERSION_LOGICIEL = MIGRATIONS[-1][0]
 

@@ -9,6 +9,7 @@ import sqlite3
 import pytest
 
 os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
+os.environ.setdefault("TRAILHUB_SANS_ANALYSE_AUTO", "1")   # pas d'analyses en arrière-plan pendant les tests
 
 import data.database as db
 

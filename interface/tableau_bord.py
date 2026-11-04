@@ -1,3 +1,4 @@
+import os
 from PySide6.QtWidgets import (
     QMainWindow,
     QWidget,
@@ -139,6 +140,7 @@ class TableauBord(QMainWindow):
         groupes = [
             ("ENTRAÎNEMENT", [
                 ("☀️  Aujourd'hui", self.ouvrir_aujourdhui, True),
+                ("🏃  Fil d'activité", self.ouvrir_fil_activite, False),
                 ("🏠  Tableau de bord", self.ouvrir_tableau_de_bord, False),
                 ("📓  Journal", self.ouvrir_journal, False),
                 ("📋  Historique des activités", self.ouvrir_historique_activites, False),
@@ -164,6 +166,7 @@ class TableauBord(QMainWindow):
             ]),
             ("COMPTE", [
                 ("👤  Athlètes", self.ouvrir_athletes, False),
+                ("👥  Personnes", self.ouvrir_personnes, False),
                 ("⚙️  Réglages", self.ouvrir_reglages, False),
             ]),
         ]
@@ -346,6 +349,10 @@ class TableauBord(QMainWindow):
         layout_principal.addWidget(self.pile, 1)
         QTimer.singleShot(1200, self._ajustement_matin)
         QTimer.singleShot(7000, self._synchro_garmin_auto)
+        # Trail Hub Center : les sorties reçues sont analysées sans clic (interface/analyse_auto.py)
+        if not os.environ.get("TRAILHUB_SANS_ANALYSE_AUTO"):
+            from interface.analyse_auto import service as service_analyses
+            service_analyses().demarrer()
 
         # =========================
         # STYLE
@@ -1489,6 +1496,10 @@ class TableauBord(QMainWindow):
             "compte", lambda: Compte(athlete_id_initial=self.athlete_actif_id)
         )
         fenetre.selectionner_onglet(0)
+    def ouvrir_fil_activite(self):
+        from interface.fil_activite import FilActivite
+        self._ouvrir_ou_activer("fil_activite", lambda: FilActivite(athlete_id_initial=self.athlete_actif_id))
+
     def ouvrir_journal(self):
         from interface.journal import Journal
         self._ouvrir_ou_activer("journal", lambda: Journal(athlete_id_initial=self.athlete_actif_id))
@@ -1503,6 +1514,12 @@ class TableauBord(QMainWindow):
             "suivi_direct",
             lambda: SuiviDirect(athlete_id_initial=self.athlete_actif_id),
         )
+    def ouvrir_personnes(self):
+        fenetre = self._ouvrir_ou_activer(
+            "compte", lambda: Compte(athlete_id_initial=self.athlete_actif_id)
+        )
+        fenetre.selectionner_onglet(2)
+
     def ouvrir_reglages(self):
         fenetre = self._ouvrir_ou_activer(
             "compte", lambda: Compte(athlete_id_initial=self.athlete_actif_id)

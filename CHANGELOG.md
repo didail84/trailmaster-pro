@@ -1,5 +1,14 @@
 # Historique des versions
 
+## Trail Hub Center — étape 2.2 (fiche Personne et rôles) et analyses automatiques
+- Migration n° 2 : chaque personne a désormais une fiche unique (table `personnes`, avec identifiant universel), lue par tous les modules, et un ou plusieurs rôles : coureur, licencié, enfant, parent, entraîneur, bénévole, organisateur. Les liens parent/enfant sont enregistrés (pour l'accord parental et l'espace parents à venir).
+- Chaque athlète existant reçoit sa fiche et le rôle Coureur à la conversion (copie de sécurité faite avant). Tout athlète créé ensuite, par n'importe quel écran ou import, reçoit sa fiche automatiquement ; nom, sexe et photo restent identiques des deux côtés.
+- Nouvel écran **Personnes** (menu Compte, et onglet de Compte) : recherche, filtre par rôle, fiche complète, rôles, liens familiaux, alerte avant de créer un doublon (accents et majuscules ignorés). Le rôle Coureur, qui porte les sorties, ne se retire que depuis l'écran Athlètes.
+- Nouveau **Fil d'activité** (menu Entraînement) : les sorties en cartes, comme sur Strava (chiffres, tracé, photos, ressenti), chacune avec son analyse.
+- **Analyses automatiques** : chaque sortie reçue (import, Garmin, Strava, montre, saisie) est analysée sans clic, en arrière-plan ; les cartes « Analyse IA » des écrans se lancent toutes seules à l'ouverture et au changement d'athlète, une fois les chiffres chargés, sans rappeler l'IA tant qu'ils ne changent pas ; la fiche d'une sortie sans analyse la fait aussitôt. Avec une clé Gemini ou Groq : analyse de l'IA (au plus 5 sorties par passage, 15 minutes de pause après une erreur de quota) ; sans clé : nouvelle analyse hors ligne par les règles du logiciel, chiffrée, qui sera remplacée par celle de l'IA dès qu'une clé est réglée. Réglage dans Réglages > Analyse IA.
+- Page Claude : rubrique Fil d'activité (analyses de la base reprises, Claude écrit celles qui manquent quand une carte arrive à l'écran, analyse hors ligne sinon) et « Lecture de Claude » écrite automatiquement en haut de chaque rubrique.
+- Tests : 237.
+
 ## Trail Hub Center — page Claude (consultation sans installation)
 - Nouveau fichier `page_claude/trail_hub_center.html` : la page Claude du logiciel, en mode réduit. Elle ouvre la sauvegarde `.db` faite par « Sauvegarder maintenant » (Réglages) directement dans le navigateur, en lecture seule : le fichier n'est ni envoyé ni enregistré.
 - Rubriques : Aujourd'hui, Sorties (calendrier sur un an, liste, tracé et profil d'altitude), Forme et charge, Poids et sommeil, Courses et objectifs, Blessures et soins, Matériel, Demander à Claude.

@@ -38,7 +38,7 @@ def base_v108(tmp_path, monkeypatch):
     return chemin
 
 
-def contenu(chemin, table, sans=("uuid",)):
+def contenu(chemin, table, sans=("uuid", "personne_id")):
     c = sqlite3.connect(chemin)
     try:
         cols = [r[1] for r in c.execute(f"PRAGMA table_info({table})") if r[1] not in sans]
@@ -57,7 +57,7 @@ def test_la_base_v108_est_en_version_0(base_v108):
 def test_conversion_sans_perte(base_v108):
     avant = {t: contenu(base_v108, t) for t in ("athletes", "activites", "parcours_gpx", "suivi_corporel")}
     bilan = mig.appliquer_migrations(base_v108)
-    assert bilan["avant"] == 0 and bilan["apres"] == mig.VERSION_LOGICIEL and bilan["appliquees"] == [1]
+    assert bilan["avant"] == 0 and bilan["apres"] == mig.VERSION_LOGICIEL and bilan["appliquees"] == [1, 2]
     for table, (cols, lignes) in avant.items():
         assert contenu(base_v108, table) == (cols, lignes), table  # toutes les valeurs sont intactes
     c = sqlite3.connect(base_v108)
@@ -65,7 +65,7 @@ def test_conversion_sans_perte(base_v108):
     assert len(uuids) == 300 and len(set(uuids)) == 300
     assert all(FORMAT_UUID.match(u) for u in uuids)
     assert c.execute("SELECT version, description FROM schema_version").fetchall() == [
-        (1, "Identifiant universel (UUID) pour chaque donnée")]
+        (1, "Identifiant universel (UUID) pour chaque donnée"), (2, "Fiche Personne unique et rôles")]
     c.close()
 
 

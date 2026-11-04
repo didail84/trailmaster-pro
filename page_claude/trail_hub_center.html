@@ -211,6 +211,39 @@ ol.etapes b { color: var(--texte); font-weight: 600; }
 @keyframes tourne { to { transform: rotate(360deg); } }
 @media (prefers-reduced-motion: reduce) { .rond { animation: none; } }
 .pied { color: var(--texte-3); font-size: .8rem; margin-top: 10px; }
+
+/* Fil d'activité et analyses automatiques */
+.fil { display: flex; flex-direction: column; gap: 14px; max-width: 860px; }
+.mois-fil { font-size: .76rem; text-transform: uppercase; letter-spacing: .1em; color: var(--texte-3); font-weight: 700; margin-top: 6px; }
+.carte-fil { background: var(--carte); border: 1px solid var(--bordure); border-radius: 14px; padding: 16px 18px; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.fil-tete { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 14px; align-items: start; }
+.fil-tete h3 { font-size: 1.08rem; }
+.fil-tete button { all: unset; cursor: pointer; }
+.fil-tete button:hover h3 { color: var(--accent-texte); }
+.fil-tete button:focus-visible { outline: 2px solid var(--accent-texte); outline-offset: 3px; border-radius: 6px; }
+.fil-chiffres { display: flex; flex-wrap: wrap; gap: 6px 22px; margin-top: 8px; }
+.fil-chiffres .etiquette { font-size: .66rem; }
+.fil-chiffres b { display: block; font-family: var(--police-titre); font-size: 1.12rem; font-variant-numeric: tabular-nums; }
+.fil-trace { width: 150px; height: 104px; border-radius: 10px; background: var(--fond-2); border: 1px solid var(--bordure); overflow: hidden; }
+.fil-trace svg { width: 100%; height: 100%; display: block; }
+@media (max-width: 520px) { .fil-trace { width: 100px; height: 80px; } }
+.analyse { background: var(--fond-2); border: 1px solid var(--bordure); border-radius: 10px; padding: 10px 14px; display: flex; flex-direction: column; gap: 6px; }
+.analyse > header { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+.badge-analyse { font-size: .7rem; text-transform: uppercase; letter-spacing: .09em; font-weight: 700; color: var(--texte-2); }
+.badge-analyse.ia { color: var(--accent-texte); }
+.badge-analyse.claude { color: var(--bleu); }
+.lien { all: unset; cursor: pointer; color: var(--accent-texte); font-size: .84rem; }
+.lien:focus-visible { outline: 2px solid var(--accent-texte); outline-offset: 2px; }
+.md { font-size: .92rem; line-height: 1.55; overflow-wrap: anywhere; }
+.md h4 { font-family: var(--police-titre); font-size: .9rem; margin: 8px 0 2px; }
+.md h4:first-child { margin-top: 0; }
+.md ul { margin: 2px 0; padding-left: 1.2em; }
+.md p { margin: 2px 0; }
+.md em { color: var(--texte-2); }
+.md.replie { max-height: 7.8em; overflow: hidden; -webkit-mask-image: linear-gradient(to bottom, #000 60%, transparent); mask-image: linear-gradient(to bottom, #000 60%, transparent); }
+.lecture { border-color: var(--bleu); }
+.lecture .md { color: var(--texte); }
+.attente { display: inline-flex; gap: 8px; align-items: center; color: var(--texte-2); font-size: .9rem; }
 </style>
 
 <header class="bandeau">
@@ -417,7 +450,7 @@ function donneesExemple() {
     { nom: "Sortie longue 2 h en colline", type_seance: "Sortie longue", date_prevue: cleJour(ajouterJours(auj, 5)), statut: "Prévue" },
   ];
   const traces = new Map(activites.filter((a) => a.type !== "Randonnée").map((a) => [a.id, { id: a.id, activite_id: a.id }]));
-  return { athletes: [athlete], athleteId: 1, tables: { athlete, activites, suivi, sommeil, recup, garmin: [], blessures, soins, courses, resultats, objectifs, materiel, seances, plans: [], musculation: [], traces } };
+  return { athletes: [athlete], athleteId: 1, tables: { athlete, activites, suivi, sommeil, recup, garmin: [], blessures, soins, courses, resultats, objectifs, materiel, seances, plans: [], musculation: [], traces, analyses: new Map() } };
 }
 function traceExemple(a) {
   const r = aleatoire(a.id * 7919), n = Math.max(80, Math.round(a.distance * 30));
@@ -491,6 +524,9 @@ function lireAthlete(idAth) {
     soins: t("soins", "date DESC"), courses: t("courses_calendrier", "date"), resultats: t("resultats_courses", "date DESC"),
     objectifs: t("objectifs", "date_cible"), materiel: t("materiel", "id"), seances: t("seances_structurees", "date_prevue"),
     plans: t("plans_entrainement", "date_debut DESC"), musculation: t("musculation_suivi", "date"), traces,
+    analyses: new Map(Base.tablesPresentes.has("analyses_ia")
+      ? Base.tous("SELECT activite_id, contenu FROM analyses_ia WHERE activite_id IS NOT NULL AND athlete_id = ? ORDER BY date_generation, id", [idAth]).map((l) => [l.activite_id, l.contenu])
+      : []),
   };
 }
 function traceDe(a) {
@@ -684,6 +720,7 @@ function nomAthlete(a) { return [a?.prenom, a?.nom].filter(Boolean).join(" ") ||
    ================================================================ */
 const ICONES = {
   aujourdhui: '<path d="M8 1.5v2M8 12.5v2M1.5 8h2M12.5 8h2M3.4 3.4l1.4 1.4M11.2 11.2l1.4 1.4M3.4 12.6l1.4-1.4M11.2 4.8l1.4-1.4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><circle cx="8" cy="8" r="2.6" fill="none" stroke="currentColor" stroke-width="1.4"/>',
+  fil: '<rect x="2.5" y="2" width="11" height="4.5" rx="1.2" fill="none" stroke="currentColor" stroke-width="1.4"/><rect x="2.5" y="9.5" width="11" height="4.5" rx="1.2" fill="none" stroke="currentColor" stroke-width="1.4"/>',
   sorties: '<path d="M2 13 L6 6 L9 10 L11 7 L14 13 Z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/>',
   forme: '<path d="M1.5 11 L5 7.5 L8 9.5 L14.5 3" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M10.5 3h4v4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>',
   sante: '<path d="M8 14s-5.5-3.4-5.5-7.3A3 3 0 0 1 8 4.6a3 3 0 0 1 5.5 2.1C13.5 10.6 8 14 8 14z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/>',
@@ -693,7 +730,7 @@ const ICONES = {
   coach: '<path d="M2.5 3.5h11v7h-6l-3 2.5v-2.5h-2z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="M5.5 6.5h5M5.5 8.5h3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>',
 };
 const RUBRIQUES = [
-  ["aujourdhui", "Aujourd'hui", "Aujourd'hui"], ["sorties", "Sorties", "Sorties"], ["forme", "Forme et charge", "Forme"],
+  ["aujourdhui", "Aujourd'hui", "Aujourd'hui"], ["fil", "Fil d'activité", "Fil"], ["sorties", "Sorties", "Sorties"], ["forme", "Forme et charge", "Forme"],
   ["sante", "Poids et sommeil", "Santé"], ["courses", "Courses et objectifs", "Courses"], ["blessures", "Blessures et soins", "Blessures"],
   ["materiel", "Matériel", "Matériel"], ["coach", "Demander à Claude", "Claude"],
 ];
@@ -739,8 +776,9 @@ function vueAujourdhui() {
   const ilYa = der ? ecartJours(new Date(), der._date) : null;
   const saut = ilYa !== null && ilYa > 30 ? `<div class="carte"><p><span class="etat orange">Ancienne base</span> La dernière sortie de cette base date du ${esc(fmtJour(der._date))}. La forme et la fatigue du jour sont donc proches de zéro : ouvre une sauvegarde plus récente pour un état à jour.</p></div>` : "";
   return `<section class="vue">
-    <div class="entete-vue"><h2>${esc(fmtJourLong(new Date()).replace(/^./, (c) => c.toUpperCase()))}</h2><p>${esc(nomAthlete(d.athlete))}${der ? ` · dernière sortie ${ilYa === 0 ? "aujourd'hui" : ilYa === 1 ? "hier" : `il y a ${ilYa} jours`}` : ""}</p></div>
+    <div class="entete-vue"><h2>${esc(fmtJourLong(new Date()).replace(/^./, (c) => c.toUpperCase()))}</h2><p>${esc(nomAthlete(d.athlete))}${der ? ` · dernière sortie ${ilYa <= 0 ? "aujourd'hui" : ilYa === 1 ? "hier" : `il y a ${ilYa} jours`}` : ""}</p></div>
     ${saut}
+    ${carteLecture("aujourdhui")}
     <div class="grille g4">
       ${carteMesure("Fraîcheur", (f.forme > 0 ? "+" : "") + virgule(f.forme), "", "forme moins fatigue", `<span class="etat ${coul}">${lib}</span>`)}
       ${carteMesure("Forme (fitness)", virgule(f.fitness), "", "moyenne sur 42 jours")}
@@ -884,6 +922,7 @@ function dessinerTrace(pts) {
 function vueForme() {
   return `<section class="vue">
     <div class="entete-vue"><h2>Forme et charge</h2><p>La forme monte avec les semaines d'entraînement régulières. La fatigue réagit vite après une grosse sortie. La fraîcheur est la forme moins la fatigue : positive quand tu es reposé, négative quand tu es chargé.</p></div>
+    ${carteLecture("forme")}
     <div class="carte"><header><h3>Forme et fatigue, 6 mois</h3><div class="legende"><span><i style="background:var(--bleu)"></i>Forme (42 jours)</span><span><i style="background:var(--orange)"></i>Fatigue (7 jours)</span></div></header><div class="graphe" id="g-forme"></div></div>
     <div class="carte"><header><h3>Fraîcheur</h3><span class="petit discret">Au-dessus de zéro : reposé. Sous −25 : très chargé.</span></header><div class="graphe" id="g-fraicheur"></div></div>
     <div class="carte"><header><h3>Kilomètres par semaine</h3><span class="petit discret">26 dernières semaines, la semaine en cours en clair</span></header><div class="graphe" id="g-semaines"></div></div>
@@ -908,6 +947,7 @@ function dessinerForme() {
 function vueSante() {
   return `<section class="vue">
     <div class="entete-vue"><h2>Poids et sommeil</h2><p>Relevés du suivi corporel, du sommeil et des données de récupération importées de la montre.</p></div>
+    ${carteLecture("sante")}
     <div class="grille g2">
       <div class="carte"><header><h3>Poids</h3><span class="petit discret" id="poids-resume"></span></header><div class="graphe" id="g-poids"></div></div>
       <div class="carte"><header><h3>Sommeil, 30 dernières nuits</h3><span class="petit discret" id="sommeil-resume"></span></header><div class="graphe" id="g-sommeil"></div></div>
@@ -938,6 +978,7 @@ function vueCourses() {
   const pill = (s) => { const t = (s || "").toLowerCase(); return t.includes("atteint") ? "vert" : t.includes("abandon") || t.includes("manqu") ? "rouge" : t.includes("cours") ? "jaune" : "neutre"; };
   return `<section class="vue">
     <div class="entete-vue"><h2>Courses et objectifs</h2><p>Calendrier, résultats et objectifs enregistrés dans le logiciel.</p></div>
+    ${carteLecture("courses")}
     <div class="carte"><header><h3>Courses à venir</h3></header>
       ${cr.length || sansDate.length ? `<div class="tableau-cadre"><table><thead><tr><th class="num">Dans</th><th>Date</th><th>Course</th><th>Lieu</th><th class="num">Distance</th><th class="num">D+</th><th>Terrain</th></tr></thead><tbody>
       ${cr.map((c) => `<tr><td class="num"><b>J−${ecartJours(c._date, new Date())}</b></td><td>${esc(fmtJour(c._date))}</td><td class="nom">${esc(c.nom)}</td><td>${esc(c.lieu || c.region || "")}</td><td class="num">${virgule(nb(c.distance_km), 0)} km</td><td class="num">${entier(c.denivele_m)} m</td><td>${esc(c.type_terrain || "")}</td></tr>`).join("")}
@@ -959,6 +1000,7 @@ function vueBlessures() {
   const d = etat.donnees, enc = blessuresEnCours(d), parId = new Map(d.blessures.map((b) => [b.id, b]));
   return `<section class="vue">
     <div class="entete-vue"><h2>Blessures et soins</h2><p>Historique tel qu'enregistré dans le logiciel.</p></div>
+    ${carteLecture("blessures")}
     <div class="grille g3">${enc.length ? enc.map((b) => { const dd = parseDate(b.date_debut); return `<div class="carte"><span class="etat orange">En cours depuis ${dd ? ecartJours(new Date(), dd) : "?"} jours</span><h3>${esc(b.zone_corporelle || "")}</h3><p class="discret">${esc(b.type_blessure || "")}${b.gravite ? " · " + esc(b.gravite) : ""}${b.cause ? "<br>Cause : " + esc(b.cause) : ""}</p></div>`; }).join("") : `<div class="carte"><span class="etat vert">Aucune blessure en cours</span></div>`}</div>
     <div class="carte"><header><h3>Toutes les blessures</h3></header>
       ${d.blessures.length ? `<div class="tableau-cadre"><table><thead><tr><th>Début</th><th>Fin</th><th>Zone</th><th>Type</th><th>Gravité</th><th>Statut</th><th class="num">Durée</th></tr></thead><tbody>${d.blessures.map((b) => { const a = parseDate(b.date_debut), f = parseDate(b.date_fin); return `<tr><td>${esc(fmtJour(a))}</td><td>${f ? esc(fmtJour(f)) : "—"}</td><td class="nom">${esc(b.zone_corporelle || "")}</td><td>${esc(b.type_blessure || "")}</td><td>${esc(b.gravite || "")}</td><td>${(b.statut || "") === "Guérie" ? '<span class="etat vert">Guérie</span>' : `<span class="etat orange">${esc(b.statut || "En cours")}</span>`}</td><td class="num">${a ? ecartJours(f || new Date(), a) + " j" : "—"}</td></tr>`; }).join("")}</tbody></table></div>` : `<p class="vide">Aucune blessure enregistrée.</p>`}
@@ -974,6 +1016,7 @@ function vueMateriel() {
   const d = etat.donnees;
   return `<section class="vue">
     <div class="entete-vue"><h2>Matériel</h2><p>Kilomètres parcourus avec chaque équipement, comparés à l'usure conseillée.</p></div>
+    ${carteLecture("materiel")}
     <div class="grille g3">${d.materiel.length ? d.materiel.map((m) => {
       const km = nb(m.km_actuels) || 0, max = nb(m.km_max_recommande), pc = max ? km / max * 100 : null;
       const c = pc === null ? "var(--bleu)" : pc >= 100 ? "var(--rouge)" : pc >= 80 ? "var(--orange)" : "var(--vert)";
@@ -1050,6 +1093,219 @@ function brancherCoach() {
   };
 }
 
+/* ================================================================
+   Analyses automatiques : fil d'activité et lectures de Claude
+   Les analyses déjà écrites par le logiciel (IA ou hors ligne) sont
+   lues dans la base. Ce qui manque est écrit ici, sans bouton :
+   par Claude quand la page est ouverte dans Claude avec ta base,
+   sinon par les règles de la page (hors ligne).
+   ================================================================ */
+function md(texte) {
+  const enLigne = (t) => esc(t).replace(/\*\*(.+?)\*\*/g, "<b>$1</b>").replace(/(^|[\s(])_(.+?)_(?=[\s.,;:)]|$)/g, "$1<em>$2</em>").replace(/`([^`]+)`/g, "<code>$1</code>");
+  const sortie = []; let liste = false;
+  for (const brute of String(texte || "").split("\n")) {
+    const l = brute.trimEnd();
+    const puce = l.match(/^\s*[-*•]\s+(.*)$/);
+    if (!puce && liste) { sortie.push("</ul>"); liste = false; }
+    if (!l.trim()) continue;
+    const titre = l.match(/^#{1,6}\s+(.*)$/);
+    if (titre) sortie.push(`<h4>${enLigne(titre[1])}</h4>`);
+    else if (puce) { if (!liste) { sortie.push("<ul>"); liste = true; } sortie.push(`<li>${enLigne(puce[1])}</li>`); }
+    else sortie.push(`<p>${enLigne(l)}</p>`);
+  }
+  if (liste) sortie.push("</ul>");
+  return sortie.join("");
+}
+
+/* Une seule question à Claude à la fois ; chaque réponse est gardée pour la session
+   (et 24 h par Claude lui-même : rouvrir la page ne redemande rien). */
+const reponsesClaude = new Map();
+let fileClaude = Promise.resolve();
+function demanderClaude(cle, prompt, surTexte) {
+  const memo = reponsesClaude.get(cle);
+  if (memo && memo.etat !== "erreur") { if (memo.etat === "fait") surTexte(memo); return; }
+  const entree = { etat: "attente", texte: "", abonnes: [surTexte] };
+  reponsesClaude.set(cle, entree);
+  fileClaude = fileClaude.then(async () => {
+    if (!echantillon) { entree.etat = "erreur"; entree.code = "absent"; entree.abonnes.forEach((f) => f(entree)); return; }
+    entree.etat = "en_cours";
+    try {
+      const { text } = await echantillon(prompt, { cache: { gcTime: 86400000 }, onText: ({ text }) => { entree.texte = text; entree.abonnes.forEach((f) => f(entree)); } });
+      entree.texte = text; entree.etat = "fait";
+    } catch (e) {
+      entree.etat = "erreur"; entree.code = e?.code || "upstream_error"; entree.texte = e?.text || "";
+      if (e?.code === "not_granted" || e?.code === "sampling_disabled") echantillon = null;
+    }
+    entree.abonnes.forEach((f) => f(entree));
+  });
+}
+const MESSAGES_CLAUDE = { absent: "Cette lecture s'écrit quand la page est ouverte dans Claude, connecté à ton compte.", not_granted: "Claude n'a pas été autorisé pour cette page : les lectures automatiques sont arrêtées.", rate_limited: "Trop de demandes d'un coup : la lecture reviendra à la prochaine ouverture.", sampling_disabled: "Claude n'est pas disponible pour ce compte.", refused: "Claude n'a pas pu écrire cette lecture." };
+
+const SUJETS = {
+  aujourdhui: "Synthèse du jour : état de forme, ce qui prime aujourd'hui (alerte, fatigue, séance prévue), puis la priorité de la journée.",
+  forme: "Courbes de forme (CTL), fatigue (ATL), fraîcheur (TSB) et volume par semaine : tendance, risque de surcharge ou de sous-entraînement, et ce qu'il faut faire la semaine prochaine.",
+  sante: "Poids, sommeil, FC de repos et VFC de nuit : tendance réelle (pas un relevé isolé), lien avec la charge, et ce qu'il faut faire ce soir et les prochains jours.",
+  courses: "Préparation à la prochaine course : écart entre la préparation actuelle et ce que la course demande, et les 3 priorités des semaines restantes.",
+  blessures: "Blessures et soins : points de vigilance pour l'entraînement, prudence sur la reprise. Aucun diagnostic médical ; conseille un professionnel si la douleur dure.",
+  materiel: "Usure du matériel : ce qu'il faut remplacer, quand, et ce qu'il faut surveiller.",
+};
+function donneesRubrique(sujet) {
+  const d = etat.donnees, l = [resumePourClaude()];
+  if (sujet === "sante") {
+    l.push("Poids (30 derniers relevés) : " + poidsSerie(d).slice(-30).map((q) => `${cleJour(q.x)} ${q.y}`).join(" ; "));
+    l.push("Sommeil (30 dernières nuits) : " + sommeilSerie(d).slice(-30).map((q) => `${cleJour(q.x)} ${q.y.toFixed(1)} h`).join(" ; "));
+    l.push("Récupération (30 jours) : " + d.recup.slice(-30).map((r) => `${r.date} FC ${r.fc_repos ?? "?"} VFC ${r.hrv_nuit_ms ?? "?"}`).join(" ; "));
+  }
+  if (sujet === "forme") {
+    const s = d.forme, pas = Math.max(1, Math.floor(s.length / 26));
+    l.push("Série forme/fatigue/fraîcheur (un point tous les " + pas + " jours) : " + s.filter((_, i) => i % pas === 0 || i === s.length - 1).map((j) => `${cleJour(j.date)} ${j.fitness}/${j.fatigue}/${j.forme}`).join(" ; "));
+    l.push("Km par semaine (26 semaines) : " + semaines(d.activites, 26).map((w) => w.km.toFixed(0)).join(", "));
+  }
+  if (sujet === "courses") {
+    l.push("Résultats : " + d.resultats.slice(0, 8).map((r) => `${r.date} ${r.nom_course} ${r.distance ?? "?"} km ${r.temps || ""} ${r.classement_general || ""}`).join(" ; "));
+    l.push("Objectifs : " + d.objectifs.map((o) => `${o.titre} (${o.statut || "?"}, ${o.date_cible || "sans date"})`).join(" ; "));
+  }
+  if (sujet === "blessures") {
+    l.push("Blessures : " + d.blessures.map((b) => `${b.date_debut}→${b.date_fin || "en cours"} ${b.zone_corporelle || ""} ${b.type_blessure || ""} ${b.gravite || ""} ${b.statut || ""}`).join(" ; "));
+    l.push("Soins : " + d.soins.slice(0, 15).map((x) => `${x.date} ${x.type_soin || ""} ${x.motif || ""}`).join(" ; "));
+  }
+  if (sujet === "materiel") l.push("Matériel : " + d.materiel.map((m) => `${m.nom} (${m.type || ""}) ${m.km_actuels ?? 0} km sur ${m.km_max_recommande ?? "?"} conseillés, ${m.statut || ""}`).join(" ; "));
+  return l.join("\n");
+}
+const CONSIGNE_LECTURE = "Tu es l'entraîneur de trail intégré à Trail Hub Center. Écris en français, en Markdown, 120 mots au plus, avec ces titres exacts : « ### Lecture », « ### À faire ». Appuie-toi uniquement sur les données fournies et cite les chiffres ; si une donnée manque, dis-le. Distingue ce qui est mesuré de ce que tu estimes. Tutoie l'athlète. Aucun diagnostic médical.";
+
+function carteLecture(sujet) {
+  return `<div class="carte analyse lecture" data-lecture="${sujet}"><header><span class="badge-analyse claude">Lecture de Claude</span><span class="petit tres-discret" data-etat></span></header><div class="md" data-texte></div></div>`;
+}
+function brancherLectures() {
+  document.querySelectorAll("[data-lecture]").forEach((carte) => {
+    const sujet = carte.dataset.lecture, zone = carte.querySelector("[data-texte]"), etatLecture = carte.querySelector("[data-etat]");
+    if (etat.source !== "fichier") { zone.innerHTML = `<p class="discret">Ouvre ta base : Claude écrira ici, tout seul, sa lecture de tes chiffres à chaque ouverture de la rubrique.</p>`; return; }
+    if (!echantillonPret) { zone.innerHTML = `<span class="attente"><span class="rond"></span>Connexion à Claude…</span>`; return; }
+    if (!echantillon) { zone.innerHTML = `<p class="discret">${MESSAGES_CLAUDE.absent}</p>`; return; }
+    const prompt = `${CONSIGNE_LECTURE}\nSUJET : ${SUJETS[sujet]}\n\nDONNÉES (calculées par Trail Hub Center) :\n${donneesRubrique(sujet)}`;
+    const cle = `${etat.nomFichier}|${etat.athleteId}|${sujet}|${cleJour(new Date())}`;
+    demanderClaude(cle, prompt, (e) => {
+      if (!carte.isConnected) return;
+      if (e.etat === "attente" || (e.etat === "en_cours" && !e.texte)) { zone.innerHTML = `<span class="attente"><span class="rond"></span>Claude lit tes chiffres…</span>`; return; }
+      if (e.etat === "erreur" && !e.texte) { zone.innerHTML = `<p class="discret">${esc(MESSAGES_CLAUDE[e.code] || "La lecture n'a pas pu arriver ; elle sera retentée à la prochaine ouverture.")}</p>`; return; }
+      zone.innerHTML = md(e.texte);
+      etatLecture.textContent = e.etat === "fait" ? "estimation à partir de tes données" : "en cours d'écriture…";
+    });
+  });
+}
+
+/* ---------- Fil d'activité ---------- */
+function analyseLocaleSortie(a) {
+  const d = etat.donnees, ath = d.athlete, lect = [], suite = [];
+  const dist = nb(a.distance) || 0, dp = nb(a.denivele) || 0, sec = nb(a.duree) || 0, fc = nb(a.frequence_cardiaque_moyenne), fm = nb(ath.fc_max);
+  if (dist) lect.push(`${virgule(dist, 1)} km et ${entier(dp)} m de D+ en ${duree(sec)}, soit ${virgule(dist + dp / 100, 1)} km-effort.`);
+  if (fc && fm) lect.push(`FC moyenne ${entier(fc)} bpm, soit ${entier(fc / fm * 100)} % de ta FC max.`);
+  const z = [1, 2, 3, 4, 5].map((i) => nb(a[`temps_zone_${i}`]) || 0), tz = z.reduce((x, y) => x + y, 0);
+  if (tz) {
+    const facile = Math.round((z[0] + z[1]) / tz * 100), dur = Math.round((z[3] + z[4]) / tz * 100);
+    lect.push(`Temps en zones : ${facile} % en Z1-Z2, ${dur} % en Z4-Z5.`);
+    if (dur > 25 && /footing|endurance|récup|longue/i.test(a.nom || "")) suite.push(`${dur} % du temps en Z4-Z5 pour une sortie annoncée facile : ralentis la prochaine fois.`);
+  }
+  if (sec && dist) {
+    const v = (dist + dp / 100) / (sec / 3600), avant = new Date(a._date - 60 * JOUR_MS);
+    const sim = d.activites.filter((x) => x.id !== a.id && x.type === a.type && x._date < a._date && x._date >= avant && nb(x.distance) && nb(x.duree) && Math.abs(nb(x.distance) - dist) <= dist * 0.3);
+    if (sim.length >= 3) {
+      const vm = sim.reduce((s, x) => s + (nb(x.distance) + (nb(x.denivele) || 0) / 100) / (nb(x.duree) / 3600), 0) / sim.length, ec = (v / vm - 1) * 100;
+      lect.push(`Vitesse équivalente plat ${virgule(v, 1)} km/h, ${Math.abs(ec) < 2 ? "comme" : ec > 0 ? `${virgule(ec, 0)} % plus rapide que` : `${virgule(-ec, 0)} % plus lente que`} tes ${sim.length} sorties similaires des 60 jours d'avant.`);
+    }
+  }
+  const j = d.forme.find((x) => cleJour(x.date) === cleJour(a._date));
+  if (j) { lect.push(`Fraîcheur ce jour-là : ${j.forme > 0 ? "+" : ""}${virgule(j.forme)} (${etatFraicheur(j.forme)[0].toLowerCase()}).`); if (j.forme < -25) suite.push("Fraîcheur sous −25 : garde 1 à 2 jours faciles avant la prochaine séance dure."); }
+  const bl = blessuresEnCours(d).filter((b) => { const dd = parseDate(b.date_debut); return dd && dd <= a._date; });
+  if (bl.length) suite.unshift(`Blessure en cours (${bl.map((b) => b.zone_corporelle || "").join(", ")}) : elle prime sur la progression.`);
+  if (a.notes) lect.push(`Ta note : « ${a.notes} ».`);
+  return [`### Analyse hors ligne : lecture de la séance`, ...(lect.length ? lect : ["Pas assez de chiffres sur cette sortie."]).map((x) => `- ${x}`), "", "### Pour la suite", ...(suite.length ? suite : ["Rien de particulier à signaler : continue ton plan prévu."]).map((x) => `- ${x}`), "", "_Calculée par les règles de la page, sans IA._"].join("\n");
+}
+function promptSortie(a) {
+  const d = etat.donnees, ath = d.athlete, j = d.forme.find((x) => cleJour(x.date) === cleJour(a._date));
+  const sim = d.activites.filter((x) => x.id !== a.id && x.type === a.type && x._date < a._date).slice(0, 5);
+  const champs = ["distance", "denivele", "denivele_negatif", "duree", "frequence_cardiaque_moyenne", "frequence_cardiaque_max", "cadence_moyenne", "vo2max", "te_aerobie", "te_anaerobie", "temperature_moyenne", "effort_percu", "temps_zone_1", "temps_zone_2", "temps_zone_3", "temps_zone_4", "temps_zone_5"].filter((c) => nb(a[c]) !== null).map((c) => `${c} ${a[c]}`).join(", ");
+  return ["Tu es l'entraîneur de trail intégré à Trail Hub Center. Analyse UNE sortie, en français, en Markdown, 140 mots au plus, avec ces titres exacts : « ### Lecture de la séance », « ### Points forts », « ### À travailler », « ### Pour la suite ». Uniquement les données fournies, chaque phrase avec un chiffre ; dis ce qui est estimé. Tutoie l'athlète. Aucun diagnostic médical.",
+    `Coureur : FC repos ${ath.fc_repos ?? "?"}, FC max ${ath.fc_max ?? "?"}${ath.vma ? ", VMA " + ath.vma : ""}.`,
+    `Sortie du ${cleJour(a._date)} (${a.type || "?"}) « ${a.nom || ""} » : ${champs} (durée et temps en zones en secondes, distance en km).`,
+    `Charge calculée par le logiciel : ${chargeActivite(a, ath).charge}.`, j ? `Ce jour-là : forme ${j.fitness}, fatigue ${j.fatigue}, fraîcheur ${j.forme}.` : "",
+    sim.length ? "Sorties similaires précédentes : " + sim.map((x) => `${cleJour(x._date)} ${x.distance} km +${x.denivele ?? 0} m ${duree(x.duree)} FC ${x.frequence_cardiaque_moyenne ?? "?"}`).join(" ; ") : "",
+    a.notes ? `Note de l'athlète : ${a.notes}` : ""].filter(Boolean).join("\n");
+}
+function traceMiniSvg(pts) {
+  const lat = pts.map((p) => +p[0]), lon = pts.map((p) => +p[1]);
+  const la0 = Math.min(...lat), la1 = Math.max(...lat), lo0 = Math.min(...lon), lo1 = Math.max(...lon), k = Math.cos((la0 + la1) / 2 * Math.PI / 180);
+  const W = 150, H = 104, m = 10, w = Math.max((lo1 - lo0) * k, 1e-9), h = Math.max(la1 - la0, 1e-9), e = Math.min((W - 2 * m) / w, (H - 2 * m) / h);
+  const ox = (W - w * e) / 2, oy = (H - h * e) / 2, X = (p) => (ox + (p[1] - lo0) * k * e).toFixed(1), Y = (p) => (H - oy - (p[0] - la0) * e).toFixed(1);
+  const pas = Math.max(1, Math.floor(pts.length / 300)), c = pts.filter((_, i) => i % pas === 0 || i === pts.length - 1).map((p, i) => `${i ? "L" : "M"}${X(p)},${Y(p)}`).join("");
+  return `<svg viewBox="0 0 ${W} ${H}" aria-hidden="true"><path d="${c}" fill="none" stroke="var(--accent-texte)" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/><circle cx="${X(pts[pts.length - 1])}" cy="${Y(pts[pts.length - 1])}" r="3.5" fill="var(--rouge)"/><circle cx="${X(pts[0])}" cy="${Y(pts[0])}" r="3.5" fill="var(--vert)"/></svg>`;
+}
+let nbFil = 15;
+const MAX_CLAUDE_FIL = 8;          // sorties analysées par Claude par session (protège ta consommation)
+let claudeFilLances = 0;
+function vueFil() {
+  const d = etat.donnees, liste = d.activites.slice(0, nbFil), sem = semaines(d.activites, 1)[0];
+  let mois = "", h = "";
+  for (const a of liste) {
+    const m = a._date.toLocaleDateString("fr-FR", { month: "long", year: "numeric" });
+    if (m !== mois) { mois = m; h += `<div class="mois-fil">${esc(m)}</div>`; }
+    const pts = traceDe(a);
+    h += `<article class="carte-fil" data-fil="${a.id}">
+      <div class="fil-tete"><div style="min-width:0"><button type="button" data-ouvrir="${a.id}"><h3>${esc(a.nom || a.type || "Sortie")}</h3></button>
+        <p class="petit discret">${esc(fmtJourLong(a._date))} à ${esc(a._date.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }))} · ${esc(a.type || "")}</p>
+        <div class="fil-chiffres"><span><span class="etiquette">Distance</span><b>${virgule(nb(a.distance), 2)} km</b></span><span><span class="etiquette">Dénivelé</span><b>${entier(a.denivele)} m</b></span><span><span class="etiquette">Durée</span><b>${duree(a.duree)}</b></span><span><span class="etiquette">Allure</span><b>${allure(nb(a.duree), nb(a.distance))}</b></span>${nb(a.frequence_cardiaque_moyenne) ? `<span><span class="etiquette">FC moy.</span><b>${entier(a.frequence_cardiaque_moyenne)} bpm</b></span>` : ""}</div></div>
+        ${pts ? `<div class="fil-trace">${traceMiniSvg(pts)}</div>` : ""}</div>
+      <div class="analyse"><header><span class="badge-analyse" data-badge></span><button type="button" class="lien" data-plier>Lire toute l'analyse</button></header><div class="md replie" data-analyse></div></div>
+    </article>`;
+  }
+  return `<section class="vue">
+    <div class="entete-vue"><h2>Fil d'activité</h2><p>Tes sorties comme sur Strava, chacune avec son analyse, écrite toute seule. ${etat.source === "fichier" ? "Les analyses déjà faites par le logiciel sont reprises ; Claude écrit celles qui manquent." : "Ici sur l'exemple, les analyses sont calculées par les règles de la page."}</p></div>
+    <div class="carte"><span class="chiffre">Cette semaine : ${sem.n} sortie${sem.n > 1 ? "s" : ""} · ${virgule(sem.km, 1)} km · +${entier(sem.dplus)} m · ${duree(sem.sec)}</span></div>
+    <div class="fil">${h || `<p class="vide">Aucune sortie dans cette base.</p>`}</div>
+    ${d.activites.length > nbFil ? `<div><button class="bouton" type="button" id="fil-plus">Afficher plus de sorties</button></div>` : ""}
+  </section>`;
+}
+function remplirAnalyse(carte, texte, genre, enCours) {
+  const zone = carte.querySelector("[data-analyse]"), badge = carte.querySelector("[data-badge]"), plier = carte.querySelector("[data-plier]");
+  badge.className = "badge-analyse" + (genre === "ia" ? " ia" : genre === "claude" ? " claude" : "");
+  badge.textContent = { ia: "Analyse de l'IA (logiciel)", claude: enCours ? "Claude écrit l'analyse…" : "Analyse de Claude", local: "Analyse hors ligne", attente: "Analyse à venir" }[genre];
+  zone.innerHTML = texte ? md(texte) : `<span class="attente"><span class="rond"></span>Claude analyse la sortie…</span>`;
+  plier.hidden = !texte || enCours;
+}
+function brancherFil() {
+  const d = etat.donnees, plus = $("#fil-plus");
+  if (plus) plus.onclick = () => { nbFil += 15; rendreTout(); };
+  document.querySelectorAll("[data-ouvrir]").forEach((b) => b.onclick = () => { etat.sortieChoisie = +b.dataset.ouvrir; location.hash = "sorties"; });
+  document.querySelectorAll("[data-plier]").forEach((b) => b.onclick = () => { const z = b.closest(".analyse").querySelector("[data-analyse]"); const r = z.classList.toggle("replie"); b.textContent = r ? "Lire toute l'analyse" : "Réduire"; });
+  const aClaude = [];
+  document.querySelectorAll("[data-fil]").forEach((carte) => {
+    const a = d.activites.find((x) => x.id === +carte.dataset.fil); if (!a) return;
+    const existante = d.analyses?.get(a.id);
+    if (existante) { remplirAnalyse(carte, existante, existante.includes("Analyse hors ligne") ? "local" : "ia"); return; }
+    const cle = `${etat.nomFichier}|sortie|${a.id}`, memo = reponsesClaude.get(cle);
+    if (memo && memo.etat === "fait") { remplirAnalyse(carte, memo.texte, "claude"); return; }
+    if (etat.source === "fichier" && echantillon && (memo || claudeFilLances < MAX_CLAUDE_FIL)) { remplirAnalyse(carte, "", "claude", true); aClaude.push([carte, a, cle]); return; }
+    remplirAnalyse(carte, analyseLocaleSortie(a), "local");
+  });
+  if (!aClaude.length) return;
+  /* Claude n'écrit que les cartes qui arrivent à l'écran, dans l'ordre où on les voit */
+  const voir = new IntersectionObserver((entrees) => {
+    for (const en of entrees) {
+      if (!en.isIntersecting) continue;
+      voir.unobserve(en.target);
+      const [carte, a, cle] = aClaude.find((x) => x[0] === en.target);
+      if (!reponsesClaude.has(cle)) claudeFilLances++;
+      demanderClaude(cle, promptSortie(a), (e) => {
+        if (!carte.isConnected) return;
+        if (e.etat === "erreur" && !e.texte) remplirAnalyse(carte, analyseLocaleSortie(a), "local");
+        else if (e.texte) remplirAnalyse(carte, e.texte, "claude", e.etat !== "fait");
+      });
+    }
+  }, { rootMargin: "120px" });
+  aClaude.forEach(([carte]) => voir.observe(carte));
+}
+
 /* ---------- Ouvrir sa base ---------- */
 function vueOuvrir() {
   return `<section class="vue">
@@ -1086,13 +1342,15 @@ function vueOuvrir() {
 function rendreTout() {
   rendreSource(); rendreNav();
   const r = rubriqueCourante(), c = $("#contenu");
-  const vues = { aujourdhui: vueAujourdhui, sorties: vueSorties, forme: vueForme, sante: vueSante, courses: vueCourses, blessures: vueBlessures, materiel: vueMateriel, coach: vueCoach, ouvrir: vueOuvrir };
+  const vues = { aujourdhui: vueAujourdhui, fil: vueFil, sorties: vueSorties, forme: vueForme, sante: vueSante, courses: vueCourses, blessures: vueBlessures, materiel: vueMateriel, coach: vueCoach, ouvrir: vueOuvrir };
   c.innerHTML = vues[r]() + `<p class="pied">Trail Hub Center · page de consultation · les données affichées viennent de ${etat.source === "fichier" ? "ta base" : "l'exemple intégré"}.</p>`;
   if (r === "sorties") { dessinerCalendrier(); rendreDetailSortie(); brancherSorties(); }
   if (r === "forme") dessinerForme();
   if (r === "sante") dessinerSante();
   if (r === "coach") brancherCoach();
   if (r === "ouvrir") brancherDepot();
+  if (r === "fil") brancherFil();
+  brancherLectures();
   c.querySelectorAll("button.ligne[data-sortie]").forEach((b) => b.onclick = () => { etat.sortieChoisie = +b.dataset.sortie; location.hash = "sorties"; if (rubriqueCourante() === "sorties") rendreTout(); });
 }
 function brancherSorties() {
@@ -1136,6 +1394,8 @@ rendreTout();
 (async () => {
   try { echantillon = window.claude?.use ? await window.claude.use("sample") : null; } catch (e) { echantillon = null; }
   echantillonPret = true;
+  brancherLectures();
+  if (rubriqueCourante() === "fil") brancherFil();
   if (rubriqueCourante() === "coach") { const etatTxt = $("#coach-etat"), env = $("#envoyer"); if (etatTxt) etatTxt.textContent = echantillon ? "" : "Cette fonction marche quand la page est ouverte dans Claude, connecté à ton compte. Ici, elle n'est pas disponible."; if (env) env.disabled = !echantillon; }
 })();
 </script>

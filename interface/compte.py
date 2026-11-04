@@ -1,10 +1,11 @@
 from interface.conteneur_onglets import ConteneurOnglets
 from interface.athletes import Athletes
 from interface.reglages import Reglages
+from interface.personnes import Personnes
 
 
 class Compte(ConteneurOnglets):
-    """Regroupe Athlètes et Réglages dans une seule fenêtre à onglets —
+    """Regroupe Athlètes, Réglages et Personnes (étape 2.2) dans une seule fenêtre à onglets —
     au lieu de deux fenêtres séparées, comme pour Cartes & Traces,
     Analyses & Forme, Planification, Suivi et Import & Synchro."""
 
@@ -14,6 +15,7 @@ class Compte(ConteneurOnglets):
             onglets=[
                 ("👤 Athlètes", Athletes),
                 ("⚙️ Réglages", Reglages),
+                ("👥 Personnes", Personnes),
             ],
             athlete_id_initial=athlete_id_initial,
         )

@@ -550,9 +550,20 @@ class DialogueDetailSortie(QDialog):
         télécharger (la génération ne part que sur clic, pour ne pas
         consommer le quota gratuit de l'IA à chaque sortie ouverte)."""
         from noyau.ia.ia_coach import _analyse_en_cache
+        from noyau.ia import analyse_auto
         trouve = _analyse_en_cache(self.activite_id)
         if trouve:
             self._analyse_ia_reussie((trouve[0], True))
+        elif analyse_auto.actif():
+            # Trail Hub Center : pas d'analyse encore → elle se fait toute seule (IA si une clé
+            # est réglée, sinon analyse hors ligne par les règles du logiciel).
+            self.zone_texte_ia.setPlainText("⏳ Analyse automatique de la sortie en cours…")
+            self.bouton_regenerer_ia.setEnabled(False)
+            self._tache_analyse_ia = TacheAnalyseIA(
+                lambda: analyse_auto.analyser(self.activite_id, self.athlete_id))
+            self._tache_analyse_ia.reussite.connect(self._analyse_auto_reussie)
+            self._tache_analyse_ia.echec.connect(self._analyse_ia_echouee)
+            self._tache_analyse_ia.start()
         elif cle_api_configuree():
             self.zone_texte_ia.setPlainText("Pas encore d'analyse pour cette sortie : clique sur « Générer l'analyse ».")
         else:
@@ -884,6 +895,16 @@ class DialogueDetailSortie(QDialog):
         entete = "📦 Analyse déjà générée précédemment (mise en cache) :\n\n" if depuis_cache else ""
         self.zone_texte_ia.setPlainText(entete + contenu)
         self.bouton_regenerer_ia.setEnabled(True)
+
+    def _analyse_auto_reussie(self, resultat):
+        texte, source = resultat
+        if texte is None:
+            self.zone_texte_ia.setPlainText("Sortie introuvable.")
+        else:
+            entete = ("🧮 Analyse hors ligne (sans IA). Règle une clé gratuite dans Réglages > Analyse IA "
+                      "pour l'analyse détaillée de l'IA.\n\n") if source == "local" and not cle_api_configuree() else ""
+            self.zone_texte_ia.setPlainText(entete + texte)
+        self.bouton_regenerer_ia.setEnabled(cle_api_configuree())
 
     def _analyse_ia_echouee(self, message):
         self.zone_texte_ia.setPlainText(f"⚠️ {message}")
