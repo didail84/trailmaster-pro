@@ -5,6 +5,7 @@ from interface.carte_thermique_ecran import CarteThermiqueEcran
 from interface.carte_reelle import CarteReelle
 from interface.createur_parcours import CreateurParcours
 from interface.liste_parcours import ListeParcours
+from interface.diagnostic_parcours import DiagnosticParcours
 
 
 class CartesEtTraces(ConteneurOnglets):
@@ -15,6 +16,7 @@ class CartesEtTraces(ConteneurOnglets):
             onglets=[
                 ("📍 Mes parcours", ListeParcours),
                 ("🖊️ Créer un parcours", CreateurParcours),
+                ("📐 Diagnostic de parcours", DiagnosticParcours),
                 ("🧭 Secteurs", Secteurs),
                 ("🎯 Segments précis", Segments),
                 ("🔥 Carte thermique", CarteThermiqueEcran),

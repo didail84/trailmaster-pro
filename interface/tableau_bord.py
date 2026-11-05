@@ -317,7 +317,7 @@ class TableauBord(QMainWindow):
 
         self._construire_widgets_dashboard(contenu_layout)
         self._installer_raccourcis()
-        QTimer.singleShot(2500, lambda: self.verifier_maj_maintenant(silencieux=True))
+        QTimer.singleShot(2500, self, lambda: self.verifier_maj_maintenant(silencieux=True))
 
         # Ajout au layout principal
         menu_scroll = QScrollArea()

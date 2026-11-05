@@ -1,5 +1,16 @@
 # Historique des versions
 
+## Trail Hub Center — étape 3.2 : Diagnostic et comparaison de parcours (bloc 16)
+- Cartes & Traces : nouvel onglet **« 📐 Diagnostic de parcours »**. Tu choisis un parcours de ta bibliothèque ou tu charges un GPX (une course à venir, par exemple). L'écran donne le km-effort (km + D+/100), la catégorie ITRA (XXS à XXL) et le type de terrain (D+ par km). Il affiche aussi **ton temps estimé**, appris sur tes sorties comme dans le Roadbook.
+- **Pentes** : une barre de couleur montre la part de la distance dans chaque classe de pente, de la descente raide (< −15 %) au très raide (> 25 %). Sont indiquées aussi la pente la plus raide tenue sur 200 m et sur 1 km, et la descente la plus raide.
+- **Répartition du D+** : le D+ et le D− de chaque quart du parcours, et la part du D+ placée dans la seconde moitié, avec le conseil qui va avec (« garde des forces » ou « ne pars pas trop vite »).
+- **Montées et descentes principales**, avec le km de départ, la longueur, le dénivelé et la pente moyenne et maximale. Elles sont bornées sur la partie qui monte vraiment : le plat avant le pied de la montée n'est pas compté. Les montées portent une catégorie façon cyclisme (Cat. 4 à HC).
+- **Technicité estimée** sur 5. Elle est lue sur le tracé : passages au-dessus de 25 %, descentes raides, sinuosité (lacets) et distance au-dessus de 2 000 m. C'est un repère, pas une cotation du terrain : un GPS ne voit ni les cailloux ni les racines.
+- **Comparaison de deux tracés** : profils superposés, tableau mesure par mesure avec l'écart, et phrases de synthèse (par exemple « demande environ 89 % d'effort de plus », « nettement plus raide en montée : bâtons utiles », « dénivelé plus tardif »).
+- Page Claude : dans le détail d'une sortie qui a un tracé, nouveau bloc « Difficulté du tracé » (km-effort, catégorie ITRA, terrain, pente maximale sur 1 km, barre des pentes, D+ par quart, plus grosse montée). Le calcul est le même que dans le logiciel.
+- Correction : la vérification automatique des mises à jour ne plante plus si la fenêtre principale est fermée avant le délai de 2,5 s.
+- Tests : 269.
+
 ## Trail Hub Center — étape 3.1 : Stratégie de course (bloc 15)
 - Roadbook : nouvelle méthode « Appris sur tes sorties (conseillé) » — le temps de course vient de la régression distance + D+ de tes sorties Trail/Course des 2 dernières années, ajustée à la saison (avertissement si la course est bien plus longue que tes sorties).
 - **Trois scénarios** prudent, réaliste et ambitieux : temps total, heure d'arrivée, allure plat et marge la plus faible pour chacun ; dans le tableau, les heures de passage des trois scénarios et la marge sur les barrières en scénario prudent. L'écart entre scénarios vient de la dispersion réelle de tes sorties autour du modèle (bornée à −15 %/−3 % et +4 %/+25 %), sinon −6 % / +10 %. Verdict clair : barrières sûres même en prudent, serrées, ou en danger.

@@ -905,12 +905,84 @@ function rendreDetailSortie() {
     <div class="mesures-ligne">${champs.map(([e, v, u]) => `<div class="mesure"><span class="etiquette">${e}</span><span class="valeur">${v}${u && v !== "—" ? `<small>${u}</small>` : ""}</span></div>`).join("")}</div>
     <p class="petit tres-discret">Charge calculée comme dans le logiciel (${ch.methode === "trimp" ? "TRIMP, à partir de la fréquence cardiaque" : ch.methode === "duree" ? "estimation par la durée" : ch.methode === "distance" ? "estimation par la distance" : "pas assez de données"}).</p>
     ${totZ ? `<div><span class="etiquette">Temps par zone cardiaque</span><div class="zones" style="margin-top:6px">${zones.map((z, i) => z ? `<span style="width:${z / totZ * 100}%;background:var(--z${i + 1})" title="Zone ${i + 1} : ${duree(z)}"></span>` : "").join("")}</div><div class="legende" style="margin-top:6px">${zones.map((z, i) => `<span><i style="background:var(--z${i + 1});height:8px;width:8px;border-radius:2px"></i>Z${i + 1} ${duree(z)}</span>`).join("")}</div></div>` : ""}
-    ${pts ? `<div class="trace-et-profil"><div class="trace" id="trace"></div><div><span class="etiquette">Profil</span><div class="graphe" id="profil"></div><p class="petit tres-discret" id="trace-info"></p></div></div>` : `<p class="vide">Pas de tracé GPS enregistré pour cette sortie.</p>`}
+    ${pts ? `<div class="trace-et-profil"><div class="trace" id="trace"></div><div><span class="etiquette">Profil</span><div class="graphe" id="profil"></div><p class="petit tres-discret" id="trace-info"></p></div></div><div id="diag-trace"></div>` : `<p class="vide">Pas de tracé GPS enregistré pour cette sortie.</p>`}
     ${plus.length ? `<div class="mesures-ligne">${plus.map(([e, v, u]) => `<div class="mesure"><span class="etiquette">${e}</span><span class="valeur" style="font-size:1rem">${virgule(nb(v), Number.isInteger(nb(v)) ? 0 : 1)}${u ? `<small>${u}</small>` : ""}</span></div>`).join("")}</div>` : ""}
     ${a.notes ? `<p class="discret" style="white-space:pre-wrap">${esc(a.notes)}</p>` : ""}
   </div>`;
   $("#fermer-detail").onclick = () => { etat.sortieChoisie = null; rendreDetailSortie(); document.querySelectorAll("tr.choisie").forEach((t) => t.classList.remove("choisie")); };
-  if (pts) dessinerTrace(pts);
+  if (pts) { dessinerTrace(pts); rendreDiagnosticTrace(pts); }
+}
+/* ---------- Diagnostic de difficulté d'un tracé (même calcul que noyau/traces/diagnostic_parcours.py) ---------- */
+const CLASSES_PENTE = [[-1, -0.15, "Descente raide (< −15 %)", "var(--bleu)"], [-0.15, -0.05, "Descente (−15 à −5 %)", "color-mix(in srgb, var(--bleu) 45%, var(--carte))"],
+  [-0.05, 0.05, "Plat ou presque", "var(--texte-3)"], [0.05, 0.15, "Montée courante (5 à 15 %)", "var(--jaune)"], [0.15, 0.25, "Montée raide (15 à 25 %)", "var(--orange)"], [0.25, 1, "Très raide (> 25 %)", "var(--rouge)"]];
+const CATEGORIES_ITRA = [[25, "XXS"], [45, "XS"], [75, "S"], [115, "M"], [155, "L"], [210, "XL"], [Infinity, "XXL"]];
+const TERRAINS = [[15, "Roulant"], [30, "Vallonné"], [50, "Montagneux"], [75, "Très montagneux"], [Infinity, "Alpin, très raide"]];
+function profil25m(pts) {
+  const P = pts.filter((p) => nb(p[2]) !== null);
+  if (P.length < 10) return null;
+  const cum = [0];
+  for (let i = 1; i < P.length; i++) cum.push(cum[i - 1] + distanceKm(P[i - 1][0], P[i - 1][1], P[i][0], P[i][1]) * 1000);
+  const total = cum[cum.length - 1];
+  if (total < 200) return null;
+  const e = []; let j = 0;
+  for (let d = 0; d <= total; d += 25) {
+    while (j < cum.length - 2 && cum[j + 1] < d) j++;
+    const sp = cum[j + 1] - cum[j], f = sp <= 0 ? 0 : (d - cum[j]) / sp;
+    e.push({ d, brut: +P[j][2] + (+P[j + 1][2] - +P[j][2]) * f });
+  }
+  const n = e.length;
+  if (n < 6) return null;
+  e.forEach((x, i) => { let s = 0, c = 0; for (let k = Math.max(0, i - 2); k <= Math.min(n - 1, i + 2); k++) { s += e[k].brut; c++; } x.alt = s / c; });
+  e.forEach((x, i) => { const a = e[Math.max(0, i - 2)], b = e[Math.min(n - 1, i + 2)], dd = b.d - a.d; x.pente = dd > 0 ? (b.alt - a.alt) / dd : 0; });
+  return e;
+}
+function monteesNettes(prof, signe) {
+  const alt = prof.map((e) => e.alt * signe), n = alt.length, seuil = 12;
+  let piv = [0], dir = 0, ext = 0;
+  for (let i = 1; i < n; i++) {
+    if (!dir) { if (Math.abs(alt[i] - alt[0]) >= seuil) { dir = alt[i] > alt[0] ? 1 : -1; ext = i; } continue; }
+    if ((alt[i] - alt[ext]) * dir > 0) ext = i;
+    else if ((alt[ext] - alt[i]) * dir >= seuil) { piv.push(ext); dir = -dir; ext = i; }
+  }
+  piv = [...new Set([...piv, ext, n - 1])].sort((x, y) => x - y);
+  const res = [];
+  for (let k = 0; k < piv.length - 1; k++) {
+    const a = piv[k], b = piv[k + 1], gain = alt[b] - alt[a];
+    if (gain < 40) continue;
+    const marge = 0.03 * gain;
+    let a2 = a; for (let i = a; i <= b; i++) if (alt[i] <= alt[a] + marge) a2 = i;
+    let b2 = b; for (let i = b; i >= a2; i--) if (alt[i] >= alt[b] - marge) b2 = i;
+    const lg = prof[b2].d - prof[a2].d, g2 = alt[b2] - alt[a2];
+    if (lg < 250 || g2 / lg < 0.03) continue;
+    res.push({ km: prof[a2].d / 1000, lg, gain: g2, pente: g2 / lg * 100 });
+  }
+  return res.sort((x, y) => y.gain - x.gain);
+}
+function diagnosticTrace(pts) {
+  const prof = profil25m(pts);
+  if (!prof) return null;
+  const km = prof[prof.length - 1].d / 1000;
+  let dplus = 0, dmoins = 0;
+  for (let i = 1; i < prof.length; i++) { const dz = prof[i].alt - prof[i - 1].alt; if (dz > 0) dplus += dz; else dmoins -= dz; }
+  const rep = CLASSES_PENTE.map(([bas, haut, lib, coul]) => ({ lib, coul, pct: prof.slice(1).filter((e) => e.pente >= bas && e.pente < haut).length * 25 / 1000 / km * 100 }));
+  const quarts = [0, 1, 2, 3].map((q) => { const d0 = km * 1000 * q / 4, d1 = km * 1000 * (q + 1) / 4; let u = 0; for (let i = 1; i < prof.length; i++) if (prof[i - 1].d >= d0 && prof[i - 1].d < d1) u += Math.max(0, prof[i].alt - prof[i - 1].alt); return u; });
+  const fin = dplus ? (quarts[2] + quarts[3]) / dplus : 0.5;
+  let max1k = null, j = 0;
+  for (let i = 0; i < prof.length; i++) { while (j < prof.length - 1 && prof[j].d - prof[i].d < 1000) j++; const dd = prof[j].d - prof[i].d; if (dd < 900) break; const g = (prof[j].alt - prof[i].alt) / dd; if (max1k === null || g > max1k) max1k = g; }
+  const ke = km + dplus / 100, dpk = dplus / km;
+  return { km, dplus, dmoins, ke, itra: CATEGORIES_ITRA.find(([b]) => ke < b)[1], terrain: TERRAINS.find(([b]) => dpk < b)[1], dpk, rep, quarts, fin, max1k,
+    montees: monteesNettes(prof, 1).slice(0, 3), placement: fin >= 0.6 ? "surtout dans la seconde moitié : garde des forces" : fin <= 0.4 ? "surtout dans la première moitié : ne pars pas trop vite" : "réparti sur tout le parcours" };
+}
+function rendreDiagnosticTrace(pts) {
+  const place = $("#diag-trace"), d = place && diagnosticTrace(pts);
+  if (!d) return;
+  place.innerHTML = `<span class="etiquette">Difficulté du tracé</span>
+    <div class="mesures-ligne" style="margin-top:6px">${[["Km-effort", virgule(d.ke, 0), ""], ["Catégorie ITRA", d.itra, ""], ["Terrain", d.terrain, ""], ["D+ par km", entier(d.dpk), "m"], ["Pente max sur 1 km", d.max1k === null ? "—" : virgule(d.max1k * 100, 0), "%"]]
+      .map(([e, v, u]) => `<div class="mesure"><span class="etiquette">${e}</span><span class="valeur" style="font-size:1.05rem">${esc(String(v))}${u && v !== "—" ? `<small>${u}</small>` : ""}</span></div>`).join("")}</div>
+    <div class="zones" style="margin-top:8px" role="img" aria-label="Répartition de la distance par pente">${d.rep.map((r) => r.pct >= 0.5 ? `<span style="width:${r.pct}%;background:${r.coul}" title="${esc(r.lib)} : ${virgule(r.pct, 0)} %"></span>` : "").join("")}</div>
+    <div class="legende" style="margin-top:6px">${d.rep.filter((r) => r.pct >= 0.5).map((r) => `<span><i style="background:${r.coul};height:8px;width:8px;border-radius:2px"></i>${esc(r.lib)} ${virgule(r.pct, 0)} %</span>`).join("")}</div>
+    <p class="petit discret" style="margin-top:6px">D+ par quart : ${d.quarts.map((q) => "+" + entier(q)).join(" · ")} m — dénivelé ${d.placement}.${d.montees.length ? ` Plus grosse montée : +${entier(d.montees[0].gain)} m sur ${virgule(d.montees[0].lg / 1000, 1)} km à ${virgule(d.montees[0].pente, 1)} %, au km ${virgule(d.montees[0].km, 1)}.` : ""}</p>
+    <p class="petit tres-discret">Repères tirés du tracé (altitude lissée tous les 25 m), comme l'écran « Diagnostic de parcours » du logiciel, où l'on peut aussi comparer deux tracés.</p>`;
 }
 function dessinerTrace(pts) {
   const cadre = $("#trace"), lat = pts.map((p) => +p[0]), lon = pts.map((p) => +p[1]);
