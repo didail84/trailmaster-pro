@@ -293,7 +293,8 @@ class Analyses(QMainWindow):
         self.combo_mesure_evolution.currentIndexChanged.connect(self.actualiser)
 
         self.combo_periode_evolution = QComboBox()
-        self.combo_periode_evolution.addItems(["6 mois", "1 an", "2 ans"])
+        self.combo_periode_evolution.addItems(["30 jours (par jour)", "90 jours (par jour)", "12 semaines (par semaine)",
+                                               "52 semaines (par semaine)", "6 mois", "1 an", "2 ans"])
         self.combo_periode_evolution.setCurrentText("2 ans")
         self.combo_periode_evolution.currentIndexChanged.connect(self.actualiser)
 
@@ -584,10 +585,12 @@ class Analyses(QMainWindow):
 
         # --- Évolution des performances (mois par mois) ---
         mesure_evolution = self.combo_mesure_evolution.currentData()
-        nb_mois = {"6 mois": 6, "1 an": 12, "2 ans": 24}.get(
-            self.combo_periode_evolution.currentText(), 24
-        )
-        serie = serie_evolution_mensuelle(athlete_id, mesure_evolution, nb_mois=nb_mois)
+        from noyau.entrainement.evolution_performance import serie_evolution
+        pas, nb = {"30 jours (par jour)": ("jour", 30), "90 jours (par jour)": ("jour", 90),
+                   "12 semaines (par semaine)": ("semaine", 12), "52 semaines (par semaine)": ("semaine", 52),
+                   "6 mois": ("mois", 6), "1 an": ("mois", 12), "2 ans": ("mois", 24)}.get(
+            self.combo_periode_evolution.currentText(), ("mois", 24))
+        serie = serie_evolution(athlete_id, mesure_evolution, pas, nb)
         info_mesure = MESURES_EVOLUTION.get(mesure_evolution, {})
         self.courbe_evolution.definir_series([
             {

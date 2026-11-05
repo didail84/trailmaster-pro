@@ -1,5 +1,12 @@
 # Historique des versions
 
+## Trail Hub Center — VMA et VO2max par jour, par semaine ou par mois
+- Écran **VMA & circuits** : les courbes de VMA, VO2max et efficacité se lisent désormais jour par jour (30 jours, 90 jours ou 6 mois), semaine par semaine (12, 26 ou 52 semaines, du lundi au dimanche) ou mois par mois (12 ou 24 mois). À chaque point, la VMA du moment garde la même règle : moyenne des 3 meilleures sorties des 90 jours d'avant. Nouveau : des points orange montrent la meilleure sortie de chaque jour, semaine ou mois.
+- Écrans **Évolution des performances** (VO2max, FC, allure, D+, distance, durée) : même choix jour, semaine ou mois.
+- Correction : sur ces courbes, une période sans sortie comptait la distance, le D+ ou la durée de la période d'avant ; elle compte maintenant 0. Par jour ou par semaine, une moyenne sans mesure laisse un trou au lieu de répéter une valeur.
+- Page Claude : carte « VMA et VO2max » dans Forme et charge, avec les boutons Jour / Semaine / Mois (mêmes valeurs que le logiciel, vérifié point par point).
+- Tests : 256.
+
 ## Trail Hub Center — étape 2.4 (passeport coureur) : fin de l'étape 2
 - **Passeport coureur** : un fichier `.json` lisible qui transporte une personne d'un ordinateur à l'autre, ou d'un club à un coureur — sa fiche, ses rôles, son profil sportif, ses résultats de courses, ses index et, au choix, ses courses à venir, ses objectifs et ses coordonnées (non incluses par défaut). Les sorties et traces n'y sont pas : elles voyagent avec la sauvegarde complète.
 - Écran Personnes : « Exporter le passeport… » (choix du contenu) et « Importer un passeport coureur… » avec un aperçu avant import. Zéro doublon : chaque élément est reconnu par son identifiant universel, ou par la même course à la même date, le même index à la même date ; une personne inconnue par son identifiant est rapprochée par nom, prénom et date de naissance, et en cas d'homonymes le logiciel demande quelle fiche compléter. Le profil existant n'est complété que dans ses cases vides, sauf si l'on coche « Remplacer ». Tout l'import se fait d'un bloc : en cas d'erreur, rien n'est modifié. Un passeport d'une version plus récente est refusé avec un message clair.

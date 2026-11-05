@@ -76,7 +76,10 @@ class CourbeMultiLignes(QWidget):
         largeur = max(self.width() - marge_gauche - marge_droite, 1)
         hauteur = max(self.height() - marge_haut - marge_bas, 1)
 
-        toutes_valeurs = [v for serie in self.series for _, v in serie["valeurs"]]
+        # Une valeur None = pas de point à cet endroit (ex. aucune sortie ce jour-là)
+        toutes_valeurs = [v for serie in self.series for _, v in serie["valeurs"] if v is not None]
+        if not toutes_valeurs:
+            toutes_valeurs = [0]
         if self.bande:
             toutes_valeurs += [b for e in self.bande if e for b in e]
         toutes_valeurs += [r[0] for r in (self.reperes or [])]
@@ -131,7 +134,9 @@ class CourbeMultiLignes(QWidget):
         if self.remplissage:
             base = marge_haut + hauteur
             for serie in self.series:
-                pts = [vers_pixel(i, v) for i, (_, v) in enumerate(serie["valeurs"])]
+                if serie.get("points_seuls"):
+                    continue
+                pts = [vers_pixel(i, v) for i, (_, v) in enumerate(serie["valeurs"]) if v is not None]
                 if len(pts) < 2:
                     continue
                 aire = QPolygonF([QPointF(pts[0].x(), base)] + pts + [QPointF(pts[-1].x(), base)])
@@ -143,10 +148,20 @@ class CourbeMultiLignes(QWidget):
             painter.setBrush(Qt.BrushStyle.NoBrush)
 
         for serie in self.series:
-            points = [vers_pixel(i, v) for i, (_, v) in enumerate(serie["valeurs"])]
+            points = [vers_pixel(i, v) if v is not None else None for i, (_, v) in enumerate(serie["valeurs"])]
+            if serie.get("points_seuls"):
+                # nuage de points (ex. estimation de chaque sortie), sans ligne
+                painter.setPen(QPen(QColor("#15191D"), 1))
+                painter.setBrush(QColor(serie["couleur"]))
+                for pt in points:
+                    if pt is not None:
+                        painter.drawEllipse(pt, 3.2, 3.2)
+                painter.setBrush(Qt.BrushStyle.NoBrush)
+                continue
             painter.setPen(QPen(QColor(serie["couleur"]), 2))
             for i in range(1, len(points)):
-                painter.drawLine(points[i - 1], points[i])
+                if points[i - 1] is not None and points[i] is not None:
+                    painter.drawLine(points[i - 1], points[i])
 
         # Axe des valeurs
         painter.setPen(QColor("#7F878D"))
@@ -194,7 +209,7 @@ class CourbeMultiLignes(QWidget):
             lignes = []
             for serie in self.series:
                 valeurs = serie["valeurs"]
-                if i < len(valeurs):
+                if i < len(valeurs) and valeurs[i][1] is not None:
                     point = vers_pixel(i, valeurs[i][1])
                     painter.setPen(QPen(QColor("#15191D"), 2))
                     painter.setBrush(QColor(serie["couleur"]))

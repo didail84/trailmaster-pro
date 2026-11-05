@@ -562,7 +562,7 @@ function traceDe(a) {
 /* ================================================================
    État de la page
    ================================================================ */
-const etat = { modules: {}, source: "exemple", nomFichier: "", tailleFichier: 0, versionBase: null, athletes: [], athleteId: null, donnees: null, sortieChoisie: null, filtreType: "Tous", recherche: "", annee: "Toutes", fil: [], erreur: "" };
+const etat = { pasVma: (() => { const v = lireStockage("thc-pas-vma"); return ["jour", "semaine", "mois"].includes(v) ? v : "mois"; })(), modules: {}, source: "exemple", nomFichier: "", tailleFichier: 0, versionBase: null, athletes: [], athleteId: null, donnees: null, sortieChoisie: null, filtreType: "Tous", recherche: "", annee: "Toutes", fil: [], erreur: "" };
 
 function preparer(d) {
   d.activites = d.activites.map((a) => ({ ...a, _date: parseDate(a.date) })).filter((a) => a._date).sort((x, y) => y._date - x._date);
@@ -649,6 +649,7 @@ function courbe(cadre, { series, hauteur = 220, xDates = true, fmtX, fmtY = (v) 
   for (const s of series) {
     const pts = s.points.filter((p) => p.y !== null && p.y !== undefined);
     if (!pts.length) continue;
+    if (s.pointsSeuls) { for (const p of pts) svg += `<circle cx="${X(p.x).toFixed(1)}" cy="${Y(p.y).toFixed(1)}" r="3" fill="${s.couleur}" stroke="var(--carte)" stroke-width="1"/>`; continue; }
     const chemin = pts.map((p, i) => `${i ? "L" : "M"}${X(p.x).toFixed(1)},${Y(p.y).toFixed(1)}`).join("");
     if (aire) svg += `<path d="${chemin}L${X(pts[pts.length - 1].x).toFixed(1)},${Y(Math.max(y0, 0))}L${X(pts[0].x).toFixed(1)},${Y(Math.max(y0, 0))}Z" fill="${s.couleur}" fill-opacity=".16" stroke="none"/>`;
     svg += `<path d="${chemin}" fill="none" stroke="${s.couleur}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>`;
@@ -950,11 +951,71 @@ function vueForme() {
     ${carteLecture("forme")}
     <div class="carte"><header><h3>Forme et fatigue, 6 mois</h3><div class="legende"><span><i style="background:var(--bleu)"></i>Forme (42 jours)</span><span><i style="background:var(--orange)"></i>Fatigue (7 jours)</span></div></header><div class="graphe" id="g-forme"></div></div>
     <div class="carte"><header><h3>Fraîcheur</h3><span class="petit discret">Au-dessus de zéro : reposé. Sous −25 : très chargé.</span></header><div class="graphe" id="g-fraicheur"></div></div>
+    <div class="carte"><header><h3>VMA et VO2max — estimation basse</h3><div class="puces" role="group" aria-label="Pas des courbes">${PAS_COURBES.map(([k, lib]) => `<button type="button" class="puce" data-pas="${k}" aria-pressed="${etat.pasVma === k}">${lib}</button>`).join("")}</div></header>
+      <p class="petit discret">Même calcul que le logiciel. Ligne : VMA du moment, à chaque point la moyenne de tes 3 meilleures sorties des 90 jours d'avant (D+ converti en distance à plat, formule de Daniels). Points : meilleure sortie de la période. Calculées sur des sorties rarement maximales, ces valeurs sous-estiment ta vraie VMA : suis la tendance.</p>
+      <div class="legende"><span><i style="background:var(--bleu)"></i>VMA du moment (km/h)</span><span><i style="background:var(--orange);height:8px;width:8px;border-radius:50%"></i>Meilleure sortie de la période</span></div>
+      <div class="graphe" id="g-vma"></div>
+      <div class="legende"><span><i style="background:var(--accent-texte)"></i>VO2max du moment (ml/kg/min)</span></div>
+      <div class="graphe" id="g-vo2"></div></div>
     <div class="carte"><header><h3>Kilomètres par semaine</h3><span class="petit discret">26 dernières semaines, la semaine en cours en clair</span></header><div class="graphe" id="g-semaines"></div></div>
     <div class="carte"><header><h3>Bilan par année</h3></header><div class="tableau-cadre" id="t-annees"></div></div>
   </section>`;
 }
+/* VMA et VO2max par jour, semaine ou mois — repris de noyau/entrainement/vma.py et estimations_basses.py */
+const PAS_COURBES = [["jour", "Jour"], ["semaine", "Semaine"], ["mois", "Mois"]];
+const NB_PAS = { jour: 90, semaine: 52, mois: 24 };
+function vo2Daniels(distanceKm, sec) {
+  if (!distanceKm || !sec || sec <= 0) return null;
+  const mn = sec / 60, v = distanceKm * 1000 / mn, vo2 = -4.6 + 0.182258 * v + 0.000104 * v * v;
+  const pc = 0.8 + 0.1894393 * Math.exp(-0.012778 * mn) + 0.2989558 * Math.exp(-0.1932605 * mn);
+  return pc > 0 ? Math.round(vo2 / pc * 10) / 10 : null;
+}
+function vitesseDepuisVo2(vo2) { const a = 0.000104, b = 0.182258, c = -4.6 - vo2, dl = b * b - 4 * a * c; return dl <= 0 ? null : Math.round(((-b + Math.sqrt(dl)) / (2 * a)) * 0.06 * 100) / 100; }
+function effortsVma(acts) {
+  const r = [];
+  for (const a of acts) {
+    const km = nb(a.distance), sec = nb(a.duree);
+    if (!["Trail", "Course"].includes(a.type) || !km || km < 3 || !sec || sec <= 0) continue;
+    const dp = Math.min(nb(a.denivele) || 0, 60 * km), deq = km + dp / 125, al = sec / 60 / deq;
+    if (al < 3.5 || al > 9) continue;
+    const vo2 = vo2Daniels(deq, sec), vma = vo2 && vitesseDepuisVo2(vo2);
+    if (vma) r.push({ jour: cleJour(a._date), vma, vo2 });
+  }
+  return r.sort((x, y) => x.jour < y.jour ? -1 : 1);
+}
+function periodesCourbe(fin, pas, n) {
+  const r = [];
+  if (pas === "jour") for (let i = n - 1; i >= 0; i--) { const j = ajouterJours(fin, -i); r.push([j, j]); }
+  else if (pas === "semaine") { const l = lundiDe(fin); for (let i = n - 1; i >= 0; i--) { const d = ajouterJours(l, -7 * i), f = ajouterJours(d, 6); r.push([d, f > fin ? fin : f]); } }
+  else for (let i = n - 1; i >= 0; i--) { const d = new Date(fin.getFullYear(), fin.getMonth() - i, 1), f = new Date(d.getFullYear(), d.getMonth() + 1, 0); r.push([d, f > fin ? fin : f]); }
+  return r;
+}
+function moyenne3(eff, finCle, cle) {
+  const debut = cleJour(ajouterJours(parseDate(finCle), -90));
+  const v = eff.filter((e) => e.jour >= debut && e.jour <= finCle).map((e) => e[cle]).sort((a, b) => b - a).slice(0, 3);
+  return v.length ? Math.round(v.reduce((x, y) => x + y, 0) / v.length * 10) / 10 : null;
+}
+function seriesVma(d, pas) {
+  const eff = effortsVma(d.activites); if (!eff.length) return null;
+  const pts = periodesCourbe(parseDate(eff[eff.length - 1].jour), pas, NB_PAS[pas]).map(([deb, fin]) => {
+    const fc = cleJour(fin), dc = cleJour(deb), dans = eff.filter((e) => e.jour >= dc && e.jour <= fc).map((e) => e.vma);
+    return { x: fin, vma: moyenne3(eff, fc, "vma"), vo2: moyenne3(eff, fc, "vo2"), meilleure: dans.length ? Math.round(Math.max(...dans) * 10) / 10 : null };
+  });
+  while (pts.length && pts[0].vma === null) pts.shift();
+  let pv = null, po = null;
+  for (const p of pts) { if (p.vma === null) p.vma = pv; else pv = p.vma; if (p.vo2 === null) p.vo2 = po; else po = p.vo2; }
+  return pts;
+}
+function dessinerVma() {
+  const pts = seriesVma(etat.donnees, etat.pasVma), fx = etat.pasVma === "mois" ? (v) => new Date(v).toLocaleDateString("fr-FR", { month: "short", year: "2-digit" }) : (v) => fmtJourCourt(new Date(v));
+  if (!pts || pts.length < 2) { $("#g-vma").innerHTML = `<p class="vide">Pas assez de sorties Trail ou Course d'au moins 3 km.</p>`; $("#g-vo2").innerHTML = ""; return; }
+  courbe($("#g-vma"), { series: [{ nom: "VMA du moment", couleur: "var(--bleu)", points: pts.map((p) => ({ x: p.x, y: p.vma })), fmtBulle: (v) => virgule(v, 1) + " km/h" },
+    { nom: "Meilleure sortie", couleur: "var(--orange)", pointsSeuls: true, points: pts.map((p) => ({ x: p.x, y: p.meilleure })), fmtBulle: (v) => virgule(v, 1) + " km/h" }], fmtX: fx, fmtY: (v) => virgule(v, Number.isInteger(v) ? 0 : 1), hauteur: 200 });
+  courbe($("#g-vo2"), { series: [{ nom: "VO2max du moment", couleur: "var(--accent-texte)", points: pts.map((p) => ({ x: p.x, y: p.vo2 })), fmtBulle: (v) => virgule(v, 1) + " ml/kg/min" }], fmtX: fx, fmtY: (v) => virgule(v, Number.isInteger(v) ? 0 : 1), hauteur: 170 });
+}
 function dessinerForme() {
+  dessinerVma();
+  document.querySelectorAll("[data-pas]").forEach((b) => b.onclick = () => { etat.pasVma = b.dataset.pas; ecrireStockage("thc-pas-vma", etat.pasVma); document.querySelectorAll("[data-pas]").forEach((x) => x.setAttribute("aria-pressed", x === b)); dessinerVma(); });
   const s = etat.donnees.forme;
   courbe($("#g-forme"), { series: [
     { nom: "Forme", couleur: "var(--bleu)", points: s.map((j) => ({ x: j.date, y: j.fitness })) },

@@ -31,6 +31,7 @@ from statistics import mean, median
 
 from data.database import connexion
 from noyau.entrainement.vo2max import estimer_vo2max
+from noyau.outils.periodes import periodes, remplir_trous
 
 FENETRE_JOURS = 90
 NB_MEILLEURS = 3
@@ -116,14 +117,16 @@ def _vma_fenetre(efforts, fin_iso, jours=FENETRE_JOURS):
     return round(mean(valeurs[:NB_MEILLEURS]), 1)
 
 
-def calculer_vma(athlete_id):
+def calculer_vma(athlete_id, pas="mois", nb=None):
     """Retourne un dict :
     - actuelle : VMA estimée à la date de la dernière sortie (km/h)
     - date_reference : cette date (ISO)
     - meilleurs : les NB_MEILLEURS meilleurs efforts de la fenêtre
     - record : meilleure VMA (moyenne des 3 meilleures) sur une fenêtre
       de 90 jours, toutes périodes confondues, avec sa date
-    - serie : [(label_mois, vma_ou_None)] sur 24 mois
+    - serie : [(libellé, vma)] — un point par jour, semaine ou mois (`pas`),
+      24 mois / 52 semaines / 90 jours par défaut (`nb` points)
+    - serie_meilleure_sortie : [(libellé, vma ou None)] meilleure sortie de chaque période
     - nb_efforts : nombre de sorties exploitables
     ou None s'il n'y a aucune sortie exploitable."""
 
@@ -152,29 +155,20 @@ def calculer_vma(athlete_id):
             record = (v, fin_mois)
         jour = suivant
 
-    # Série mensuelle sur 24 mois
-    serie = []
-    fin_dt = date.fromisoformat(ref)
-    for i in range(23, -1, -1):
-        annee = fin_dt.year
-        mois = fin_dt.month - i
-        while mois < 1:
-            mois += 12
-            annee -= 1
-        premier = date(annee, mois, 1)
-        dernier = (premier.replace(day=28) + timedelta(days=4)).replace(day=1) - timedelta(days=1)
-        fin_mois = min(dernier, fin_dt).isoformat()
-        serie.append((f"{mois:02d}/{str(annee)[2:]}", _vma_fenetre(efforts, fin_mois)))
-    while serie and serie[0][1] is None:
-        serie.pop(0)
-    derniere_valeur = None
-    remplie = []
-    for label, v in serie:
-        if v is None:
-            v = derniere_valeur
-        else:
-            derniere_valeur = v
-        remplie.append((label, v))
+    # Série : un point par jour, par semaine ou par mois (24 mois par défaut).
+    # À chaque point, la VMA « du moment » garde la même règle : moyenne des
+    # 3 meilleures sorties des 90 jours qui précèdent la fin de la période.
+    points = periodes(date.fromisoformat(ref), pas, nb)
+    remplie = remplir_trous([(label, _vma_fenetre(efforts, fin.isoformat())) for label, _debut, fin in points])
+    # Meilleure sortie de chaque période (sans report : vide si aucune sortie)
+    meilleure = []
+    for label, debut, fin in points:
+        v = [e["vma"] for e in efforts if debut.isoformat() <= e["date"] <= fin.isoformat()]
+        meilleure.append((label, round(max(v), 1) if v else None))
+    premier = remplie[0][0] if remplie else None
+    if premier is not None:
+        labels = [l for l, _, _ in points]
+        meilleure = meilleure[labels.index(premier):]
 
     return {
         "actuelle": actuelle,
@@ -182,6 +176,8 @@ def calculer_vma(athlete_id):
         "meilleurs": meilleurs,
         "record": record,
         "serie": remplie,
+        "serie_meilleure_sortie": meilleure,
+        "pas": pas,
         "nb_efforts": len(efforts),
     }
 

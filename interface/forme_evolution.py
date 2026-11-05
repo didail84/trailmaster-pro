@@ -261,21 +261,26 @@ class EvolutionPerformances(_EcranAthlete):
     def __init__(self, athlete_id_initial=None):
         super().__init__(
             "📉  Évolution des performances",
-            "Une tendance de fond, mois par mois, sur jusqu'à deux ans.",
+            "Une tendance de fond, jour par jour, semaine par semaine ou mois par mois.",
             athlete_id_initial,
         )
         self.combo_mesure = QComboBox()
         for cle, info in MESURES_EVOLUTION.items():
             self.combo_mesure.addItem(info["libelle"], cle)
+        from noyau.outils.periodes import PAS, LIBELLE_PAS
+        self.combo_pas = QComboBox()
+        for code in PAS:
+            self.combo_pas.addItem(f"par {LIBELLE_PAS[code].lower()}", code)
+        self.combo_pas.setCurrentIndex(PAS.index("mois"))
         self.combo_periode = QComboBox()
-        for libelle, _ in PERIODES_EVOLUTION:
-            self.combo_periode.addItem(libelle)
-        self.combo_periode.setCurrentText("24 mois")
+        self._remplir_periodes()
         self.combo_mesure.currentIndexChanged.connect(self.actualiser)
+        self.combo_pas.currentIndexChanged.connect(lambda *_: (self._remplir_periodes(), self.actualiser()))
         self.combo_periode.currentIndexChanged.connect(self.actualiser)
         self.barre.insertWidget(2, QLabel("Mesure :"))
         self.barre.insertWidget(3, self.combo_mesure)
-        self.barre.insertWidget(4, self.combo_periode)
+        self.barre.insertWidget(4, self.combo_pas)
+        self.barre.insertWidget(5, self.combo_periode)
 
         ligne = QHBoxLayout()
         ligne.setSpacing(15)
@@ -291,6 +296,16 @@ class EvolutionPerformances(_EcranAthlete):
         self.principal.addWidget(self.cadre)
         self.principal.addStretch()
         self._finaliser()
+
+    def _remplir_periodes(self):
+        from noyau.outils.periodes import DUREES
+        pas = self.combo_pas.currentData()
+        self.combo_periode.blockSignals(True)
+        self.combo_periode.clear()
+        for libelle, nb in DUREES[pas]:
+            self.combo_periode.addItem(libelle, nb)
+        self.combo_periode.setCurrentIndex(1 if pas == "jour" else len(DUREES[pas]) - 1)
+        self.combo_periode.blockSignals(False)
 
     @staticmethod
     def _format(cle, valeur):
@@ -317,8 +332,9 @@ class EvolutionPerformances(_EcranAthlete):
             self.cadre.courbe.definir_series([])
             return
 
-        nb_mois = dict(PERIODES_EVOLUTION)[self.combo_periode.currentText()]
-        serie = serie_evolution_mensuelle(athlete_id, cle, nb_mois=nb_mois)
+        from noyau.entrainement.evolution_performance import serie_evolution
+        pas = self.combo_pas.currentData() or "mois"
+        serie = serie_evolution(athlete_id, cle, pas, self.combo_periode.currentData())
         self.cadre.courbe.echelle_ajustee = cle in ("vo2max", "fc_moyenne", "allure_moyenne")
         self.cadre.courbe.definir_series([
             {"nom": info.get("libelle", cle), "couleur": "#42A5F5", "valeurs": serie}
@@ -332,9 +348,10 @@ class EvolutionPerformances(_EcranAthlete):
         meilleure = min(valeurs) if cle == "allure_moyenne" else max(valeurs)
         label_meilleure = next(l for l, v in serie if v == meilleure)
         self.cartes["derniere"].valeur.setText(self._format(cle, derniere))
-        self.cartes["derniere"].detail.setText(f"mois {serie[-1][0]}")
+        quand = {"jour": "le", "semaine": "semaine du", "mois": "mois"}[pas]
+        self.cartes["derniere"].detail.setText(f"{quand} {serie[-1][0]}")
         self.cartes["meilleure"].valeur.setText(self._format(cle, meilleure))
-        self.cartes["meilleure"].detail.setText(f"mois {label_meilleure}")
+        self.cartes["meilleure"].detail.setText(f"{quand} {label_meilleure}")
         if premiere:
             ecart = (derniere - premiere) / premiere * 100
             if abs(ecart) < 1:

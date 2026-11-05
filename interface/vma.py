@@ -152,14 +152,37 @@ class VMACircuits(QMainWindow):
         self.bouton_appliquer.clicked.connect(self.appliquer_au_profil)
         self.principal.addWidget(self.bouton_appliquer, 0, Qt.AlignmentFlag.AlignLeft)
 
+        # Pas des courbes : jour, semaine ou mois (Trail Hub Center)
+        from noyau.outils.periodes import PAS, LIBELLE_PAS, DUREES
+        barre_pas = QHBoxLayout()
+        lp = QLabel("Courbes :")
+        lp.setObjectName("labelChamp")
+        self.combo_pas = QComboBox()
+        for code in PAS:
+            self.combo_pas.addItem(f"par {LIBELLE_PAS[code].lower()}", code)
+        self.combo_pas.setCurrentIndex(PAS.index("mois"))
+        self.combo_duree = QComboBox()
+        self._durees = DUREES
+        barre_pas.addWidget(lp)
+        barre_pas.addWidget(self.combo_pas)
+        barre_pas.addWidget(self.combo_duree)
+        barre_pas.addStretch()
+        self.principal.addLayout(barre_pas)
+        self._remplir_durees()
+        self.combo_pas.currentIndexChanged.connect(lambda *_: (self._remplir_durees(), self.actualiser()))
+        self.combo_duree.currentIndexChanged.connect(lambda *_: self.actualiser() if self.combo_duree.count() else None)
+
         # Évolution de la VMA
         c1 = QFrame()
         c1.setObjectName("carteForm")
         l1 = QVBoxLayout(c1)
         t1 = QLabel("📈 Évolution de la VMA sur 24 mois")
         t1.setObjectName("titreCarte")
+        self.titre_courbe_vma = t1
         self.note_methode = QLabel(
-            "Chaque point = moyenne des 3 meilleures sorties des 90 jours précédents. "
+            "Ligne = VMA du moment : à chaque jour, semaine ou mois, moyenne des 3 meilleures sorties "
+            "des 90 jours précédents. Points = meilleure sortie de la période (une sortie seule, "
+            "souvent plus basse : elle n'est pas toujours un effort maximal). "
             "Le D+ est converti en distance à plat (125 m de D+ ≈ 1 km), puis la formule de "
             "Daniels donne le VO2max, puis la vitesse correspondante. Une sortie tranquille "
             "sous-estime la VMA : seuls tes meilleurs efforts comptent."
@@ -289,8 +312,21 @@ class VMACircuits(QMainWindow):
     def _athlete(self):
         return self.combo_athlete.currentData()
 
+    def _remplir_durees(self):
+        pas = self.combo_pas.currentData()
+        self.combo_duree.blockSignals(True)
+        self.combo_duree.clear()
+        for libelle, nb in self._durees[pas]:
+            self.combo_duree.addItem(libelle, nb)
+        self.combo_duree.setCurrentIndex(len(self._durees[pas]) - 1 if pas != "jour" else 1)
+        self.combo_duree.blockSignals(False)
+
+    def _pas_et_nb(self):
+        return self.combo_pas.currentData() or "mois", self.combo_duree.currentData()
+
     def _maj_estimations(self, athlete_id):
-        series = estimations_basses.serie_estimations(athlete_id) if athlete_id else None
+        pas, nb = self._pas_et_nb()
+        series = estimations_basses.serie_estimations(athlete_id, pas=pas, nb=nb) if athlete_id else None
         defs = estimations_basses.definitions_courbes(series) if series else []
         for i, (lt, cb) in enumerate(zip(self.titres_estim, self.courbes_estim)):
             if i < len(defs):
@@ -322,8 +358,11 @@ class VMACircuits(QMainWindow):
             self.zone_kpi.addWidget(_carte_kpi("VMA", "—", "Sélectionne un athlète."))
             return
 
-        res = calculer_vma(athlete_id)
+        pas, nb = self._pas_et_nb()
+        res = calculer_vma(athlete_id, pas=pas, nb=nb)
         self.resultat = res
+        unite = {"jour": "jour par jour", "semaine": "semaine par semaine", "mois": "mois par mois"}[pas]
+        self.titre_courbe_vma.setText(f"📈 Évolution de la VMA, {unite} ({self.combo_duree.currentText()})")
         self._maj_estimations(athlete_id)
         profil = self._vma_profil(athlete_id)
 
@@ -349,10 +388,15 @@ class VMACircuits(QMainWindow):
                     f"fenêtre de 90 jours se terminant le {res['record'][1]}"))
             self.zone_kpi.addWidget(_carte_kpi(
                 "Sorties exploitées", str(res["nb_efforts"]), "Trail/Course ≥ 3 km"))
-            self.courbe_vma.definir_series([{
-                "nom": "VMA estimée (km/h)", "couleur": "#42A5F5",
+            series_vma = [{
+                "nom": "VMA du moment (km/h)", "couleur": "#42A5F5",
                 "valeurs": [(l, v) for l, v in res["serie"]],
-            }])
+            }]
+            meilleure = res.get("serie_meilleure_sortie") or []
+            if len(meilleure) == len(res["serie"]) and any(v is not None for _, v in meilleure):
+                series_vma.append({"nom": "Meilleure sortie de la période (km/h)", "couleur": "#FFA726",
+                                   "valeurs": meilleure, "points_seuls": True})
+            self.courbe_vma.definir_series(series_vma)
             _remplir(self.table_allures, [
                 (n, f"{p} %", a) for n, p, a in allures_reference(v)])
             _remplir(self.table_efforts, [

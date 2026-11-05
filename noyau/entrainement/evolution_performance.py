@@ -31,23 +31,23 @@ MESURES_EVOLUTION = {
     },
     "fc_moyenne": {
         "libelle": "FC moyenne (bpm)",
-        "note": "FC moyenne de toutes les sorties avec cardio, moyennée par mois.",
+        "note": "FC moyenne de toutes les sorties avec cardio, moyennée sur chaque période (jour, semaine ou mois).",
     },
     "allure_moyenne": {
         "libelle": "Allure moyenne (min/km)",
-        "note": "Allure moyenne des sorties Trail/Course, moyennée par mois — plus bas = plus rapide.",
+        "note": "Allure moyenne des sorties Trail/Course, moyennée sur chaque période — plus bas = plus rapide.",
     },
     "denivele": {
         "libelle": "Dénivelé D+ cumulé (m)",
-        "note": "D+ total grimpé dans le mois, tous types de sortie confondus.",
+        "note": "D+ total grimpé sur chaque période (jour, semaine ou mois), tous types de sortie confondus.",
     },
     "distance": {
         "libelle": "Distance cumulée (km)",
-        "note": "Distance totale parcourue dans le mois, tous types de sortie confondus.",
+        "note": "Distance totale parcourue sur chaque période, tous types de sortie confondus.",
     },
     "duree": {
         "libelle": "Durée cumulée (h)",
-        "note": "Temps d'entraînement total dans le mois, tous types de sortie confondus.",
+        "note": "Temps d'entraînement total sur chaque période, tous types de sortie confondus.",
     },
 }
 
@@ -93,17 +93,23 @@ def _activites_athlete(athlete_id, date_min_iso):
 def serie_evolution_mensuelle(athlete_id, mesure, nb_mois=24):
     """Retourne [(label_mois, valeur_ou_None), ...], du plus ancien au
     plus récent, pour la mesure demandée (clé de MESURES_EVOLUTION)."""
+    return serie_evolution(athlete_id, mesure, "mois", nb_mois)
 
-    mois_liste = _mois_glissants(nb_mois)
-    date_min = _premier_jour_mois(*mois_liste[0]) - timedelta(days=FENETRE_VO2MAX_JOURS)
+
+def serie_evolution(athlete_id, mesure, pas="mois", nb=None):
+    """Comme serie_evolution_mensuelle, mais un point par jour, par semaine
+    (lundi → dimanche) ou par mois. Les cumuls (distance, D+, durée) et les
+    moyennes (FC, allure) portent sur la période ; le VO2max garde sa fenêtre
+    glissante de 180 jours à chaque point."""
+
+    from noyau.outils.periodes import periodes
+    points = periodes(date.today(), pas, nb)
+    date_min = points[0][1] - timedelta(days=FENETRE_VO2MAX_JOURS)
     activites = _activites_athlete(athlete_id, date_min.isoformat())
 
     resultat = []
     derniere_valeur = None
-    for annee, mois in mois_liste:
-        label = f"{mois:02d}/{str(annee)[2:]}"
-        debut_mois = _premier_jour_mois(annee, mois)
-        fin_mois = _dernier_jour_mois(annee, mois)
+    for label, debut_mois, fin_mois in points:
 
         if mesure == "vo2max":
             debut_fenetre = fin_mois - timedelta(days=FENETRE_VO2MAX_JOURS)
@@ -171,10 +177,18 @@ def serie_evolution_mensuelle(athlete_id, mesure, nb_mois=24):
     while resultat and resultat[0][1] is None:
         resultat.pop(0)
 
+    # Cumuls (distance, D+, durée) : une période sans sortie vaut 0, pas la
+    # valeur de la période d'avant. Moyennes et VO2max : la dernière valeur
+    # connue est reportée par mois (comme avant) ; par jour ou par semaine,
+    # la courbe laisse un trou plutôt que de répéter une valeur.
+    cumul = mesure in ("distance", "denivele", "duree")
     resultat_rempli = []
     for label, valeur in resultat:
         if valeur is None:
-            valeur = derniere_valeur
+            if cumul:
+                valeur = 0
+            elif pas == "mois":
+                valeur = derniere_valeur
         else:
             derniere_valeur = valeur
         resultat_rempli.append((label, valeur))

@@ -13,6 +13,7 @@ from statistics import mean, median
 from data.database import connexion
 from noyau.entrainement.vma import _efforts_course, FENETRE_JOURS, NB_MEILLEURS
 from noyau.entrainement.vo2max import estimer_vo2max
+from noyau.outils.periodes import periodes, remplir_trous
 
 MENTION = "estimation basse"
 NOTE = (
@@ -74,29 +75,23 @@ def _efficacites(athlete_id):
     return res
 
 
-def serie_estimations(athlete_id, nb_mois=24):
-    """{"vma": [(label, v|None)], "vo2max": [...], "efficacite": [...]} (points mensuels,
-    dernière valeur reportée en cas de trou, début coupé au premier point connu).
+def serie_estimations(athlete_id, nb_mois=24, pas="mois", nb=None):
+    """{"vma": [(label, v|None)], "vo2max": [...], "efficacite": [...]} : un point par
+    jour, par semaine ou par mois (`pas`), dernière valeur reportée en cas de trou,
+    début coupé au premier point connu. À chaque point, même fenêtre glissante
+    (90 jours pour VMA et VO2max, 60 jours pour l'efficacité).
     Retourne None s'il n'y a aucune sortie exploitable."""
     efforts = _efforts_course(athlete_id)
     if not efforts:
         return None
     vo2 = _vo2_efforts(efforts)
     effs = _efficacites(athlete_id)
-    mois = _fins_de_mois(efforts[-1]["date"], nb_mois)
+    if nb is None and pas == "mois":
+        nb = nb_mois
+    fins = [(l, fin.isoformat()) for l, _d, fin in periodes(date.fromisoformat(efforts[-1]["date"]), pas, nb)]
 
     def construire(calc):
-        pts = [(l, calc(fin)) for l, fin in mois]
-        while pts and pts[0][1] is None:
-            pts.pop(0)
-        dernier, rempli = None, []
-        for l, v in pts:
-            if v is None:
-                v = dernier
-            else:
-                dernier = v
-            rempli.append((l, v))
-        return rempli
+        return remplir_trous([(l, calc(fin)) for l, fin in fins])
 
     def ef(fin):
         debut = (date.fromisoformat(fin) - timedelta(days=FENETRE_EFFICACITE_JOURS)).isoformat()
@@ -107,6 +102,7 @@ def serie_estimations(athlete_id, nb_mois=24):
         "vma": construire(lambda f: _moy_meilleurs(efforts, f, "vma")),
         "vo2max": construire(lambda f: _moy_meilleurs(vo2, f, "vo2")),
         "efficacite": construire(ef),
+        "pas": pas,
     }
 
 
