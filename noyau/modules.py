@@ -58,7 +58,9 @@ MODULES = (
     Module("direct", "Suivi en direct", "Coureur",
            "Ta position en direct par téléphone sur le Wi-Fi de la maison (premier pas vers Trail Live).",
            ("ouvrir_suivi_direct",)),
-    Module("nutrition", "Alimentation", "Coureur", "Journal alimentaire et fiches aliments.",
+    Module("nutrition", "Alimentation", "Coureur",
+           "Produits de course et Nutri-Score, fait maison (barres, gels, boissons), comparatif, tolérances "
+           "et besoins par heure, fiches aliments.",
            ("ouvrir_alimentation",), blocs=(12,)),
     Module("meteo", "Météo", "Coureur", "Prévisions pour tes sorties (connexion Internet nécessaire).",
            ("ouvrir_meteo",)),

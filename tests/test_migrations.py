@@ -57,7 +57,7 @@ def test_la_base_v108_est_en_version_0(base_v108):
 def test_conversion_sans_perte(base_v108):
     avant = {t: contenu(base_v108, t) for t in ("athletes", "activites", "parcours_gpx", "suivi_corporel")}
     bilan = mig.appliquer_migrations(base_v108)
-    assert bilan["avant"] == 0 and bilan["apres"] == mig.VERSION_LOGICIEL and bilan["appliquees"] == [1, 2, 3]
+    assert bilan["avant"] == 0 and bilan["apres"] == mig.VERSION_LOGICIEL and bilan["appliquees"] == [1, 2, 3, 4]
     for table, (cols, lignes) in avant.items():
         assert contenu(base_v108, table) == (cols, lignes), table  # toutes les valeurs sont intactes
     c = sqlite3.connect(base_v108)
@@ -66,7 +66,8 @@ def test_conversion_sans_perte(base_v108):
     assert all(FORMAT_UUID.match(u) for u in uuids)
     assert c.execute("SELECT version, description FROM schema_version").fetchall() == [
         (1, "Identifiant universel (UUID) pour chaque donnée"), (2, "Fiche Personne unique et rôles"),
-        (3, "Index de performance (ITRA, UTMB, Betrail)")]
+        (3, "Index de performance (ITRA, UTMB, Betrail)"),
+        (4, "Nutrition de course : produits, tolérances, recettes fait maison")]
     c.close()
 
 

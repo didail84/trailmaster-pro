@@ -677,7 +677,9 @@ class RoadbookCourse(_EcranAthlete):
                 self._passages[-1]["temps_s"], jour, self._facteurs)
             if self._scenarios:
                 self._passages = self._scenarios["realiste"]["passages"]
-            self._sacs = strat.sacs_assistance(self._scenarios, self._nutrition, self.spin_temp.value())
+            from noyau.nutrition.tolerances import produits_course_de
+            self._sacs = strat.sacs_assistance(self._scenarios, self._nutrition, self.spin_temp.value(),
+                                               produits_course_de(self.athlete_id()))
             self.label_niveau.setText(
                 f"{msg} Allure plat équivalente : {int(allure)}:{int(round((allure % 1) * 60)):02d} /km · "
                 f"temps estimé {rbk.texte_duree(self._passages[-1]['temps_s'])} · "

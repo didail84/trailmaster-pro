@@ -97,12 +97,14 @@ def _nuit(dt):
     return dt.hour >= HEURE_NUIT_DEBUT or dt.hour < HEURE_NUIT_FIN
 
 
-def sacs_assistance(scenarios, nutrition, temperature_c=15):
+def sacs_assistance(scenarios, nutrition, temperature_c=15, mes_produits=None):
     """Pour chaque point « Assistance » : quand tes proches doivent y être et ce
     que le sac doit contenir pour aller jusqu'à l'assistance suivante (ou
     l'arrivée). `nutrition` : lignes de rbk.nutrition_par_troncon (scénario réaliste).
     Renvoie [{nom, km, heures: {code: datetime}, jusqua, duree_s, glucides_g, eau_ml,
-    gels, barres, ravitos, lignes: [texte]}]."""
+    gels, barres, ravitos, lignes: [texte]}].
+    `mes_produits` : tes produits favoris ou validés (Nutrition de course) ; le sac est alors
+    composé avec eux plutôt qu'avec des gels et barres « standard »."""
     from noyau.course.ravitaillement import GEL_G, BARRE_G
     real = scenarios.get("realiste")
     if not real:
@@ -128,8 +130,17 @@ def sacs_assistance(scenarios, nutrition, temperature_c=15):
         gels = int(round(gluc * 0.7 / GEL_G))
         barres = int(round(gluc * 0.3 / BARRE_G))
         portions = " et ".join(x for x in (f"{gels} gel(s)" if gels else "", f"{barres} barre(s)" if barres else "") if x)
-        lignes = [f"Nourriture pour {rbk.texte_duree(duree)} : environ {gluc} g de glucides"
-                  + (f", soit {portions}" if portions else "") + " — ou tes produits testés à l'entraînement."]
+        compo = []
+        if mes_produits:
+            from noyau.nutrition.tolerances import composer
+            compo = composer(gluc, mes_produits)
+        if compo:
+            texte = " + ".join(f"{n} × {p_['nom']}" for p_, n in compo)
+            lignes = [f"Nourriture pour {rbk.texte_duree(duree)} : environ {gluc} g de glucides, avec tes produits : "
+                      f"{texte}."]
+        else:
+            lignes = [f"Nourriture pour {rbk.texte_duree(duree)} : environ {gluc} g de glucides"
+                      + (f", soit {portions}" if portions else "") + " — ou tes produits testés à l'entraînement."]
         if ravitos:
             lignes.append(f"Eau : {eau} ml sur le tronçon ; remplis tes flasques à {', '.join(ravitos)}.")
         else:
@@ -146,7 +157,8 @@ def sacs_assistance(scenarios, nutrition, temperature_c=15):
         lignes.append("Boisson ou repas salé pris sur place (soupe, compote, boisson de récupération).")
         sacs.append({"nom": p["nom"], "km": p["km"], "heures": heures,
                      "jusqua": passages[fin]["nom"], "duree_s": duree, "glucides_g": gluc, "eau_ml": eau,
-                     "gels": gels, "barres": barres, "ravitos": ravitos, "nuit": nuit, "lignes": lignes})
+                     "gels": gels, "barres": barres, "ravitos": ravitos, "nuit": nuit, "lignes": lignes,
+                     "produits": [(p_["nom"], n) for p_, n in compo]})
     return sacs
 
 

@@ -1,5 +1,34 @@
 # Historique des versions
 
+## Trail Hub Center — étape 3.3 : Nutrition de course (bloc 12)
+- Alimentation : quatre nouveaux onglets en tête, **Produits de course**, **Fait maison**, **Comparatif** et **Tolérances et besoins**. Le journal des repas et les fiches aliments sont inchangés.
+- **Produits de course** :
+  - tes gels, barres, boissons, pâtes de fruits et produits salés, avec par portion les glucides, l'énergie, le sodium, la caféine et le prix ;
+  - 14 produits génériques sans marque donnent des valeurs typiques ;
+  - ajout à la main avec l'étiquette, ou par code-barres et par nom depuis **Open Food Facts** (connexion Internet ; les valeurs sont proposées à vérifier avant d'enregistrer) ;
+  - produits favoris (★), et détail des points du Nutri-Score de chaque produit.
+- **Nutri-Score (lettres A à E)** calculé avec l'algorithme révisé appliqué depuis 2024, avec les tableaux des aliments et des boissons :
+  - l'eau est classée A, les édulcorants comptent dans les boissons, et les protéines ne comptent plus quand le score négatif atteint 11 (sauf pour les fromages) ;
+  - le Nutri-Score imprimé sur l'emballage, quand il est connu, s'affiche à côté du calcul ;
+  - un rappel explique qu'un produit d'effort sucré est normalement classé D ou E.
+- **Fait maison** :
+  - 8 recettes de départ : gel miel-citron salé, gel 2:1 maltodextrine-fructose, barres avoine-dattes, riz cakes, boules abricot-amande, boisson isotonique, boisson haute dose (90 g par bidon) et boisson de récupération au chocolat ;
+  - 34 ingrédients aux valeurs moyennes du type de la table Ciqual, plus un « ingrédient libre » pour recopier ton étiquette ;
+  - calcul en direct des glucides, de l'énergie et du sodium par portion, du rapport glucose:fructose, de la concentration d'une boisson en g/L, du Nutri-Score et du coût par portion (prix en €/kg facultatif) ;
+  - avertissements : gel trop liquide, boisson trop concentrée, trop de fructose, pas assez de sel, fibres, caféine ;
+  - bouton « Viser » : il ajoute ce qu'il faut de maltodextrine, de dextrose, de sucre, de miel ou de fructose pour atteindre le nombre de glucides voulu par portion ;
+  - une recette enregistrée rejoint tes produits (marque « Fait maison ») pour être comparée et testée.
+- **Comparatif** de 2 à 4 produits : glucides par portion et pour 100 g, sodium, caféine, glucose:fructose, fibres, prix, prix pour 60 g de glucides (environ 1 h d'effort), ta tolérance et le Nutri-Score, plus des phrases de synthèse (le plus de glucides, le moins cher, le plus salé, la caféine avec les repères de l'EFSA, les fibres, ce qui t'a déjà gêné).
+- **Tolérances** :
+  - pour chaque essai : contexte, durée, quantité, glucides par heure, température, ressenti et symptômes ;
+  - verdict par produit : Validé (au moins 2 essais sans souci, dont un long), À confirmer, Avec prudence, À éviter ou Jamais testé ;
+  - ton apport de glucides le plus haut bien toléré, et un conseil d'entraînement du ventre (+10 g/h par semaine).
+- **Besoins par heure** : glucides, eau et sodium selon la durée, la température, l'intensité et ton poids, avec le menu heure par heure composé de tes produits favoris ou validés (les produits à éviter sont écartés, des pastilles d'électrolytes complètent le sodium).
+- Roadbook : les **sacs d'assistance** sont composés avec tes produits favoris ou validés (« 3 × Gel… + 1 × Barres avoine-dattes ») au lieu de gels et barres « standard ».
+- Migration n° 4 de la base : produits, essais de tolérance et recettes. La v108 fonctionne toujours sur la base convertie.
+- Page Claude : nouvelle rubrique **Nutrition de course**, avec tes produits et leur Nutri-Score, ta tolérance, un comparatif (touche les lignes pour les choisir), le calculateur fait maison en direct et la lecture de Claude. Les calculs sont les mêmes que dans le logiciel (vérifié recette par recette).
+- Tests : 290.
+
 ## Trail Hub Center — étape 3.2 : Diagnostic et comparaison de parcours (bloc 16)
 - Cartes & Traces : nouvel onglet **« 📐 Diagnostic de parcours »**. Tu choisis un parcours de ta bibliothèque ou tu charges un GPX (une course à venir, par exemple). L'écran donne le km-effort (km + D+/100), la catégorie ITRA (XXS à XXL) et le type de terrain (D+ par km). Il affiche aussi **ton temps estimé**, appris sur tes sorties comme dans le Roadbook.
 - **Pentes** : une barre de couleur montre la part de la distance dans chaque classe de pente, de la descente raide (< −15 %) au très raide (> 25 %). Sont indiquées aussi la pente la plus raide tenue sur 200 m et sur 1 km, et la descente la plus raide.

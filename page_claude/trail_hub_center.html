@@ -128,6 +128,20 @@ main { padding-block: 22px 60px; padding-left: max(16px, env(safe-area-inset-lef
 .etat.vert { color: var(--vert); } .etat.orange { color: var(--orange); } .etat.rouge { color: var(--rouge); } .etat.jaune { color: var(--jaune); } .etat.neutre { color: var(--texte-2); }
 .vide { color: var(--texte-3); font-size: .9rem; padding: 6px 0; }
 
+/* Nutrition de course */
+.ns { display: inline-grid; place-items: center; width: 26px; height: 26px; border-radius: 7px; font-weight: 800; font-family: var(--police-titre); color: #fff; font-size: .95rem; flex: none; }
+.ns.grand { width: 44px; height: 44px; border-radius: 10px; font-size: 1.5rem; }
+.ns-A { background: #038141; } .ns-B { background: #85BB2F; color: #111; } .ns-C { background: #FECB02; color: #111; } .ns-D { background: #EE8100; } .ns-E { background: #E63E11; } .ns-x { background: var(--texte-3); }
+tr.choisi-cmp td { background: var(--accent-doux); }
+tr[data-produit] { cursor: pointer; }
+.recette-lignes { display: grid; gap: 6px; }
+.liste-puces { margin: 0; padding-left: 1.2em; display: grid; gap: 4px; font-size: .9rem; }
+.recette-ligne { display: grid; grid-template-columns: minmax(0, 1fr) 110px; gap: 6px; }
+.recette-ligne select, .recette-ligne input, .recette-tete select, .recette-tete input { border: 1px solid var(--bordure); background: var(--carte); color: var(--texte); padding: 7px 9px; border-radius: 8px; min-width: 0; font: inherit; }
+.recette-tete { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) 110px; gap: 6px; }
+@media (max-width: 520px) { .recette-tete { grid-template-columns: minmax(0, 1fr); } }
+.verdict-valide { color: var(--vert); } .verdict-a_confirmer { color: var(--bleu); } .verdict-prudence { color: var(--orange); } .verdict-eviter { color: var(--rouge); } .verdict-jamais { color: var(--texte-3); }
+
 /* Listes */
 .liste { display: flex; flex-direction: column; }
 .liste > * + * { border-top: 1px solid var(--bordure); }
@@ -466,6 +480,7 @@ function donneesExemple() {
   ];
   const traces = new Map(activites.filter((a) => a.type !== "Randonnée").map((a) => [a.id, { id: a.id, activite_id: a.id }]));
   return { athletes: [athlete], athleteId: 1, tables: { athlete, activites, suivi, sommeil, recup, garmin: [], blessures, soins, courses, resultats, objectifs, materiel, seances, plans: [], musculation: [], traces, analyses: new Map(),
+    produits: [], essais: [], recettes: [],
     index: [{ organisme: "ITRA", categorie: "Général", valeur: 512, date_releve: cleJour(ajouterJours(auj, -30)), source: "Exemple" }, { organisme: "UTMB Index", categorie: "Général", valeur: 498, date_releve: cleJour(ajouterJours(auj, -30)), source: "Exemple" }] } };
 }
 function traceExemple(a) {
@@ -540,6 +555,7 @@ function lireAthlete(idAth) {
     soins: t("soins", "date DESC"), courses: t("courses_calendrier", "date"), resultats: t("resultats_courses", "date DESC"),
     objectifs: t("objectifs", "date_cible"), materiel: t("materiel", "id"), seances: t("seances_structurees", "date_prevue"),
     plans: t("plans_entrainement", "date_debut DESC"), musculation: t("musculation_suivi", "date"), traces,
+    produits: t("produits_nutrition", "nom"), essais: t("tolerances_nutrition", "date DESC, id DESC"), recettes: t("recettes_nutrition", "nom"),
     index: Base.tablesPresentes.has("index_performance") && Base.cols("athletes").includes("personne_id")
       ? Base.tous("SELECT i.organisme, i.categorie, i.valeur, i.date_releve, i.source FROM index_performance i JOIN athletes a ON a.personne_id = i.personne_id WHERE a.id = ? ORDER BY i.date_releve DESC", [idAth])
       : [],
@@ -750,15 +766,16 @@ const ICONES = {
   courses: '<path d="M3 14V2.5M3 3h8.5l-1.8 2.6L11.5 8H3" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round"/>',
   blessures: '<rect x="2" y="5.5" width="12" height="5" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.4" transform="rotate(-35 8 8)"/><circle cx="8" cy="8" r=".9" fill="currentColor"/>',
   materiel: '<path d="M2 11.5c2.5 0 3.5-1 4.5-3l1-2 2 1.5c1 .8 2.5 1.3 4.5 1.5v2.5H2z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/>',
+  nutrition: '<path d="M6 2.5h4M6.5 2.5v2.2L4.6 7.4A3 3 0 0 0 4 9.2V12a1.5 1.5 0 0 0 1.5 1.5h5A1.5 1.5 0 0 0 12 12V9.2a3 3 0 0 0-.6-1.8L9.5 4.7V2.5" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round"/><path d="M4.3 9.5h7.4" stroke="currentColor" stroke-width="1.3"/>',
   coach: '<path d="M2.5 3.5h11v7h-6l-3 2.5v-2.5h-2z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="M5.5 6.5h5M5.5 8.5h3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>',
 };
 const RUBRIQUES = [
   ["aujourdhui", "Aujourd'hui", "Aujourd'hui"], ["fil", "Fil d'activité", "Fil"], ["sorties", "Sorties", "Sorties"], ["forme", "Forme et charge", "Forme"],
   ["sante", "Poids et sommeil", "Santé"], ["courses", "Courses et objectifs", "Courses"], ["blessures", "Blessures et soins", "Blessures"],
-  ["materiel", "Matériel", "Matériel"], ["coach", "Demander à Claude", "Claude"],
+  ["materiel", "Matériel", "Matériel"], ["nutrition", "Nutrition de course", "Nutrition"], ["coach", "Demander à Claude", "Claude"],
 ];
 const icone = (k) => `<svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">${ICONES[k]}</svg>`;
-const MODULE_DE_RUBRIQUE = { sante: "suivi", blessures: "suivi", materiel: "suivi", courses: "courses" };
+const MODULE_DE_RUBRIQUE = { sante: "suivi", blessures: "suivi", materiel: "suivi", courses: "courses", nutrition: "nutrition" };
 function rubriqueVisible(k) { const m = MODULE_DE_RUBRIQUE[k]; return !m || etat.modules[m] !== false; }
 function rubriqueCourante() { const h = location.hash.replace("#", ""); return RUBRIQUES.some((r) => r[0] === h) && rubriqueVisible(h) ? h : (h === "ouvrir" ? "ouvrir" : "aujourdhui"); }
 
@@ -1192,6 +1209,186 @@ function vueMateriel() {
   </section>`;
 }
 
+/* ---------- Nutrition de course (mêmes calculs que noyau/nutrition/) ---------- */
+const NUTRI = /*NUTRITION_DEBUT*/{"aliment":{"energie_kj":[335,670,1005,1340,1675,2010,2345,2680,3015,3350],"ags_g":[1.0,2.0,3.0,4.0,5.0,6.0,7.0,8.0,9.0,10.0],"sucres_g":[3.4,6.8,10,14,17,20,24,27,31,34,37,41,44,48,51],"sel_g":[0.2,0.4,0.6,0.8,1.0,1.2,1.4,1.6,1.8,2.0,2.2,2.4,2.6,2.8,3.0,3.2,3.4,3.6,3.8,4.0],"fibres_g":[3.0,4.1,5.2,6.3,7.4],"proteines_g":[2.4,4.8,7.2,9.6,12,14,17]},"boisson":{"energie_kj":[30,90,150,210,240,270,300,330,360,390],"ags_g":[1.0,2.0,3.0,4.0,5.0,6.0,7.0,8.0,9.0,10.0],"sucres_g":[0.5,2,3.5,5,6,7,8,9,10,11],"sel_g":[0.2,0.4,0.6,0.8,1.0,1.2,1.4,1.6,1.8,2.0,2.2,2.4,2.6,2.8,3.0,3.2,3.4,3.6,3.8,4.0],"fibres_g":[3.0,4.1,5.2,6.3,7.4],"proteines_g":[1.2,1.5,1.8,2.1,2.4,2.7,3.0]},"fvl":[[80,5],[60,2],[40,1]],"edulcorants":4,"couleurs":{"A":"#038141","B":"#85BB2F","C":"#FECB02","D":"#EE8100","E":"#E63E11"},"kj":4.184,"sodiumParGSel":393.4,"ingredients":{"eau":{"nom":"Eau","kcal":0,"glucides_g":0,"sucres_g":0,"fibres_g":0,"proteines_g":0,"lipides_g":0,"ags_g":0,"sel_g":0,"glucose_g":0,"fructose_g":0,"fvl":false,"cafeine_mg":0},"flocons_avoine":{"nom":"Flocons d'avoine","kcal":370,"glucides_g":58,"sucres_g":1,"fibres_g":10,"proteines_g":13.5,"lipides_g":7,"ags_g":1.3,"sel_g":0.01,"glucose_g":57,"fructose_g":0,"fvl":false,"cafeine_mg":0},"dattes":{"nom":"Dattes séchées","kcal":282,"glucides_g":64,"sucres_g":63,"fibres_g":8,"proteines_g":2.5,"lipides_g":0.4,"ags_g":0.03,"sel_g":0.01,"glucose_g":31,"fructose_g":31,"fvl":true,"cafeine_mg":0},"raisins_secs":{"nom":"Raisins secs","kcal":300,"glucides_g":69,"sucres_g":64,"fibres_g":4.5,"proteines_g":3,"lipides_g":0.5,"ags_g":0.1,"sel_g":0.05,"glucose_g":31,"fructose_g":33,"fvl":true,"cafeine_mg":0},"abricots_secs":{"nom":"Abricots secs","kcal":240,"glucides_g":55,"sucres_g":50,"fibres_g":7,"proteines_g":3,"lipides_g":0.5,"ags_g":0.05,"sel_g":0.03,"glucose_g":30,"fructose_g":18,"fvl":true,"cafeine_mg":0},"banane":{"nom":"Banane mûre","kcal":90,"glucides_g":20,"sucres_g":15,"fibres_g":2.7,"proteines_g":1.2,"lipides_g":0.3,"ags_g":0.1,"sel_g":0.0,"glucose_g":13,"fructose_g":6,"fvl":true,"cafeine_mg":0},"compote_pomme":{"nom":"Compote de pomme sans sucre ajouté","kcal":55,"glucides_g":12,"sucres_g":11,"fibres_g":1.5,"proteines_g":0.3,"lipides_g":0.2,"ags_g":0.03,"sel_g":0.0,"glucose_g":4,"fructose_g":7,"fvl":true,"cafeine_mg":0},"miel":{"nom":"Miel","kcal":327,"glucides_g":81,"sucres_g":81,"fibres_g":0,"proteines_g":0.4,"lipides_g":0,"ags_g":0,"sel_g":0.01,"glucose_g":38,"fructose_g":42,"fvl":false,"cafeine_mg":0},"sirop_erable":{"nom":"Sirop d'érable","kcal":260,"glucides_g":67,"sucres_g":60,"fibres_g":0,"proteines_g":0,"lipides_g":0.1,"ags_g":0,"sel_g":0.03,"glucose_g":34,"fructose_g":31,"fvl":false,"cafeine_mg":0},"sirop_agave":{"nom":"Sirop d'agave","kcal":310,"glucides_g":76,"sucres_g":68,"fibres_g":0,"proteines_g":0.1,"lipides_g":0.4,"ags_g":0,"sel_g":0.0,"glucose_g":16,"fructose_g":56,"fvl":false,"cafeine_mg":0},"sirop_riz":{"nom":"Sirop de riz","kcal":316,"glucides_g":78,"sucres_g":45,"fibres_g":0,"proteines_g":0.5,"lipides_g":0,"ags_g":0,"sel_g":0.03,"glucose_g":78,"fructose_g":0,"fvl":false,"cafeine_mg":0},"sucre":{"nom":"Sucre blanc (saccharose)","kcal":400,"glucides_g":100,"sucres_g":100,"fibres_g":0,"proteines_g":0,"lipides_g":0,"ags_g":0,"sel_g":0,"glucose_g":50,"fructose_g":50,"fvl":false,"cafeine_mg":0},"sucre_roux":{"nom":"Sucre de canne roux","kcal":390,"glucides_g":97,"sucres_g":96,"fibres_g":0,"proteines_g":0.1,"lipides_g":0,"ags_g":0,"sel_g":0.05,"glucose_g":48,"fructose_g":48,"fvl":false,"cafeine_mg":0},"maltodextrine":{"nom":"Maltodextrine","kcal":380,"glucides_g":95,"sucres_g":7,"fibres_g":0,"proteines_g":0,"lipides_g":0,"ags_g":0,"sel_g":0.05,"glucose_g":95,"fructose_g":0,"fvl":false,"cafeine_mg":0},"dextrose":{"nom":"Dextrose (glucose)","kcal":364,"glucides_g":91,"sucres_g":91,"fibres_g":0,"proteines_g":0,"lipides_g":0,"ags_g":0,"sel_g":0,"glucose_g":91,"fructose_g":0,"fvl":false,"cafeine_mg":0},"fructose":{"nom":"Fructose en poudre","kcal":400,"glucides_g":100,"sucres_g":100,"fibres_g":0,"proteines_g":0,"lipides_g":0,"ags_g":0,"sel_g":0,"glucose_g":0,"fructose_g":100,"fvl":false,"cafeine_mg":0},"sel":{"nom":"Sel fin","kcal":0,"glucides_g":0,"sucres_g":0,"fibres_g":0,"proteines_g":0,"lipides_g":0,"ags_g":0,"sel_g":100,"glucose_g":0,"fructose_g":0,"fvl":false,"cafeine_mg":0},"jus_orange":{"nom":"Jus d'orange 100 %","kcal":44,"glucides_g":9.5,"sucres_g":8.7,"fibres_g":0.2,"proteines_g":0.7,"lipides_g":0.1,"ags_g":0,"sel_g":0.0,"glucose_g":4.3,"fructose_g":4.6,"fvl":true,"cafeine_mg":0},"jus_raisin":{"nom":"Jus de raisin 100 %","kcal":66,"glucides_g":16,"sucres_g":16,"fibres_g":0.1,"proteines_g":0.3,"lipides_g":0.1,"ags_g":0,"sel_g":0.01,"glucose_g":7.8,"fructose_g":8.2,"fvl":true,"cafeine_mg":0},"jus_pomme":{"nom":"Jus de pomme 100 %","kcal":46,"glucides_g":10.5,"sucres_g":10,"fibres_g":0.1,"proteines_g":0.1,"lipides_g":0.1,"ags_g":0,"sel_g":0.0,"glucose_g":3.3,"fructose_g":6.4,"fvl":true,"cafeine_mg":0},"jus_citron":{"nom":"Jus de citron","kcal":22,"glucides_g":2.4,"sucres_g":1.5,"fibres_g":0.3,"proteines_g":0.4,"lipides_g":0.2,"ags_g":0,"sel_g":0.0,"glucose_g":1.2,"fructose_g":1.0,"fvl":true,"cafeine_mg":0},"riz_cuit":{"nom":"Riz blanc cuit","kcal":140,"glucides_g":31,"sucres_g":0.1,"fibres_g":0.4,"proteines_g":2.7,"lipides_g":0.3,"ags_g":0.1,"sel_g":0.0,"glucose_g":31,"fructose_g":0,"fvl":false,"cafeine_mg":0},"patate_douce":{"nom":"Patate douce cuite","kcal":86,"glucides_g":18,"sucres_g":6,"fibres_g":3,"proteines_g":1.5,"lipides_g":0.1,"ags_g":0.03,"sel_g":0.05,"glucose_g":14,"fructose_g":2,"fvl":false,"cafeine_mg":0},"beurre_cacahuete":{"nom":"Beurre de cacahuète","kcal":600,"glucides_g":15,"sucres_g":7,"fibres_g":7,"proteines_g":25,"lipides_g":50,"ags_g":10,"sel_g":0.5,"glucose_g":11,"fructose_g":2,"fvl":false,"cafeine_mg":0},"amandes":{"nom":"Amandes","kcal":620,"glucides_g":7,"sucres_g":4.5,"fibres_g":12,"proteines_g":25,"lipides_g":53,"ags_g":4,"sel_g":0.01,"glucose_g":6,"fructose_g":1,"fvl":false,"cafeine_mg":0},"noix_cajou":{"nom":"Noix de cajou","kcal":600,"glucides_g":27,"sucres_g":6,"fibres_g":3,"proteines_g":18,"lipides_g":46,"ags_g":8,"sel_g":0.03,"glucose_g":25,"fructose_g":1,"fvl":false,"cafeine_mg":0},"graines_chia":{"nom":"Graines de chia","kcal":490,"glucides_g":8,"sucres_g":0,"fibres_g":34,"proteines_g":17,"lipides_g":31,"ags_g":3.3,"sel_g":0.04,"glucose_g":6,"fructose_g":0,"fvl":false,"cafeine_mg":0},"cacao":{"nom":"Cacao en poudre non sucré","kcal":375,"glucides_g":13,"sucres_g":1,"fibres_g":33,"proteines_g":22,"lipides_g":21,"ags_g":12.6,"sel_g":0.05,"glucose_g":12,"fructose_g":0,"fvl":false,"cafeine_mg":230},"chocolat_noir":{"nom":"Chocolat noir 70 %","kcal":570,"glucides_g":32,"sucres_g":28,"fibres_g":11,"proteines_g":8,"lipides_g":42,"ags_g":25,"sel_g":0.02,"glucose_g":18,"fructose_g":14,"fvl":false,"cafeine_mg":80},"lait_demi":{"nom":"Lait demi-écrémé","kcal":46,"glucides_g":4.8,"sucres_g":4.8,"fibres_g":0,"proteines_g":3.3,"lipides_g":1.6,"ags_g":1.0,"sel_g":0.1,"glucose_g":4.8,"fructose_g":0,"fvl":false,"cafeine_mg":0},"the_noir":{"nom":"Thé noir infusé","kcal":1,"glucides_g":0.2,"sucres_g":0,"fibres_g":0,"proteines_g":0.1,"lipides_g":0,"ags_g":0,"sel_g":0.0,"glucose_g":0,"fructose_g":0,"fvl":false,"cafeine_mg":20},"cafe":{"nom":"Café expresso","kcal":2,"glucides_g":0.3,"sucres_g":0,"fibres_g":0,"proteines_g":0.1,"lipides_g":0.2,"ags_g":0.1,"sel_g":0.01,"glucose_g":0,"fructose_g":0,"fvl":false,"cafeine_mg":200},"sirop_fruits":{"nom":"Sirop de fruits (grenadine, menthe…)","kcal":290,"glucides_g":72,"sucres_g":72,"fibres_g":0,"proteines_g":0,"lipides_g":0,"ags_g":0,"sel_g":0.01,"glucose_g":42,"fructose_g":30,"fvl":false,"cafeine_mg":0},"bouillon":{"nom":"Bouillon de légumes prêt à boire","kcal":5,"glucides_g":0.6,"sucres_g":0.3,"fibres_g":0.1,"proteines_g":0.2,"lipides_g":0.1,"ags_g":0.03,"sel_g":0.8,"glucose_g":0.4,"fructose_g":0.1,"fvl":false,"cafeine_mg":0}},"liquides":["bouillon","cafe","eau","jus_citron","jus_orange","jus_pomme","jus_raisin","lait_demi","the_noir"],"modeles":[{"nom":"Gel miel-citron salé","categorie":"Gel","portions":4,"ingredients":[{"code":"miel","g":100},{"code":"jus_citron","g":20},{"code":"eau","g":25},{"code":"sel","g":0.6}],"preparation":"Mélange le miel tiède, le jus de citron, l'eau et le sel jusqu'à ce que le sel soit dissous. Verse dans une flasque souple ou des petits sachets.","conservation":"1 semaine au réfrigérateur, 1 journée dans le sac."},{"nom":"Gel 2:1 maltodextrine-fructose","categorie":"Gel","portions":4,"ingredients":[{"code":"maltodextrine","g":60},{"code":"fructose","g":30},{"code":"eau","g":60},{"code":"jus_citron","g":10},{"code":"sel","g":0.8}],"preparation":"Dissous la maltodextrine et le fructose dans l'eau chaude (pas bouillante), ajoute le citron et le sel. Laisse épaissir au frais.","conservation":"1 semaine au réfrigérateur."},{"nom":"Barres avoine-dattes","categorie":"Barre","portions":8,"ingredients":[{"code":"flocons_avoine","g":120},{"code":"dattes","g":200},{"code":"beurre_cacahuete","g":40},{"code":"miel","g":30},{"code":"cacao","g":10},{"code":"sel","g":1}],"preparation":"Mixe les dattes dénoyautées avec le beurre de cacahuète et le miel, ajoute les flocons, le cacao et le sel. Tasse dans un moule tapissé de papier cuisson, 1 h au frais, coupe en 8.","conservation":"1 semaine au réfrigérateur, emballées une par une."},{"nom":"Riz cakes salés-sucrés","categorie":"Barre","portions":6,"ingredients":[{"code":"riz_cuit","g":300},{"code":"sirop_erable","g":30},{"code":"sel","g":1.5},{"code":"beurre_cacahuete","g":20}],"preparation":"Mélange le riz encore chaud avec le sirop, le sel et le beurre de cacahuète. Tasse dans un plat, laisse refroidir, coupe en 6 et emballe dans du papier aluminium.","conservation":"2 jours au réfrigérateur : à préparer la veille."},{"nom":"Boules abricot-amande","categorie":"Boule ou pâte de fruits","portions":10,"ingredients":[{"code":"abricots_secs","g":150},{"code":"raisins_secs","g":50},{"code":"amandes","g":50},{"code":"jus_citron","g":10}],"preparation":"Mixe le tout grossièrement, forme 10 boules à la main.","conservation":"10 jours au réfrigérateur dans une boîte fermée."},{"nom":"Boisson isotonique maison","categorie":"Boisson","portions":2,"ingredients":[{"code":"eau","g":750},{"code":"jus_orange","g":250},{"code":"miel","g":30},{"code":"sel","g":1.2}],"preparation":"Dissous le miel et le sel dans un peu d'eau tiède, ajoute le jus et le reste de l'eau. Pour 2 bidons de 500 ml.","conservation":"24 h au réfrigérateur."},{"nom":"Boisson haute dose 2:1 (90 g par bidon)","categorie":"Boisson","portions":1,"ingredients":[{"code":"eau","g":750},{"code":"maltodextrine","g":60},{"code":"fructose","g":30},{"code":"sel","g":1.5}],"preparation":"Secoue dans le bidon jusqu'à dissolution complète. Pour 1 bidon de 750 ml, soit environ 1 h d'effort long.","conservation":"À boire dans la journée."},{"nom":"Boisson de récupération chocolat","categorie":"Récupération","portions":2,"ingredients":[{"code":"lait_demi","g":500},{"code":"cacao","g":10},{"code":"miel","g":20}],"preparation":"Mélange au fouet ou au shaker. À boire dans l'heure qui suit l'effort.","conservation":"24 h au réfrigérateur."}],"generiques":[{"id":"g:gel","nom":"Gel énergétique classique","marque":"Générique","categorie":"Gel","type_nutriscore":"aliment","portion":35,"unite_portion":"g","energie_kcal":280,"glucides_g":71,"sucres_g":30,"fibres_g":0,"proteines_g":0,"lipides_g":0,"ags_g":0,"sel_g":0.3,"fruits_legumes_pct":0,"edulcorants":0,"cafeine_mg":0,"glucose_fructose":"surtout glucose","prix_portion":null,"code_barre":null,"nutriscore_officiel":null,"source":"Générique","recette_id":null,"favori":0,"notes":"","generique":true},{"id":"g:gel_cafeine","nom":"Gel énergétique caféiné","marque":"Générique","categorie":"Gel","type_nutriscore":"aliment","portion":35,"unite_portion":"g","energie_kcal":280,"glucides_g":71,"sucres_g":30,"fibres_g":0,"proteines_g":0,"lipides_g":0,"ags_g":0,"sel_g":0.3,"fruits_legumes_pct":0,"edulcorants":0,"cafeine_mg":75,"glucose_fructose":"surtout glucose","prix_portion":null,"code_barre":null,"nutriscore_officiel":null,"source":"Générique","recette_id":null,"favori":0,"notes":"","generique":true},{"id":"g:gel_2_1","nom":"Gel haute dose 2:1 (40 g)","marque":"Générique","categorie":"Gel","type_nutriscore":"aliment","portion":60,"unite_portion":"g","energie_kcal":270,"glucides_g":66,"sucres_g":25,"fibres_g":0,"proteines_g":0,"lipides_g":0,"ags_g":0,"sel_g":0.2,"fruits_legumes_pct":0,"edulcorants":0,"cafeine_mg":0,"glucose_fructose":"1:0,5","prix_portion":null,"code_barre":null,"nutriscore_officiel":null,"source":"Générique","recette_id":null,"favori":0,"notes":"","generique":true},{"id":"g:barre","nom":"Barre énergétique céréales-fruits","marque":"Générique","categorie":"Barre","type_nutriscore":"aliment","portion":40,"unite_portion":"g","energie_kcal":380,"glucides_g":65,"sucres_g":30,"fibres_g":4,"proteines_g":6,"lipides_g":8,"ags_g":2,"sel_g":0.3,"fruits_legumes_pct":0,"edulcorants":0,"cafeine_mg":0,"glucose_fructose":null,"prix_portion":null,"code_barre":null,"nutriscore_officiel":null,"source":"Générique","recette_id":null,"favori":0,"notes":"","generique":true},{"id":"g:pate_fruits","nom":"Pâte de fruits d'effort","marque":"Générique","categorie":"Pâte de fruits","type_nutriscore":"aliment","portion":25,"unite_portion":"g","energie_kcal":300,"glucides_g":75,"sucres_g":65,"fibres_g":1,"proteines_g":0,"lipides_g":0,"ags_g":0,"sel_g":0.05,"fruits_legumes_pct":0,"edulcorants":0,"cafeine_mg":0,"glucose_fructose":null,"prix_portion":null,"code_barre":null,"nutriscore_officiel":null,"source":"Générique","recette_id":null,"favori":0,"notes":"","generique":true},{"id":"g:compote","nom":"Compote de fruits en gourde","marque":"Générique","categorie":"Compote","type_nutriscore":"aliment","portion":90,"unite_portion":"g","energie_kcal":70,"glucides_g":15,"sucres_g":13,"fibres_g":1.5,"proteines_g":0.3,"lipides_g":0.2,"ags_g":0.05,"sel_g":0.0,"fruits_legumes_pct":95,"edulcorants":0,"cafeine_mg":0,"glucose_fructose":null,"prix_portion":null,"code_barre":null,"nutriscore_officiel":null,"source":"Générique","recette_id":null,"favori":0,"notes":"","generique":true},{"id":"g:boisson","nom":"Boisson d'effort 6 % (préparée)","marque":"Générique","categorie":"Boisson","type_nutriscore":"boisson","portion":500,"unite_portion":"ml","energie_kcal":24,"glucides_g":6,"sucres_g":4,"fibres_g":0,"proteines_g":0,"lipides_g":0,"ags_g":0,"sel_g":0.1,"fruits_legumes_pct":0,"edulcorants":0,"cafeine_mg":0,"glucose_fructose":null,"prix_portion":null,"code_barre":null,"nutriscore_officiel":null,"source":"Générique","recette_id":null,"favori":0,"notes":"","generique":true},{"id":"g:boisson_haute","nom":"Boisson d'effort haute dose 9 % (préparée)","marque":"Générique","categorie":"Boisson","type_nutriscore":"boisson","portion":500,"unite_portion":"ml","energie_kcal":36,"glucides_g":9,"sucres_g":3,"fibres_g":0,"proteines_g":0,"lipides_g":0,"ags_g":0,"sel_g":0.12,"fruits_legumes_pct":0,"edulcorants":0,"cafeine_mg":0,"glucose_fructose":"1:0,5","prix_portion":null,"code_barre":null,"nutriscore_officiel":null,"source":"Générique","recette_id":null,"favori":0,"notes":"","generique":true},{"id":"g:pastille","nom":"Pastille d'électrolytes (250 mg de sodium)","marque":"Générique","categorie":"Électrolytes","type_nutriscore":"non_applicable","portion":4.5,"unite_portion":"g","energie_kcal":0,"glucides_g":0,"sucres_g":0,"fibres_g":0,"proteines_g":0,"lipides_g":0,"ags_g":0,"sel_g":14.1,"fruits_legumes_pct":0,"edulcorants":0,"cafeine_mg":0,"glucose_fructose":null,"prix_portion":null,"code_barre":null,"nutriscore_officiel":null,"source":"Générique","recette_id":null,"favori":0,"notes":"À dissoudre dans un bidon d'eau.","generique":true},{"id":"g:banane","nom":"Banane","marque":"Générique","categorie":"Fruit","type_nutriscore":"aliment","portion":120,"unite_portion":"g","energie_kcal":90,"glucides_g":20,"sucres_g":15,"fibres_g":2.7,"proteines_g":1.2,"lipides_g":0.3,"ags_g":0.1,"sel_g":0.0,"fruits_legumes_pct":100,"edulcorants":0,"cafeine_mg":0,"glucose_fructose":null,"prix_portion":null,"code_barre":null,"nutriscore_officiel":null,"source":"Générique","recette_id":null,"favori":0,"notes":"","generique":true},{"id":"g:dattes","nom":"Dattes (2 grosses)","marque":"Générique","categorie":"Fruit","type_nutriscore":"aliment","portion":25,"unite_portion":"g","energie_kcal":282,"glucides_g":64,"sucres_g":63,"fibres_g":8,"proteines_g":2.5,"lipides_g":0.4,"ags_g":0.03,"sel_g":0.01,"fruits_legumes_pct":100,"edulcorants":0,"cafeine_mg":0,"glucose_fructose":null,"prix_portion":null,"code_barre":null,"nutriscore_officiel":null,"source":"Générique","recette_id":null,"favori":0,"notes":"","generique":true},{"id":"g:pain_epices","nom":"Pain d'épices","marque":"Générique","categorie":"Barre","type_nutriscore":"aliment","portion":30,"unite_portion":"g","energie_kcal":330,"glucides_g":73,"sucres_g":40,"fibres_g":2.5,"proteines_g":4,"lipides_g":1.5,"ags_g":0.3,"sel_g":0.4,"fruits_legumes_pct":0,"edulcorants":0,"cafeine_mg":0,"glucose_fructose":null,"prix_portion":null,"code_barre":null,"nutriscore_officiel":null,"source":"Générique","recette_id":null,"favori":0,"notes":"","generique":true},{"id":"g:chips","nom":"Chips salées (petit sachet)","marque":"Générique","categorie":"Salé","type_nutriscore":"aliment","portion":30,"unite_portion":"g","energie_kcal":540,"glucides_g":50,"sucres_g":0.5,"fibres_g":4.5,"proteines_g":6.5,"lipides_g":34,"ags_g":3,"sel_g":1.3,"fruits_legumes_pct":0,"edulcorants":0,"cafeine_mg":0,"glucose_fructose":null,"prix_portion":null,"code_barre":null,"nutriscore_officiel":null,"source":"Générique","recette_id":null,"favori":0,"notes":"","generique":true},{"id":"g:fromage","nom":"Fromage à pâte dure (comté…)","marque":"Générique","categorie":"Salé","type_nutriscore":"fromage","portion":30,"unite_portion":"g","energie_kcal":410,"glucides_g":0,"sucres_g":0,"fibres_g":0,"proteines_g":28,"lipides_g":33,"ags_g":20,"sel_g":0.8,"fruits_legumes_pct":0,"edulcorants":0,"cafeine_mg":0,"glucose_fructose":null,"prix_portion":null,"code_barre":null,"nutriscore_officiel":null,"source":"Générique","recette_id":null,"favori":0,"notes":"","generique":true}]}/*NUTRITION_FIN*/;
+const nsPts = (v, bornes) => v === null || v === undefined ? 0 : bornes.filter((b) => v > b + 1e-9).length;
+function nsFvl(pct) { for (const [b, pts] of NUTRI.fvl) if ((pct || 0) > b) return pts; return 0; }
+function nutriScore(p, type = "aliment") {
+  if (type === "eau") return { lettre: "A" };
+  if (type === "matiere_grasse" || type === "non_applicable") return { lettre: null, raison: "Nutri-Score non calculé pour ce type de produit." };
+  const kj = nb(p.energie_kj) ?? (nb(p.energie_kcal) === null ? null : nb(p.energie_kcal) * NUTRI.kj);
+  if (kj === null || nb(p.sucres_g) === null || nb(p.ags_g) === null || nb(p.sel_g) === null) return { lettre: null, raison: "Valeurs de l'étiquette incomplètes." };
+  const boisson = type === "boisson", t = boisson ? NUTRI.boisson : NUTRI.aliment;
+  const neg = nsPts(kj, t.energie_kj) + nsPts(nb(p.ags_g), t.ags_g) + nsPts(nb(p.sucres_g), t.sucres_g) + nsPts(nb(p.sel_g), t.sel_g) + (boisson && nb(p.edulcorants) ? NUTRI.edulcorants : 0);
+  const pf = nsPts(nb(p.fibres_g), t.fibres_g), pp = nsPts(nb(p.proteines_g), t.proteines_g), pv = nsFvl(nb(p.fruits_legumes_pct));
+  const pos = pf + pv + (boisson || type === "fromage" || neg < 11 ? pp : 0), sc = neg - pos;
+  const lettre = boisson ? (sc <= 2 ? "B" : sc <= 6 ? "C" : sc <= 9 ? "D" : "E") : (sc <= 0 ? "A" : sc <= 2 ? "B" : sc <= 10 ? "C" : sc <= 18 ? "D" : "E");
+  return { lettre, score: sc };
+}
+const pastilleNs = (l, grand = false) => `<span class="ns ns-${l || "x"}${grand ? " grand" : ""}" title="${l ? "Nutri-Score " + l : "Nutri-Score non calculé"}">${l || "–"}</span>`;
+const parPortion = (p, k) => nb(p[k]) === null || !nb(p.portion) ? null : nb(p[k]) * nb(p.portion) / 100;
+const sodiumPortion = (p) => { const s = parPortion(p, "sel_g"); return s === null ? null : s * NUTRI.sodiumParGSel; };
+const nsProduit = (p) => nutriScore(p, p.type_nutriscore || "aliment");
+function prixPour60(p) { const g = parPortion(p, "glucides_g"); return nb(p.prix_portion) && g ? p.prix_portion / g * 60 : null; }
+const LIB_VERDICT = { valide: "Validé", a_confirmer: "À confirmer", prudence: "Avec prudence", eviter: "À éviter", jamais: "Jamais testé" };
+function verdictProduit(es) {
+  if (!es.length) return { code: "jamais", nb: 0, detail: "Aucun essai noté : teste-le d'abord à l'entraînement." };
+  const r = es.slice(0, 3), graves = r.filter((e) => e.ressenti === "gene" || e.ressenti === "arret"), legers = r.filter((e) => e.ressenti === "leger");
+  const bons = es.filter((e) => e.ressenti === "bien"), longs = bons.filter((e) => e.contexte === "Sortie longue" || e.contexte === "Course" || (nb(e.duree_min) || 0) >= 120);
+  let code, detail;
+  if (r.some((e) => e.ressenti === "arret") || graves.length >= 2 || (graves.length && !bons.length)) { code = "eviter"; detail = "Gêne digestive lors de tes derniers essais : à garder pour l'entraînement, ou à écarter."; }
+  else if (graves.length || legers.length >= 2) { code = "prudence"; detail = "Toléré par moments seulement : essaie une plus petite quantité, plus d'eau avec."; }
+  else if (bons.length >= 2 && longs.length) { code = "valide"; detail = `${bons.length} essais sans souci, dont au moins un long : prêt pour la course.`; }
+  else { code = "a_confirmer"; detail = "Bien passé, mais à refaire au moins une fois sur une sortie longue (2 h ou plus) avant une course."; }
+  return { code, nb: es.length, detail };
+}
+function produitsNutrition() {
+  const d = etat.donnees, mes = (d.produits || []).map((p) => ({ ...p })), deja = new Set(mes.filter((p) => p.source === "Générique").map((p) => p.nom));
+  const essais = [...(d.essais || [])].sort((a, b) => String(b.date).localeCompare(String(a.date)) || b.id - a.id);
+  for (const p of mes) p._verdict = verdictProduit(essais.filter((e) => e.produit_id === p.id));
+  mes.sort((a, b) => (b.favori || 0) - (a.favori || 0) || String(a.categorie).localeCompare(String(b.categorie)) || String(a.nom).localeCompare(String(b.nom), "fr"));
+  return mes.concat(NUTRI.generiques.filter((g) => !deja.has(g.nom)).map((g) => ({ ...g })));
+}
+function calculerRecette(ing, nbPortions, categorie) {
+  const lignes = ing.filter((i) => (nb(i.g) || 0) > 0);
+  if (!lignes.length) return null;
+  nbPortions = Math.max(1, nb(nbPortions) || 1);
+  const K = ["kcal", "glucides_g", "sucres_g", "fibres_g", "proteines_g", "lipides_g", "ags_g", "sel_g", "glucose_g", "fructose_g", "cafeine_mg"];
+  const tot = Object.fromEntries(K.map((k) => [k, 0]));
+  let masse = 0, fvl = 0, cout = 0, coutConnu = true, malto = 0;
+  for (const i of lignes) {
+    const v = { ...(NUTRI.ingredients[i.code] || {}), ...Object.fromEntries(Object.entries(i.valeurs || {}).filter(([, x]) => x !== null && x !== undefined)) };
+    for (const k of K) tot[k] += (nb(v[k]) || 0) * i.g / 100;
+    masse += i.g; if (v.fvl) fvl += i.g;
+    if (i.code === "maltodextrine" || i.code === "sirop_riz") malto += (nb(v.glucides_g) || 0) * i.g / 100;
+    if (nb(i.prix_kg) === null) coutConnu = false; else cout += i.prix_kg * i.g / 1000;
+  }
+  const boisson = categorie === "Boisson" || categorie === "Récupération";
+  const pp = Object.fromEntries(K.map((k) => [k, tot[k] / nbPortions])), p100 = Object.fromEntries(K.map((k) => [k, tot[k] / masse * 100]));
+  const gl = tot.glucose_g, fr = tot.fructose_g, somme = gl + fr;
+  const ratio = somme > 0 ? (fr < 0.05 * somme ? "glucose seulement" : gl < 0.05 * somme ? "fructose seulement" : "1:" + (fr / gl).toFixed(1).replace(".", ",")) : null;
+  const partFr = somme ? fr / somme : null, conc = boisson ? tot.glucides_g / (masse / 1000) : null, na = pp.sel_g * NUTRI.sodiumParGSel;
+  const av = [], gp = pp.glucides_g, portion = masse / nbPortions;
+  if (categorie === "Gel" && gp < 15) av.push(`Gel léger : ${Math.round(gp)} g de glucides par portion (un gel du commerce en apporte 20 à 30 g).`);
+  if (categorie === "Gel" && portion && gp / portion < 0.45) av.push("Gel très liquide (moins de 45 % de glucides) : il coulera de la flasque, réduis l'eau.");
+  if (boisson && conc !== null) {
+    if (conc > 80 && tot.glucides_g && malto / tot.glucides_g > 0.5) av.push(`${Math.round(conc)} g de glucides par litre : boisson concentrée, mais à base de maltodextrine, souvent mieux tolérée qu'un sirop au même dosage. À tester à l'entraînement.`);
+    else if (conc > 80) av.push(`${Math.round(conc)} g de glucides par litre : boisson concentrée (hypertonique), elle hydrate moins vite et peut gêner l'estomac ; garde de l'eau pure à côté.`);
+    else if (conc < 30 && categorie === "Boisson") av.push(`Seulement ${Math.round(conc)} g de glucides par litre : boisson surtout hydratante.`);
+  }
+  if (partFr !== null && partFr > 0.6 && tot.glucides_g >= 20) av.push("Beaucoup de fructose (plus de 60 % des sucres) : risque de ballonnements à fort débit ; équilibre avec du glucose ou de la maltodextrine.");
+  if ((categorie === "Boisson" || categorie === "Gel") && na < 50 && gp >= 15) av.push("Presque pas de sodium : ajoute une pincée de sel (environ 0,5 g par 500 ml) si tu transpires.");
+  if (pp.fibres_g > 4 && categorie !== "Récupération") av.push(`${Math.round(pp.fibres_g)} g de fibres par portion : à manger plutôt au calme ou avant l'effort.`);
+  if (pp.cafeine_mg >= 20) av.push(`Environ ${Math.round(pp.cafeine_mg)} mg de caféine par portion.`);
+  const ns = nutriScore({ energie_kcal: p100.kcal, sucres_g: p100.sucres_g, ags_g: p100.ags_g, sel_g: p100.sel_g, fibres_g: p100.fibres_g, proteines_g: p100.proteines_g, fruits_legumes_pct: fvl / masse * 100 }, boisson ? "boisson" : "aliment");
+  return { masse, portion, pp, tot, na, ratio, conc, ns, av, cout: coutConnu ? cout / nbPortions : null };
+}
+function comparerProduits(ps) {
+  const g = ps.map((p) => parPortion(p, "glucides_g")), na = ps.map(sodiumPortion), caf = ps.map((p) => nb(p.cafeine_mg) || 0), p60 = ps.map(prixPour60), fib = ps.map((p) => parPortion(p, "fibres_g")), ns = ps.map(nsProduit);
+  const f = (v, d, u) => v === null || v === undefined ? "—" : virgule(v, d) + (u ? " " + u : "");
+  const lignes = [
+    ["Portion", ps.map((p) => nb(p.portion) ? virgule(p.portion, Number.isInteger(+p.portion) ? 0 : 1) + " " + (p.unite_portion || "g") : "—")],
+    ["Glucides par portion", g.map((v) => f(v, 0, "g"))], ["Énergie par portion", ps.map((p) => f(parPortion(p, "energie_kcal"), 0, "kcal"))],
+    ["Glucides pour 100 g ou 100 ml", ps.map((p) => f(nb(p.glucides_g), 0, "g"))], ["Sodium par portion", na.map((v) => f(v, 0, "mg"))],
+    ["Caféine", caf.map((v) => v >= 5 ? f(v, 0, "mg") : "non")], ["Rapport glucose:fructose", ps.map((p) => p.glucose_fructose || "—")],
+    ["Fibres par portion", fib.map((v) => f(v, 1, "g"))], ["Prix par portion", ps.map((p) => f(nb(p.prix_portion), 2, "€"))],
+    ["Prix pour 60 g de glucides (≈ 1 h)", p60.map((v) => f(v, 2, "€"))],
+    ["Ma tolérance", ps.map((p) => p.generique ? "—" : LIB_VERDICT[p._verdict?.code || "jamais"])],
+  ];
+  const ph = [], noms = ps.map((p) => p.nom);
+  const meilleur = (vals, grand = true) => { const idx = vals.map((v, i) => [v, i]).filter(([v]) => v !== null && v !== undefined); if (idx.length < 2) return null; idx.sort((a, b) => grand ? b[0] - a[0] : a[0] - b[0]); return idx; };
+  let m = meilleur(g); if (m && m[0][0] - m[1][0] >= 3) ph.push(`« ${noms[m[0][1]]} » apporte le plus de glucides par portion (${virgule(m[0][0], 0)} g) : moins de prises pour le même apport.`);
+  m = meilleur(p60, false); if (m) { const e = (m[m.length - 1][0] / m[0][0] - 1) * 100; ph.push(`« ${noms[m[0][1]]} » est le moins cher pour 60 g de glucides (${virgule(m[0][0], 2)} €)` + (e >= 10 ? `, jusqu'à ${Math.round(e)} % moins cher que les autres.` : ".")); }
+  else ph.push("Le prix par portion se renseigne dans le logiciel : il permet de comparer le coût d'une heure de course.");
+  m = meilleur(na); if (m && m[0][0] >= 100 && m[0][0] - m[1][0] >= 80) ph.push(`« ${noms[m[0][1]]} » est le plus salé (${virgule(m[0][0], 0)} mg de sodium) : utile par temps chaud.`);
+  ps.forEach((p, i) => { if (caf[i] >= 20) ph.push(`« ${noms[i]} » contient ${Math.round(caf[i])} mg de caféine : plutôt en seconde moitié de course ou la nuit, après l'avoir testé. L'EFSA situe la limite sans risque d'un adulte en bonne santé à 200 mg d'un coup et 400 mg sur la journée.`); if ((fib[i] || 0) > 3) ph.push(`« ${noms[i]} » a ${virgule(fib[i], 1)} g de fibres par portion : mieux en début d'effort ou à allure tranquille.`); });
+  ps.forEach((p, i) => { if (p._verdict?.code === "eviter") ph.push(`Attention : « ${noms[i]} » t'a déjà posé des problèmes digestifs.`); if (p._verdict?.code === "valide") ph.push(`« ${noms[i]} » est validé par tes essais : c'est un choix sûr pour la course.`); });
+  const L = ns.map((r) => r.lettre);
+  if (L.some((l) => l === "D" || l === "E")) ph.push("Nutri-Score : les produits d'effort sucrés sont classés D ou E, c'est normal. La lettre compte pour ce que tu manges au quotidien (en-cas, récupération), pas pour un ravitaillement.");
+  const connus = L.map((l, i) => [l, i]).filter(([l]) => l);
+  if (connus.length >= 2 && new Set(connus.map(([l]) => l)).size > 1) { connus.sort(); if (connus[0][0] <= "B") ph.push(`Au quotidien, « ${noms[connus[0][1]]} » est le meilleur choix nutritionnel (Nutri-Score ${connus[0][0]}).`); }
+  return { lignes, ns: L, phrases: ph };
+}
+function recettesDisponibles() {
+  const d = etat.donnees, mes = (d.recettes || []).map((r) => { let ing = []; try { ing = JSON.parse(r.ingredients_json || "[]"); } catch (e) { ing = []; } return { id: "r" + r.id, nom: r.nom, categorie: r.categorie, portions: nb(r.nb_portions) || 1, ingredients: ing, preparation: r.preparation, conservation: r.conservation, a_moi: true }; });
+  return mes.concat(NUTRI.modeles.map((m, i) => ({ ...m, id: "m" + i })));
+}
+function vueNutrition() {
+  const ps = produitsNutrition(), d = etat.donnees;
+  if (!etat.nutriSel || !etat.nutriSel.every((id) => ps.some((p) => String(p.id) === String(id)))) etat.nutriSel = ps.slice(0, 2).map((p) => p.id);
+  const sel = etat.nutriSel.map((id) => ps.find((p) => String(p.id) === String(id))).filter(Boolean);
+  const cmp = sel.length >= 2 ? comparerProduits(sel) : null;
+  const essais = d.essais || [], bien = essais.filter((e) => e.ressenti === "bien" && nb(e.glucides_g_h)).map((e) => nb(e.glucides_g_h));
+  const mes = ps.filter((p) => !p.generique);
+  const recs = recettesDisponibles();
+  if (!etat.recette || !recs.some((r) => r.id === etat.recette.id)) { const r0 = recs[0]; etat.recette = { id: r0.id, nom: r0.nom, categorie: r0.categorie, portions: r0.portions, ingredients: r0.ingredients.map((i) => ({ ...i })), preparation: r0.preparation, conservation: r0.conservation }; }
+  return `<section class="vue">
+    <div class="entete-vue"><h2>Nutrition de course</h2><p>Tes gels, barres, boissons et recettes fait maison : ce qu'ils apportent par portion, leur Nutri-Score et ce que ton ventre en pense. Ajout, prix et essais se notent dans le logiciel.</p></div>
+    ${carteLecture("nutrition")}
+    <div class="grille g4">
+      <div class="carte"><span class="etiquette">Mes produits</span><div class="mesure"><span class="valeur">${mes.length}</span><span class="detail">${mes.filter((p) => p.favori).length} favori(s) · ${mes.filter((p) => p.marque === "Fait maison").length} fait maison</span></div></div>
+      <div class="carte"><span class="etiquette">Validés pour la course</span><div class="mesure"><span class="valeur">${mes.filter((p) => p._verdict.code === "valide").length}</span><span class="detail">au moins 2 essais sans souci, dont un long</span></div></div>
+      <div class="carte"><span class="etiquette">À éviter</span><div class="mesure"><span class="valeur">${mes.filter((p) => p._verdict.code === "eviter").length}</span><span class="detail">gêne digestive lors des derniers essais</span></div></div>
+      <div class="carte"><span class="etiquette">Maximum bien toléré</span><div class="mesure"><span class="valeur">${bien.length ? Math.round(Math.max(...bien)) + "<small>g/h</small>" : "—"}</span><span class="detail">${bien.length ? "de glucides par heure, d'après tes essais" : "note tes glucides par heure à chaque essai"}</span></div></div>
+    </div>
+    <div class="carte"><header><h3>Produits</h3><span class="petit discret">touche une ligne pour l'ajouter au comparatif (4 au plus)</span></header>
+      <div class="tableau-cadre"><table><thead><tr><th></th><th>Produit</th><th>Catégorie</th><th class="num">Portion</th><th class="num">Glucides</th><th class="num">Sodium</th><th class="num">Prix</th><th>Nutri-Score</th><th>Ma tolérance</th></tr></thead><tbody>
+      ${ps.map((p) => { const r = nsProduit(p), choisi = etat.nutriSel.some((id) => String(id) === String(p.id)); return `<tr data-produit="${esc(p.id)}" tabindex="0" class="${choisi ? "choisi-cmp" : ""}" aria-selected="${choisi}"><td>${p.favori ? "★" : ""}</td><td>${esc(p.nom)}<br><span class="petit tres-discret">${esc(p.marque || "")}</span></td><td>${esc(p.categorie || "")}</td><td class="num">${nb(p.portion) ? virgule(p.portion, Number.isInteger(+p.portion) ? 0 : 1) + " " + esc(p.unite_portion || "g") : "—"}</td><td class="num">${virgule(parPortion(p, "glucides_g"), 0)} g</td><td class="num">${virgule(sodiumPortion(p), 0)} mg</td><td class="num">${nb(p.prix_portion) ? virgule(p.prix_portion, 2) + " €" : "—"}</td><td>${pastilleNs(r.lettre)}${p.nutriscore_officiel && p.nutriscore_officiel !== r.lettre ? ` <span class="petit tres-discret">étiquette ${esc(p.nutriscore_officiel)}</span>` : ""}</td><td class="verdict-${p.generique ? "jamais" : p._verdict.code}">${p.generique ? "générique" : LIB_VERDICT[p._verdict.code]}</td></tr>`; }).join("")}
+      </tbody></table></div>
+      <p class="petit tres-discret">Les produits génériques donnent des valeurs typiques sans marque. Le Nutri-Score (lettres A à E, algorithme 2024) juge l'alimentation de tous les jours pour 100 g ou 100 ml : un gel est presque toujours D ou E, c'est normal.</p>
+    </div>
+    <div class="carte"><header><h3>Comparatif</h3><span class="petit discret">${sel.length} produit(s) choisi(s)</span></header>
+      ${cmp ? `<div class="tableau-cadre"><table><thead><tr><th>Critère</th>${sel.map((p) => `<th>${esc(p.nom)}</th>`).join("")}</tr></thead><tbody>
+        <tr><td>Nutri-Score (au quotidien)</td>${cmp.ns.map((l) => `<td>${pastilleNs(l)}</td>`).join("")}</tr>
+        ${cmp.lignes.map(([c, v]) => `<tr><td>${esc(c)}</td>${v.map((x) => `<td>${esc(x)}</td>`).join("")}</tr>`).join("")}</tbody></table></div>
+        <ul class="liste-puces">${cmp.phrases.map((x) => `<li>${esc(x)}</li>`).join("")}</ul>` : `<p class="vide">Choisis au moins deux produits dans le tableau.</p>`}
+    </div>
+    <div class="carte" id="fait-maison"><header><h3>Fait maison : barres, gels et boissons</h3><span class="petit discret">calcul en direct, rien n'est enregistré ici</span></header>
+      <div class="recette-tete">
+        <select id="rec-choix" aria-label="Recette">${recs.map((r) => `<option value="${r.id}" ${r.id === etat.recette.id ? "selected" : ""}>${esc(r.nom)}${r.a_moi ? " (ma recette)" : ""}</option>`).join("")}</select>
+        <select id="rec-cat" aria-label="Catégorie">${["Barre", "Gel", "Boisson", "Boule ou pâte de fruits", "Salé", "Récupération"].map((c) => `<option ${c === etat.recette.categorie ? "selected" : ""}>${c}</option>`).join("")}</select>
+        <input id="rec-portions" type="number" min="1" max="100" step="1" value="${etat.recette.portions}" aria-label="Nombre de portions">
+      </div>
+      <div class="recette-lignes" id="rec-lignes"></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="bouton" type="button" id="rec-ajout">Ajouter un ingrédient</button></div>
+      <div id="rec-resultat"></div>
+      <p class="petit tres-discret">Valeurs moyennes des ingrédients (du type de la table Ciqual de l'Anses). Pour enregistrer la recette, la comparer et noter tes essais, utilise l'onglet « Fait maison » du logiciel.</p>
+    </div>
+  </section>`;
+}
+function rendreRecette() {
+  const r = etat.recette, place = $("#rec-lignes");
+  if (!place) return;
+  const opts = (code) => Object.entries(NUTRI.ingredients).map(([c, v]) => `<option value="${c}" ${c === code ? "selected" : ""}>${esc(v.nom)}</option>`).join("") + (code && !NUTRI.ingredients[code] ? "" : "");
+  place.innerHTML = r.ingredients.map((i, k) => `<div class="recette-ligne">${i.code ? `<select data-k="${k}" data-champ="code" aria-label="Ingrédient">${opts(i.code)}</select>` : `<span style="padding:7px 0">${esc(i.nom || "Ingrédient libre")}</span>`}<input data-k="${k}" data-champ="g" type="number" min="0" step="0.1" value="${i.g}" aria-label="Quantité en grammes"></div>`).join("");
+  place.querySelectorAll("[data-champ]").forEach((el) => el.onchange = el.oninput = () => { const i = r.ingredients[+el.dataset.k]; if (el.dataset.champ === "g") i.g = nb(el.value) || 0; else i.code = el.value; calculerEtAfficherRecette(); });
+  calculerEtAfficherRecette();
+}
+function calculerEtAfficherRecette() {
+  const r = etat.recette, c = calculerRecette(r.ingredients, r.portions, r.categorie), z = $("#rec-resultat");
+  if (!z) return;
+  if (!c) { z.innerHTML = `<p class="vide">Ajoute des ingrédients avec leur quantité.</p>`; return; }
+  z.innerHTML = `<div class="mesures-ligne">${[["Glucides par portion", virgule(c.pp.glucides_g, 0), "g"], ["Énergie", virgule(c.pp.kcal, 0), "kcal"], ["Sodium", entier(c.na), "mg"], ["Glucose:fructose", c.ratio || "—", ""], ["Portion", virgule(c.portion, 0), "g"]].concat(c.conc !== null ? [["Concentration", entier(c.conc), "g/L"]] : []).concat(c.cout !== null ? [["Coût", virgule(c.cout, 2), "€"]] : [])
+    .map(([e, v, u]) => `<div class="mesure"><span class="etiquette">${e}</span><span class="valeur" style="font-size:1.15rem">${esc(String(v))}${u && v !== "—" ? `<small>${u}</small>` : ""}</span></div>`).join("")}</div>
+    <div style="display:flex;gap:12px;align-items:center">${pastilleNs(c.ns.lettre, true)}<p class="petit">Nutri-Score ${c.ns.lettre || "non calculé"}${c.ns.score !== undefined ? ` (score ${c.ns.score})` : ""} · recette entière ${entier(c.masse)} g, ${virgule(c.tot.glucides_g, 0)} g de glucides.${(c.ns.lettre === "D" || c.ns.lettre === "E") && c.tot.sucres_g / c.masse >= 0.2 ? " Classement normal pour un produit d'effort très sucré." : ""}</p></div>
+    ${c.av.length ? `<ul class="liste-puces">${c.av.map((a) => `<li>${esc(a)}</li>`).join("")}</ul>` : ""}
+    ${r.preparation ? `<p class="petit discret"><b>Préparation :</b> ${esc(r.preparation)}${r.conservation ? ` <b>Conservation :</b> ${esc(r.conservation)}` : ""}</p>` : ""}`;
+}
+function brancherNutrition() {
+  document.querySelectorAll("tr[data-produit]").forEach((tr) => {
+    const basculer = () => { const id = tr.dataset.produit, i = etat.nutriSel.findIndex((x) => String(x) === id);
+      if (i >= 0) etat.nutriSel.splice(i, 1); else { const p = produitsNutrition().find((q) => String(q.id) === id); etat.nutriSel.push(p.id); if (etat.nutriSel.length > 4) etat.nutriSel.shift(); }
+      const y = window.scrollY; rendreTout(); window.scrollTo(0, y); };
+    tr.onclick = basculer; tr.onkeydown = (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); basculer(); } };
+  });
+  const recs = recettesDisponibles();
+  $("#rec-choix").onchange = (e) => { const r0 = recs.find((r) => r.id === e.target.value); etat.recette = { id: r0.id, nom: r0.nom, categorie: r0.categorie, portions: r0.portions, ingredients: r0.ingredients.map((i) => ({ ...i })), preparation: r0.preparation, conservation: r0.conservation }; $("#rec-cat").value = r0.categorie; $("#rec-portions").value = r0.portions; rendreRecette(); };
+  $("#rec-cat").onchange = (e) => { etat.recette.categorie = e.target.value; calculerEtAfficherRecette(); };
+  $("#rec-portions").oninput = (e) => { etat.recette.portions = Math.max(1, nb(e.target.value) || 1); calculerEtAfficherRecette(); };
+  $("#rec-ajout").onclick = () => { etat.recette.ingredients.push({ code: "eau", g: 0 }); rendreRecette(); };
+  rendreRecette();
+}
+
 /* ---------- Demander à Claude ---------- */
 let echantillon = null, echantillonPret = false, controle = null;
 function resumePourClaude() {
@@ -1312,6 +1509,7 @@ const SUJETS = {
   courses: "Préparation à la prochaine course : écart entre la préparation actuelle et ce que la course demande, et les 3 priorités des semaines restantes.",
   blessures: "Blessures et soins : points de vigilance pour l'entraînement, prudence sur la reprise. Aucun diagnostic médical ; conseille un professionnel si la douleur dure.",
   materiel: "Usure du matériel : ce qu'il faut remplacer, quand, et ce qu'il faut surveiller.",
+  nutrition: "Nutrition de course : produits validés ou à éviter, apport de glucides par heure déjà toléré face à ce que demandent les prochaines courses, et les essais à faire à l'entraînement. Le Nutri-Score D ou E d'un produit d'effort est normal.",
 };
 function donneesRubrique(sujet) {
   const d = etat.donnees, l = [resumePourClaude()];
@@ -1331,6 +1529,11 @@ function donneesRubrique(sujet) {
     if ((d.index || []).length) l.push("Index de performance : " + d.index.slice(0, 10).map((i) => `${i.organisme} ${i.valeur} au ${i.date_releve}`).join(" ; "));
     l.push("Résultats : " + d.resultats.slice(0, 8).map((r) => `${r.date} ${r.nom_course} ${r.distance ?? "?"} km ${r.temps || ""} ${r.classement_general || ""}`).join(" ; "));
     l.push("Objectifs : " + d.objectifs.map((o) => `${o.titre} (${o.statut || "?"}, ${o.date_cible || "sans date"})`).join(" ; "));
+  }
+  if (sujet === "nutrition") {
+    const ps = produitsNutrition().filter((p) => !p.generique);
+    l.push("Mes produits de course : " + (ps.length ? ps.map((p) => `${p.nom} (${p.categorie}, ${virgule(parPortion(p, "glucides_g"), 0)} g de glucides par portion, sodium ${virgule(sodiumPortion(p), 0)} mg, Nutri-Score ${nsProduit(p).lettre || "?"}, tolérance ${LIB_VERDICT[p._verdict.code]}${p.favori ? ", favori" : ""})`).join(" ; ") : "aucun produit enregistré"));
+    l.push("Essais de tolérance : " + ((etat.donnees.essais || []).slice(0, 20).map((e) => `${e.date} produit ${e.produit_id} ${e.contexte || ""} ${e.duree_min ? e.duree_min + " min" : ""} ${e.glucides_g_h ? e.glucides_g_h + " g/h" : ""} ${e.ressenti}${e.symptomes ? " (" + e.symptomes + ")" : ""}`).join(" ; ") || "aucun"));
   }
   if (sujet === "blessures") {
     l.push("Blessures : " + d.blessures.map((b) => `${b.date_debut}→${b.date_fin || "en cours"} ${b.zone_corporelle || ""} ${b.type_blessure || ""} ${b.gravite || ""} ${b.statut || ""}`).join(" ; "));
@@ -1509,7 +1712,7 @@ function vueOuvrir() {
 function rendreTout() {
   rendreSource(); rendreNav();
   const r = rubriqueCourante(), c = $("#contenu");
-  const vues = { aujourdhui: vueAujourdhui, fil: vueFil, sorties: vueSorties, forme: vueForme, sante: vueSante, courses: vueCourses, blessures: vueBlessures, materiel: vueMateriel, coach: vueCoach, ouvrir: vueOuvrir };
+  const vues = { aujourdhui: vueAujourdhui, fil: vueFil, sorties: vueSorties, forme: vueForme, sante: vueSante, courses: vueCourses, blessures: vueBlessures, materiel: vueMateriel, nutrition: vueNutrition, coach: vueCoach, ouvrir: vueOuvrir };
   c.innerHTML = vues[r]() + `<p class="pied">Trail Hub Center · page de consultation · les données affichées viennent de ${etat.source === "fichier" ? "ta base" : "l'exemple intégré"}.</p>`;
   if (r === "sorties") { dessinerCalendrier(); rendreDetailSortie(); brancherSorties(); }
   if (r === "forme") dessinerForme();
@@ -1517,6 +1720,7 @@ function rendreTout() {
   if (r === "coach") brancherCoach();
   if (r === "ouvrir") brancherDepot();
   if (r === "fil") brancherFil();
+  if (r === "nutrition") brancherNutrition();
   brancherLectures();
   c.querySelectorAll("button.ligne[data-sortie]").forEach((b) => b.onclick = () => { etat.sortieChoisie = +b.dataset.sortie; location.hash = "sorties"; if (rubriqueCourante() === "sorties") rendreTout(); });
 }

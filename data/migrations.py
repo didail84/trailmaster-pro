@@ -231,11 +231,76 @@ def _m003_index_performance(cur):
     _ajouter_uuid(cur, "index_performance")
 
 
+def _m004_nutrition_course(cur):
+    """Produits de course (tes gels, barres, boissons, fait maison), essais de
+    tolérance et recettes « fait maison » (étape 3.3, bloc 12)."""
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS produits_nutrition (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            athlete_id INTEGER NOT NULL REFERENCES athletes(id) ON DELETE CASCADE,
+            nom TEXT NOT NULL,
+            marque TEXT,
+            categorie TEXT NOT NULL DEFAULT 'Autre',
+            type_nutriscore TEXT NOT NULL DEFAULT 'aliment',
+            portion REAL,
+            unite_portion TEXT NOT NULL DEFAULT 'g',
+            energie_kcal REAL, glucides_g REAL, sucres_g REAL, fibres_g REAL, proteines_g REAL,
+            lipides_g REAL, ags_g REAL, sel_g REAL,
+            fruits_legumes_pct REAL DEFAULT 0,
+            edulcorants INTEGER DEFAULT 0,
+            cafeine_mg REAL DEFAULT 0,
+            glucose_fructose TEXT,
+            prix_portion REAL,
+            code_barre TEXT,
+            nutriscore_officiel TEXT,
+            source TEXT,
+            recette_id INTEGER,
+            favori INTEGER DEFAULT 0,
+            notes TEXT,
+            date_ajout TEXT
+        )""")
+    cur.execute("CREATE INDEX IF NOT EXISTS idx_produits_nutrition_athlete ON produits_nutrition(athlete_id)")
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS tolerances_nutrition (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            athlete_id INTEGER NOT NULL REFERENCES athletes(id) ON DELETE CASCADE,
+            produit_id INTEGER NOT NULL REFERENCES produits_nutrition(id) ON DELETE CASCADE,
+            date TEXT NOT NULL,
+            contexte TEXT NOT NULL DEFAULT 'Entraînement',
+            activite_id INTEGER,
+            quantite REAL,
+            duree_min REAL,
+            glucides_g_h REAL,
+            temperature_c REAL,
+            ressenti TEXT NOT NULL,
+            symptomes TEXT,
+            notes TEXT
+        )""")
+    cur.execute("CREATE INDEX IF NOT EXISTS idx_tolerances_produit ON tolerances_nutrition(produit_id)")
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS recettes_nutrition (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            athlete_id INTEGER NOT NULL REFERENCES athletes(id) ON DELETE CASCADE,
+            nom TEXT NOT NULL,
+            categorie TEXT NOT NULL DEFAULT 'Barre',
+            nb_portions REAL NOT NULL DEFAULT 1,
+            ingredients_json TEXT NOT NULL,
+            preparation TEXT,
+            conservation TEXT,
+            notes TEXT,
+            produit_id INTEGER,
+            date_modification TEXT
+        )""")
+    for t in ("produits_nutrition", "tolerances_nutrition", "recettes_nutrition"):
+        _ajouter_uuid(cur, t)
+
+
 # (numéro, description lisible, fonction) — dans l'ordre, sans trou
 MIGRATIONS = [
     (1, "Identifiant universel (UUID) pour chaque donnée", _m001_identifiants_universels),
     (2, "Fiche Personne unique et rôles", _m002_personnes_et_roles),
     (3, "Index de performance (ITRA, UTMB, Betrail)", _m003_index_performance),
+    (4, "Nutrition de course : produits, tolérances, recettes fait maison", _m004_nutrition_course),
 ]
 VERSION_LOGICIEL = MIGRATIONS[-1][0]
 

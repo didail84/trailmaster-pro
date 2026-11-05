@@ -266,8 +266,22 @@ class Alimentation(QTabWidget):
         super().__init__()
         self.setDocumentMode(True)
         self.setStyleSheet(_style_page())
+        from interface.nutrition_course import ProduitsCourse, FaitMaison, ComparatifProduits, TolerancesBesoins
+        self.produits = ProduitsCourse(athlete_id_initial)
+        self.fait_maison = FaitMaison(athlete_id_initial)
+        self.comparatif = ComparatifProduits(athlete_id_initial)
+        self.tolerances = TolerancesBesoins(athlete_id_initial)
+        self.addTab(self.produits, "🏃 Produits de course")
+        self.addTab(self.fait_maison, "🥣 Fait maison")
+        self.addTab(self.comparatif, "⚖️ Comparatif")
+        self.addTab(self.tolerances, "🩺 Tolérances et besoins")
+        self.produits.comparer_demande.connect(self._comparer)
         self.addTab(_FichesFruitsLegumes(athlete_id_initial), "🍎 Fruits & légumes")
         self.addTab(_AlimentsPourCourir(athlete_id_initial), "🥖 Aliments pour courir")
+
+    def _comparer(self, ids):
+        self.comparatif.preselectionner(ids)
+        self.setCurrentWidget(self.comparatif)
 
 
 class AlimentationFenetre(QMainWindow):
