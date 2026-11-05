@@ -38,6 +38,7 @@ from noyau.donnees import sante as dsante
 
 ETATS_JAMBES = ["Normales", "Lourdes", "Fatiguées", "Courbatures", "Douloureuses"]
 VERT, ORANGE, BLEU, GRIS = "#66BB6A", "#FFA726", "#42A5F5", "#5C6770"
+ROUGE = "#EF5350"
 
 
 def _fr(nombre, decimales=1):
@@ -343,8 +344,8 @@ class PoidsFatigue(EcranListe):
         grille.setSpacing(15)
         titres = (("poids", "Dernier poids du matin"), ("moy7", "Moyenne 7 jours"),
                   ("perte", "Perdu depuis le départ"), ("objectif", "Reste jusqu'à l'objectif"),
-                  ("fatigue", "Fatigue au réveil"), ("jambes", "Jambes au réveil"),
-                  ("taille", "Tour de taille"), ("mesures", "Autres mesures"))
+                  ("imc", "IMC"), ("fatigue", "Fatigue au réveil"), ("jambes", "Jambes au réveil"),
+                  ("taille", "Tour de taille"), ("mesures", "Autres mesures"), ("plage", "Poids pour un IMC normal"))
         for n, (cle, titre) in enumerate(titres):
             cadre = QFrame()
             cadre.setObjectName("carteForm")
@@ -361,7 +362,7 @@ class PoidsFatigue(EcranListe):
             lay.addWidget(v)
             lay.addWidget(d)
             self._cartes[cle] = (v, d)
-            grille.addWidget(cadre, n // 4, n % 4)
+            grille.addWidget(cadre, n // 5, n % 5)
         self.zone_haut.addLayout(grille)
 
         cadre_poids = QFrame()
@@ -506,6 +507,31 @@ class PoidsFatigue(EcranListe):
         self.courbe_mesures_page.definir_series(series)
         self.cadre_mesures.setVisible(bool(series))
 
+    def _rafraichir_imc(self, athlete_id, r):
+        """IMC calculé sur la moyenne des 7 derniers jours (plus stable qu'une pesée isolée)."""
+        from noyau.sante.imc import resume_imc, NOTE_IMC
+        from noyau.donnees.athletes import valeur as valeur_athlete
+        c = self._cartes
+        taille = valeur_athlete(athlete_id, "taille")
+        ref = r["moy7"] if r["moy7"] is not None else r["dernier_poids"]
+        base = "moyenne 7 jours" if r["moy7"] is not None else "dernière pesée"
+        res = resume_imc(ref, taille) if ref is not None else None
+        if res is None:
+            message = ("renseigne ta taille (en cm) dans Compte › Athlètes" if ref is not None
+                       else "aucune pesée du matin")
+            c["imc"][1].setText(message)
+            c["plage"][1].setText(message)
+            return
+        couleur = {"normal": VERT, "attention": ORANGE}.get(res["niveau"], ROUGE)
+        c["imc"][0].setText(_fr(res["imc"]))
+        c["imc"][1].setText(f'<span style="color:{couleur}">● {res["classe"]}</span><br>'
+                            f"sur la {base} ({_fr(res['poids_kg'])} kg, {_fr(res['taille_m'], 2)} m)")
+        c["imc"][1].setToolTip(NOTE_IMC)
+        mini, maxi = res["plage_poids_normal_kg"]
+        c["plage"][0].setText(f"{_fr(mini)} à {_fr(maxi)} kg")
+        c["plage"][1].setText("IMC de 18,5 à 24,9 pour ta taille — repère OMS, pas un objectif : "
+                              "un traileur musclé peut être au-dessus sans souci")
+
     def _rafraichir_apercu(self):
         athlete_id = self.athlete_selectionne_id()
         for v, d in self._cartes.values():
@@ -560,6 +586,7 @@ class PoidsFatigue(EcranListe):
             c["objectif"][1].setText(detail)
         else:
             c["objectif"][1].setText("bouton « Objectif de poids… » pour le fixer")
+        self._rafraichir_imc(athlete_id, r)
         if r["fatigue"] is not None:
             c["fatigue"][0].setText(f"{r['fatigue']} / 10")
             c["fatigue"][1].setText(f"relevé du {_date_longue(r['fatigue_date'])}")

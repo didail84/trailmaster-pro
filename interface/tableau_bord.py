@@ -180,6 +180,8 @@ class TableauBord(QMainWindow):
         # seul l'affichage de la liste dans le menu se replie.
         self._groupes_conteneurs = {}
         self._groupes_ouverts = {}
+        self._groupes_menu = {}           # étape 2.3 : nom -> (bouton du groupe, conteneur, boutons)
+        self._ecran_du_bouton = {}        # bouton -> méthode ouvrir_… (pour les modules activables)
         etats_ouverts = self._charger_etats_groupes_menu()
 
         for nom_groupe, items in groupes:
@@ -195,8 +197,12 @@ class TableauBord(QMainWindow):
             conteneur_layout.setContentsMargins(0, 0, 0, 0)
             conteneur_layout.setSpacing(4)
 
+            boutons_du_groupe = []
             for texte, gestionnaire, actif in items:
                 bouton = QPushButton(texte)
+                boutons_du_groupe.append(bouton)
+                if gestionnaire is not None:
+                    self._ecran_du_bouton[bouton] = gestionnaire.__name__
                 bouton.setObjectName("boutonMenuActif" if actif else "boutonMenu")
                 bouton.setCursor(Qt.CursorShape.PointingHandCursor)
                 if gestionnaire is not None:
@@ -211,11 +217,15 @@ class TableauBord(QMainWindow):
 
             self._groupes_conteneurs[nom_groupe] = conteneur_groupe
             self._groupes_ouverts[nom_groupe] = ouvert
+            self._groupes_menu[nom_groupe] = (bouton_groupe, conteneur_groupe, boutons_du_groupe)
             bouton_groupe.clicked.connect(
                 lambda _checked=False, nom=nom_groupe, b=bouton_groupe: self._basculer_groupe_menu(nom, b)
             )
 
         menu_layout.addStretch()
+        self.appliquer_modules()
+        from noyau.outils.evenements import abonner, MODULES_MODIFIES
+        abonner(MODULES_MODIFIES, self._modules_modifies)
 
         carte_athlete_menu = QFrame()
         carte_athlete_menu.setObjectName("carteAthleteMenu")
@@ -1392,6 +1402,25 @@ class TableauBord(QMainWindow):
             return True
         return super().eventFilter(obj, ev)
 
+    # ------------------------------------------------------------------
+    # Étape 2.3 — modules activables : le menu ne montre que les modules allumés
+    # ------------------------------------------------------------------
+    def appliquer_modules(self):
+        from noyau.modules import ecran_visible
+        for _nom, (bouton_groupe, conteneur, boutons) in self._groupes_menu.items():
+            visibles = 0
+            for b in boutons:
+                v = ecran_visible(self._ecran_du_bouton.get(b, ""))
+                b.setVisible(v)
+                visibles += v
+            bouton_groupe.setVisible(visibles > 0)
+            conteneur.setVisible(visibles > 0 and self._groupes_ouverts.get(_nom, True))
+
+    def _modules_modifies(self, **_):
+        from shiboken6 import isValid
+        if isValid(self):
+            self.appliquer_modules()
+
     def _clic_menu(self, bouton, gestionnaire):
         self._bouton_clique = bouton
         gestionnaire()
@@ -1659,8 +1688,10 @@ class TableauBord(QMainWindow):
     def liste_commandes(self):
         """Commandes de la palette (libellé, mots-clés, fonction)."""
         c = []
+        from noyau.modules import ecran_visible
         for libelle, mots, fonction in self._entrees_ecrans():
-            c.append((f"Aller à  ·  {libelle}", mots, fonction))
+            if ecran_visible(fonction.__name__):          # étape 2.3 : modules éteints absents
+                c.append((f"Aller à  ·  {libelle}", mots, fonction))
         c += [
             ("Action  ·  Nouvelle activité", "ajouter creer saisir", self.nouvelle_activite),
             ("Action  ·  Importer des fichiers", "import fit gpx garmin", self.ouvrir_import_et_synchro),
@@ -1716,6 +1747,7 @@ class TableauBord(QMainWindow):
             ("Photos", "album images", self.ouvrir_photos),
             ("Planification", "plan calendrier seances", self.ouvrir_planification),
             ("Renforcement & Mobilité", "muscu", self.ouvrir_renforcement),
+            ("Fil d'activité", "strava cartes sorties analyses", self.ouvrir_fil_activite),
             ("Analyses & Forme", "fatigue charge vma sommeil hrv", self.ouvrir_analyses_et_forme),
             ("Performance trail", "montees vam allure pente fatigue efficacite terrain meteo", self.ouvrir_performance_trail),
             ("Bilans & objectifs", "totaux comparer objectifs annee simulateur", self.ouvrir_bilans_objectifs),
@@ -1727,6 +1759,7 @@ class TableauBord(QMainWindow):
             ("Alimentation", "nutrition", self.ouvrir_alimentation),
             ("Import & Synchro", "garmin strava", self.ouvrir_import_et_synchro),
             ("Athlètes", "profil", self.ouvrir_athletes),
+            ("Personnes", "fiches roles licencies benevoles enfants parents", self.ouvrir_personnes),
             ("Réglages", "parametres options", self.ouvrir_reglages),
         ]
 
@@ -1745,8 +1778,10 @@ class TableauBord(QMainWindow):
             "Esc": self._echap,
         }
         entrees = self._entrees_ecrans()
+        from noyau.modules import ecran_visible
         for i, (_l, _m, fonction) in enumerate(entrees[:9], start=1):
-            actions[f"Ctrl+{i}"] = fonction
+            # numérotation stable ; un écran d'un module éteint ne s'ouvre pas au clavier
+            actions[f"Ctrl+{i}"] = (lambda f=fonction: f() if ecran_visible(f.__name__) else None)
         self._raccourcis = installer_raccourcis(self, actions)
 
     def _echap(self):

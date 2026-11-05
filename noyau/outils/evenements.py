@@ -12,11 +12,13 @@ Un abonné qui plante ne bloque jamais l'émetteur ni les autres abonnés.
 Événement utilisé aujourd'hui :
   DONNEES_MODIFIEES  — activités, imports ou synchro ont changé la base
                        (argument facultatif : athlete_id)
+  MODULES_MODIFIES   — un module a été allumé ou éteint (code, actif)
 """
 
 import logging
 
 DONNEES_MODIFIEES = "donnees_modifiees"
+MODULES_MODIFIES = "modules_modifies"   # un module a été allumé ou éteint (Réglages > Modules)
 
 _abonnes = {}
 _journal = logging.getLogger(__name__)

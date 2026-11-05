@@ -31,7 +31,8 @@ INSTRUCTIONS = {
     "sommeil": "Sommeil, HRV de nuit et FC de repos : dette, tendance, lien avec la fatigue et la charge, "
                "et ce qu'il faut faire ce soir et les prochains jours.",
     "poids": "Poids (pesées du matin) et état des jambes : tendance lissée (pas un relevé isolé : l'eau et le glycogène "
-             "font varier de 0,5 à 1 kg), rythme vers l'objectif s'il existe, lien avec jambes et fatigue.",
+             "font varier de 0,5 à 1 kg), rythme vers l'objectif s'il existe, IMC s'il est fourni (repère OMS, à nuancer "
+             "pour un sportif), lien avec jambes et fatigue.",
     "vma": "VMA et VO2max ESTIMÉS (« estimation basse » : tes sorties sont rarement des efforts maximaux, les valeurs "
            "vraies sont plus hautes). Dis si la tendance est réelle ou du bruit, compare avec le profil, et donne "
            "les allures à viser.",
@@ -124,6 +125,17 @@ def dossier_poids(a):
     try:
         d["objectif_kg"] = met.objectif_poids(a)
         d["poids_depart_kg"] = met.poids_depart(a)
+    except Exception:
+        pass
+    try:
+        from noyau.sante.imc import resume_imc
+        from noyau.donnees.athletes import valeur as valeur_athlete
+        ref = d.get("moyenne_7j_kg") or (pts[-1][1] if pts else None)
+        r = resume_imc(ref, valeur_athlete(a, "taille")) if ref else None
+        if r:
+            d["IMC"] = {"valeur": r["imc"], "classe_OMS": r["classe"], "calcule_sur_kg": r["poids_kg"],
+                        "taille_m": r["taille_m"], "plage_poids_IMC_normal_kg": r["plage_poids_normal_kg"],
+                        "mention": "repère pour adultes ; surestime la masse grasse chez un sportif musclé"}
     except Exception:
         pass
     try:

@@ -1,5 +1,13 @@
 # Historique des versions
 
+## Trail Hub Center — étape 2.3 (modules activables) et IMC
+- **Modules activables** : Réglages > Modules (en haut des réglages) allume ou éteint chaque module de l'espace Coureur : Récupération, santé et matériel ; Courses et stratégie ; Cartes, traces et photos ; Suivi en direct ; Alimentation ; Météo. Le Noyau et l'Entraînement restent toujours actifs. Un module éteint disparaît aussitôt du menu, de la palette de commandes (Ctrl+K) et des raccourcis Ctrl+1…9 ; rien n'est supprimé.
+- Les modules à venir (Fractionné piste, Gestion du club, Kids, Organisation de courses, Trail Live, Photos par dossard, Analyse transversale) sont déjà listés avec l'étape où ils arrivent. Un seul registre (`noyau/modules.py`) décrit tous les modules : menu, palette, Réglages et page Claude le lisent.
+- **IMC** : carte « IMC » et carte « Poids pour un IMC normal » dans Poids & récupération (calculés sur la moyenne des 7 derniers jours de pesée et la taille du profil Athlète), carte IMC dans Poids lissé, IMC transmis à l'analyse IA du poids. Classes de l'OMS pour les adultes, présentées comme un repère et non un diagnostic (un sportif musclé est souvent au-dessus).
+- Page Claude : IMC dans Aujourd'hui et dans Poids et sommeil (même calcul que le logiciel) ; les rubriques d'un module éteint dans le logiciel ne s'affichent plus.
+- Démarrage : si le logiciel ne se lance pas, la raison s'affiche et s'enregistre dans `TrailHubCenter_erreur_demarrage.txt` (dossier personnel).
+- Tests : 246.
+
 ## Trail Hub Center — étape 2.2 (fiche Personne et rôles) et analyses automatiques
 - Migration n° 2 : chaque personne a désormais une fiche unique (table `personnes`, avec identifiant universel), lue par tous les modules, et un ou plusieurs rôles : coureur, licencié, enfant, parent, entraîneur, bénévole, organisateur. Les liens parent/enfant sont enregistrés (pour l'accord parental et l'espace parents à venir).
 - Chaque athlète existant reçoit sa fiche et le rôle Coureur à la conversion (copie de sécurité faite avant). Tout athlète créé ensuite, par n'importe quel écran ou import, reçoit sa fiche automatiquement ; nom, sexe et photo restent identiques des deux côtés.

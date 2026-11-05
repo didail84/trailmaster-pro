@@ -375,6 +375,21 @@ function serieForme(donnees, nbJours = 180) {
     return { date, charge, fitness: arrondi1(fit), fatigue: arrondi1(fat), forme: arrondi1(fit - fat) };
   });
 }
+/* IMC : poids / taille², classes de l'OMS (adultes) — repris de noyau/sante/imc.py */
+function tailleMetres(t) { t = nb(String(t ?? "").replace(",", ".")); if (t === null) return null; if (t >= 0.5 && t <= 2.6) return t; if (t >= 50 && t <= 260) return t / 100; return null; }
+const CLASSES_IMC = [[18.5, "Insuffisance pondérale", "orange"], [25, "Corpulence normale", "vert"], [30, "Surpoids", "orange"], [35, "Obésité modérée", "rouge"], [40, "Obésité sévère", "rouge"], [Infinity, "Obésité massive", "rouge"]];
+function resumeImc(poids, taille) {
+  const m = tailleMetres(taille); poids = nb(poids);
+  if (!m || !poids || poids <= 0) return null;
+  const imc = Math.round(poids / (m * m) * 10) / 10, [, classe, couleur] = CLASSES_IMC.find(([b]) => imc < b);
+  return { imc, classe, couleur, taille: m, mini: Math.round(18.5 * m * m * 10) / 10, maxi: Math.round((25 * m * m - 0.1) * 10) / 10 };
+}
+/* moyenne des pesées des 7 jours qui finissent à la dernière pesée (même règle que le logiciel) */
+function moyennePoids7j(d) {
+  const p = poidsSerie(d); if (!p.length) return null;
+  const j0 = p[p.length - 1].x, v = p.filter((q) => { const e = ecartJours(j0, q.x); return e >= 0 && e < 7; });
+  return { moy: Math.round(v.reduce((x, q) => x + q.y, 0) / v.length * 10) / 10, n: v.length };
+}
 function etatFraicheur(v) {
   if (v > 5) return ["Frais", "vert"];
   if (v > -10) return ["Équilibré", "vert"];
@@ -393,7 +408,7 @@ function distanceKm(lat1, lon1, lat2, lon2) {
 function aleatoire(graine) { let s = graine >>> 0 || 1; return () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; }; }
 function donneesExemple() {
   const r = aleatoire(84), auj = jour0(new Date()), iso = (d, h = 8) => `${cleJour(d)} ${String(h).padStart(2, "0")}:00:00`;
-  const athlete = { id: 1, prenom: "Coureur", nom: "Exemple", age: 42, sexe: "H", poids: 72, fc_repos: 52, fc_max: 182, vma: 13.5, vo2max: 49 };
+  const athlete = { id: 1, prenom: "Coureur", nom: "Exemple", age: 42, sexe: "H", taille: 176, poids: 72, fc_repos: 52, fc_max: 182, vma: 13.5, vo2max: 49 };
   const activites = []; let id = 1;
   for (let i = 200; i >= 0; i--) {
     const d = ajouterJours(auj, -i), js = d.getDay();
@@ -543,7 +558,7 @@ function traceDe(a) {
 /* ================================================================
    État de la page
    ================================================================ */
-const etat = { source: "exemple", nomFichier: "", tailleFichier: 0, versionBase: null, athletes: [], athleteId: null, donnees: null, sortieChoisie: null, filtreType: "Tous", recherche: "", annee: "Toutes", fil: [], erreur: "" };
+const etat = { modules: {}, source: "exemple", nomFichier: "", tailleFichier: 0, versionBase: null, athletes: [], athleteId: null, donnees: null, sortieChoisie: null, filtreType: "Tous", recherche: "", annee: "Toutes", fil: [], erreur: "" };
 
 function preparer(d) {
   d.activites = d.activites.map((a) => ({ ...a, _date: parseDate(a.date) })).filter((a) => a._date).sort((x, y) => y._date - x._date);
@@ -553,7 +568,7 @@ function preparer(d) {
 function utiliserExemple() {
   const ex = donneesExemple();
   etat.source = "exemple"; etat.athletes = ex.athletes; etat.athleteId = ex.athleteId; etat.donnees = preparer(ex.tables);
-  etat.nomFichier = ""; etat.versionBase = null; etat.sortieChoisie = null;
+  etat.nomFichier = ""; etat.versionBase = null; etat.sortieChoisie = null; etat.modules = {};
 }
 function choisirAthlete(id) {
   etat.athleteId = id; etat.sortieChoisie = null; etat.fil = [];
@@ -575,6 +590,9 @@ async function ouvrirFichier(f) {
     const aths = Base.tous("SELECT a.id, a.prenom, a.nom, (SELECT COUNT(*) FROM activites s WHERE s.athlete_id = a.id) AS nb FROM athletes a ORDER BY a.id");
     if (!aths.length) throw new Error("Cette base ne contient encore aucun coureur.");
     etat.source = "fichier"; etat.nomFichier = f.name; etat.tailleFichier = f.size; etat.versionBase = Base.version(); etat.athletes = aths;
+    /* modules allumés ou éteints dans Réglages > Modules (absents = valeur par défaut : allumés) */
+    etat.modules = {};
+    if (Base.tablesPresentes.has("parametres_app")) for (const l of Base.tous("SELECT cle, valeur FROM parametres_app WHERE cle LIKE 'module_%'")) etat.modules[l.cle.slice(7)] = l.valeur === "1";
     const memo = Number(lireStockage("thc-athlete"));
     const parDefaut = aths.find((a) => a.id === memo) || aths.slice().sort((x, y) => y.nb - x.nb)[0];
     choisirAthlete(parDefaut.id);
@@ -735,11 +753,13 @@ const RUBRIQUES = [
   ["materiel", "Matériel", "Matériel"], ["coach", "Demander à Claude", "Claude"],
 ];
 const icone = (k) => `<svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">${ICONES[k]}</svg>`;
-function rubriqueCourante() { const h = location.hash.replace("#", ""); return RUBRIQUES.some((r) => r[0] === h) ? h : (h === "ouvrir" ? "ouvrir" : "aujourdhui"); }
+const MODULE_DE_RUBRIQUE = { sante: "suivi", blessures: "suivi", materiel: "suivi", courses: "courses" };
+function rubriqueVisible(k) { const m = MODULE_DE_RUBRIQUE[k]; return !m || etat.modules[m] !== false; }
+function rubriqueCourante() { const h = location.hash.replace("#", ""); return RUBRIQUES.some((r) => r[0] === h) && rubriqueVisible(h) ? h : (h === "ouvrir" ? "ouvrir" : "aujourdhui"); }
 
 function rendreNav() {
   const c = rubriqueCourante();
-  $("#rubriques").innerHTML = RUBRIQUES.map(([k, long, court]) => `<a href="#${k}" ${c === k ? 'aria-current="page"' : ""}>${icone(k)}<span class="lib-long">${esc(long)}</span><span class="lib-court">${esc(court)}</span></a>`).join("");
+  $("#rubriques").innerHTML = RUBRIQUES.filter(([k]) => rubriqueVisible(k)).map(([k, long, court]) => `<a href="#${k}" ${c === k ? 'aria-current="page"' : ""}>${icone(k)}<span class="lib-long">${esc(long)}</span><span class="lib-court">${esc(court)}</span></a>`).join("");
 }
 function rendreSource() {
   const s = $("#source");
@@ -795,6 +815,7 @@ function vueAujourdhui() {
       <div class="carte"><header><h3>Corps et récupération</h3><a class="petit" style="color:var(--accent-texte)" href="#sante">Détails</a></header>
         <div class="liste">
           <div class="ligne"><span class="sous">Dernier poids</span><span class="droite chiffre">${dernierPoids ? `${virgule(dernierPoids.y, 1)} kg <span class="tres-discret">(${esc(fmtJourCourt(dernierPoids.x))})</span>` : "—"}</span></div>
+          ${(() => { const r = dernierPoids && resumeImc(dernierPoids.y, d.athlete.taille); return `<div class="ligne"><span class="sous">IMC</span><span class="droite">${r ? `<span class="chiffre">${virgule(r.imc, 1)}</span> <span class="etat ${r.couleur}">${esc(r.classe)}</span>` : `<span class="tres-discret petit">${dernierPoids ? "taille non renseignée" : "—"}</span>`}</span></div>`; })()}
           <div class="ligne"><span class="sous">Sommeil moyen (7 nuits)</span><span class="droite chiffre">${somMoy ? virgule(somMoy, 1) + " h" : "—"}</span></div>
           <div class="ligne"><span class="sous">Blessures en cours</span><span class="droite">${bl.length ? bl.map((b) => `<span class="etat orange">${esc(b.zone_corporelle || "")}${b.type_blessure ? " · " + esc(b.type_blessure) : ""}</span>`).join(" ") : `<span class="etat vert">Aucune</span>`}</span></div>
         </div>
@@ -949,7 +970,7 @@ function vueSante() {
     <div class="entete-vue"><h2>Poids et sommeil</h2><p>Relevés du suivi corporel, du sommeil et des données de récupération importées de la montre.</p></div>
     ${carteLecture("sante")}
     <div class="grille g2">
-      <div class="carte"><header><h3>Poids</h3><span class="petit discret" id="poids-resume"></span></header><div class="graphe" id="g-poids"></div></div>
+      <div class="carte"><header><h3>Poids</h3><span class="petit discret" id="poids-resume"></span></header><div class="graphe" id="g-poids"></div><p class="petit discret" id="imc-resume"></p></div>
       <div class="carte"><header><h3>Sommeil, 30 dernières nuits</h3><span class="petit discret" id="sommeil-resume"></span></header><div class="graphe" id="g-sommeil"></div></div>
       <div class="carte"><header><h3>FC au repos</h3><span class="petit discret">battements par minute</span></header><div class="graphe" id="g-fcrepos"></div></div>
       <div class="carte"><header><h3>Variabilité cardiaque (VFC) la nuit</h3><span class="petit discret">millisecondes</span></header><div class="graphe" id="g-hrv"></div></div>
@@ -959,6 +980,11 @@ function vueSante() {
 function dessinerSante() {
   const d = etat.donnees, p = poidsSerie(d).filter((q) => q.x >= ajouterJours(jour0(new Date()), -365));
   courbe($("#g-poids"), { series: [{ nom: "Poids", couleur: "var(--accent-texte)", points: p, fmtBulle: (v) => virgule(v, 1) + " kg" }], hauteur: 200, fmtY: (v) => virgule(v, Number.isInteger(v) ? 0 : 1) + " kg", marqueurs: true });
+  { /* IMC sur la moyenne des 7 dernières pesées, comme dans le logiciel */
+    const m7 = moyennePoids7j(d), moy = m7 && m7.moy, r = moy && resumeImc(moy, d.athlete.taille);
+    $("#imc-resume").innerHTML = r ? `IMC <b class="chiffre">${virgule(r.imc, 1)}</b> <span class="etat ${r.couleur}">${esc(r.classe)}</span> sur la moyenne des 7 derniers jours de pesée (${virgule(moy, 1)} kg, ${m7.n} pesée${m7.n > 1 ? "s" : ""}, taille ${virgule(r.taille, 2)} m). Pour ta taille, un IMC normal va de ${virgule(r.mini, 1)} à ${virgule(r.maxi, 1)} kg. Repère de l'OMS pour les adultes, pas un diagnostic : chez un traileur musclé, l'IMC surestime la masse grasse.`
+      : (moy ? "IMC : renseigne ta taille dans le profil Athlète du logiciel." : "");
+  }
   if (p.length > 1) $("#poids-resume").textContent = `${virgule(p[p.length - 1].y, 1)} kg · ${p[p.length - 1].y - p[0].y >= 0 ? "+" : "−"}${virgule(Math.abs(p[p.length - 1].y - p[0].y), 1)} kg depuis le ${fmtJourCourt(p[0].x)}`;
   const auj = jour0(new Date()), s = sommeilSerie(d), m = new Map(s.map((q) => [cleJour(q.x), q.y])), items = [];
   for (let i = 29; i >= 0; i--) { const j = ajouterJours(auj, -i), v = m.get(cleJour(j)); items.push({ lib: String(j.getDate()), v: v || 0, bulle: `Nuit du ${esc(fmtJourCourt(ajouterJours(j, -1)))} au ${esc(fmtJourCourt(j))}<br><b>${v ? virgule(v, 1) + " h" : "pas de relevé"}</b>` }); }
@@ -1152,6 +1178,8 @@ const SUJETS = {
 function donneesRubrique(sujet) {
   const d = etat.donnees, l = [resumePourClaude()];
   if (sujet === "sante") {
+    const mz = moyennePoids7j(d)?.moy, ri = mz && resumeImc(mz, d.athlete.taille);
+    if (ri) l.push(`IMC (moyenne des 7 derniers jours de pesée, taille ${ri.taille} m) : ${ri.imc}, ${ri.classe} selon l'OMS ; IMC normal de ${ri.mini} à ${ri.maxi} kg. Repère à nuancer pour un sportif musclé.`);
     l.push("Poids (30 derniers relevés) : " + poidsSerie(d).slice(-30).map((q) => `${cleJour(q.x)} ${q.y}`).join(" ; "));
     l.push("Sommeil (30 dernières nuits) : " + sommeilSerie(d).slice(-30).map((q) => `${cleJour(q.x)} ${q.y.toFixed(1)} h`).join(" ; "));
     l.push("Récupération (30 jours) : " + d.recup.slice(-30).map((r) => `${r.date} FC ${r.fc_repos ?? "?"} VFC ${r.hrv_nuit_ms ?? "?"}`).join(" ; "));

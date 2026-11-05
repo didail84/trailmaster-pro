@@ -342,7 +342,7 @@ class PoidsLisse(_EcranAthlete):
         ligne = QHBoxLayout()
         ligne.setSpacing(15)
         self.cartes = {}
-        for cle, titre in (("actuel", "Poids lissé"), ("tendance", "Tendance (4 sem.)"), ("objectif", "Objectif")):
+        for cle, titre in (("actuel", "Poids lissé"), ("tendance", "Tendance (4 sem.)"), ("objectif", "Objectif"), ("imc", "IMC")):
             self.cartes[cle] = self._carte(titre)
             ligne.addWidget(self.cartes[cle], 1)
         self.principal.addLayout(ligne)
@@ -379,6 +379,18 @@ class PoidsLisse(_EcranAthlete):
             return
         self.cartes["actuel"].valeur.setText(f"{virgule(p['actuel'], 1)} kg")
         self.cartes["actuel"].detail.setText(f"dernière pesée {virgule(p['brut'][-1][1], 1)} kg le {_fmt_jour(p['brut'][-1][0])}")
+        from noyau.sante.imc import resume_imc, NOTE_IMC
+        from noyau.donnees.athletes import valeur as valeur_athlete
+        ri = resume_imc(p["actuel"], valeur_athlete(a, "taille"))
+        if ri:
+            couleur = {"normal": VERT, "attention": ORANGE}.get(ri["niveau"], ROUGE)
+            mini, maxi = ri["plage_poids_normal_kg"]
+            self.cartes["imc"].valeur.setText(virgule(ri["imc"], 1))
+            self.cartes["imc"].detail.setText(f'<span style="color:{couleur}">● {ri["classe"]}</span><br>'
+                                              f"sur le poids lissé · IMC normal de {virgule(mini, 1)} à {virgule(maxi, 1)} kg")
+            self.cartes["imc"].setToolTip(NOTE_IMC)
+        else:
+            self.cartes["imc"].detail.setText("renseigne ta taille (en cm) dans Compte › Athlètes")
         t = p["tendance_kg_sem"]
         if t is not None:
             self.cartes["tendance"].valeur.setText(f"{'+' if t > 0 else '−' if t < 0 else ''}{virgule(abs(t), 2)} kg/sem")

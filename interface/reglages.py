@@ -70,6 +70,53 @@ from noyau.entrainement.allure_critique import obtenir_tolerance as obtenir_tole
 
 class Reglages(QMainWindow):
 
+    def _construire_cadre_modules(self):
+        """Allumer ou éteindre chaque module (noyau/modules.py). Le menu suit tout de suite."""
+        from noyau import modules as mods
+        from interface.theme import PALETTE, obtenir_couleur_accent
+        cadre = QFrame()
+        cadre.setObjectName("carteForm")
+        accent = obtenir_couleur_accent()
+        cadre.setStyleSheet(
+            "QLabel, QCheckBox { background: transparent; }"
+            f"QCheckBox {{ spacing: 8px; padding: 2px 0; }}"
+            f"QCheckBox::indicator {{ width: 16px; height: 16px; border: 1px solid {PALETTE['texte_discret']}; "
+            f"border-radius: 4px; background: {PALETTE['carte_haute']}; }}"
+            f"QCheckBox::indicator:checked {{ background: {accent}; border-color: {accent}; }}"
+            f"QCheckBox:disabled {{ color: {PALETTE['texte_discret']}; }}")
+        lay = QVBoxLayout(cadre)
+        titre = QLabel("🧩 Modules")
+        titre.setObjectName("titreCarte")
+        lay.addWidget(titre)
+        note = QLabel("Choisis les modules que tu utilises : les autres disparaissent du menu et de la "
+                      "palette de commandes. Rien n'est supprimé ; un module rallumé revient avec toutes ses données.")
+        note.setObjectName("texteSecondaire")
+        note.setWordWrap(True)
+        lay.addWidget(note)
+        self.cases_modules = {}
+        for espace, liste in mods.par_espace():
+            if not liste:
+                continue
+            le = QLabel(f"Espace {espace}" if espace != "Noyau" else "Noyau (toujours actif)")
+            le.setObjectName("labelChamp")
+            lay.addWidget(le)
+            for m in liste:
+                suffixe = "  (toujours actif)" if m.obligatoire else (
+                    f"  (arrive à l'étape {m.etape})" if not m.disponible else "")
+                case = QCheckBox(m.nom + suffixe)
+                case.setChecked(mods.est_actif(m.code))
+                case.setEnabled(m.disponible and not m.obligatoire)
+                if m.disponible and not m.obligatoire:
+                    case.toggled.connect(lambda oui, code=m.code: mods.definir_actif(code, oui))
+                self.cases_modules[m.code] = case
+                lay.addWidget(case)
+                detail = QLabel(m.description)
+                detail.setObjectName("texteSecondaire")
+                detail.setWordWrap(True)
+                detail.setContentsMargins(26, 0, 0, 4)
+                lay.addWidget(detail)
+        return cadre
+
     def __init__(self, athlete_id_initial=None):
         super().__init__()
 
@@ -97,6 +144,11 @@ class Reglages(QMainWindow):
         sous_titre.setObjectName("sousTitrePage")
         principal.addWidget(titre)
         principal.addWidget(sous_titre)
+
+        # ------------------------------------------------------------
+        # MODULES (Trail Hub Center, étape 2.3)
+        # ------------------------------------------------------------
+        principal.addWidget(self._construire_cadre_modules())
 
         # ------------------------------------------------------------
         # APPARENCE
