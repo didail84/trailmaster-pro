@@ -1,5 +1,13 @@
 # Historique des versions
 
+## Trail Hub Center — étape 2.4 (passeport coureur) : fin de l'étape 2
+- **Passeport coureur** : un fichier `.json` lisible qui transporte une personne d'un ordinateur à l'autre, ou d'un club à un coureur — sa fiche, ses rôles, son profil sportif, ses résultats de courses, ses index et, au choix, ses courses à venir, ses objectifs et ses coordonnées (non incluses par défaut). Les sorties et traces n'y sont pas : elles voyagent avec la sauvegarde complète.
+- Écran Personnes : « Exporter le passeport… » (choix du contenu) et « Importer un passeport coureur… » avec un aperçu avant import. Zéro doublon : chaque élément est reconnu par son identifiant universel, ou par la même course à la même date, le même index à la même date ; une personne inconnue par son identifiant est rapprochée par nom, prénom et date de naissance, et en cas d'homonymes le logiciel demande quelle fiche compléter. Le profil existant n'est complété que dans ses cases vides, sauf si l'on coche « Remplacer ». Tout l'import se fait d'un bloc : en cas d'erreur, rien n'est modifié. Un passeport d'une version plus récente est refusé avec un message clair.
+- Migration n° 3 : **index de performance** (ITRA, UTMB Index, Betrail…) par personne et par date, saisis dans l'écran Personnes ; ils voyagent dans le passeport et seront tenus à jour par le Club (étape 4).
+- Page Claude : carte « Index de performance » dans Courses et objectifs (avec l'évolution depuis le relevé précédent), index transmis à la lecture de Claude.
+- Étape 2 du Master Plan terminée : noyau (personnes, identifiants universels, migrations numérotées, modules activables, passeport) ; la base se convertit sans perte et la v108 fonctionne toujours sur une base convertie.
+- Tests : 253.
+
 ## Trail Hub Center — étape 2.3 (modules activables) et IMC
 - **Modules activables** : Réglages > Modules (en haut des réglages) allume ou éteint chaque module de l'espace Coureur : Récupération, santé et matériel ; Courses et stratégie ; Cartes, traces et photos ; Suivi en direct ; Alimentation ; Météo. Le Noyau et l'Entraînement restent toujours actifs. Un module éteint disparaît aussitôt du menu, de la palette de commandes (Ctrl+K) et des raccourcis Ctrl+1…9 ; rien n'est supprimé.
 - Les modules à venir (Fractionné piste, Gestion du club, Kids, Organisation de courses, Trail Live, Photos par dossard, Analyse transversale) sont déjà listés avec l'étape où ils arrivent. Un seul registre (`noyau/modules.py`) décrit tous les modules : menu, palette, Réglages et page Claude le lisent.

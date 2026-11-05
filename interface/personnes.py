@@ -11,7 +11,7 @@ from PySide6.QtWidgets import (
     QMainWindow, QWidget, QHBoxLayout, QVBoxLayout, QLabel, QPushButton, QFrame, QLineEdit,
     QComboBox, QFormLayout, QScrollArea, QTableWidget, QTableWidgetItem, QHeaderView,
     QMessageBox, QAbstractItemView, QCheckBox, QGridLayout, QPlainTextEdit, QListWidget,
-    QListWidgetItem,
+    QListWidgetItem, QDialog, QDialogButtonBox, QFileDialog, QInputDialog,
 )
 
 from noyau.donnees import personnes as dpers
@@ -91,6 +91,9 @@ class Personnes(QMainWindow):
         bouton_nouveau.setObjectName("boutonPrincipal")
         bouton_nouveau.clicked.connect(self.nouvelle)
         lg.addWidget(bouton_nouveau)
+        bouton_importer = QPushButton("📥  Importer un passeport coureur…")
+        bouton_importer.clicked.connect(self.importer_passeport)
+        lg.addWidget(bouton_importer)
         corps.addWidget(gauche, 5)
 
         # ---- fiche
@@ -156,6 +159,29 @@ class Personnes(QMainWindow):
         ligne_lien.addWidget(bouton_delier)
         ld.addLayout(ligne_lien)
 
+        li = QLabel("Index de performance")
+        li.setObjectName("labelChamp")
+        ld.addWidget(li)
+        self.liste_index = QListWidget()
+        self.liste_index.setFixedHeight(80)
+        ld.addWidget(self.liste_index)
+        ligne_index = QHBoxLayout()
+        self.combo_organisme = QComboBox()
+        self.combo_organisme.addItems(dpers.ORGANISMES_INDEX)
+        self.combo_organisme.setEditable(True)
+        self.valeur_index = QLineEdit()
+        self.valeur_index.setPlaceholderText("valeur")
+        self.valeur_index.setFixedWidth(80)
+        self.date_index = QLineEdit(QDate.currentDate().toString("dd/MM/yyyy"))
+        self.date_index.setFixedWidth(110)
+        bouton_index = QPushButton("Ajouter")
+        bouton_index.clicked.connect(self._ajouter_index)
+        bouton_retirer_index = QPushButton("Retirer")
+        bouton_retirer_index.clicked.connect(self._retirer_index)
+        for w in (self.combo_organisme, self.valeur_index, self.date_index, bouton_index, bouton_retirer_index):
+            ligne_index.addWidget(w)
+        ld.addLayout(ligne_index)
+
         boutons = QHBoxLayout()
         self.bouton_enregistrer = QPushButton("Enregistrer")
         self.bouton_enregistrer.setObjectName("boutonPrincipal")
@@ -165,6 +191,9 @@ class Personnes(QMainWindow):
         self.bouton_supprimer.clicked.connect(self.supprimer)
         boutons.addWidget(self.bouton_enregistrer)
         boutons.addStretch(1)
+        self.bouton_exporter = QPushButton("📤  Exporter le passeport…")
+        self.bouton_exporter.clicked.connect(self.exporter_passeport)
+        boutons.addWidget(self.bouton_exporter)
         boutons.addWidget(self.bouton_supprimer)
         ld.addLayout(boutons)
         ld.addStretch(1)
@@ -223,6 +252,8 @@ class Personnes(QMainWindow):
             c.setChecked(False)
             c.setEnabled(True)
         self.liste_liens.clear()
+        self.liste_index.clear()
+        self.bouton_exporter.setEnabled(False)
         self.titre_fiche.setText("Nouvelle personne")
         self.info_fiche.setText("Coche « Coureur » pour lui créer aussi un profil sportif (sorties, forme, plans).")
         self.bouton_supprimer.setEnabled(False)
@@ -261,6 +292,16 @@ class Personnes(QMainWindow):
         morceaux.append(f"identifiant universel {f['uuid']}")
         self.info_fiche.setText(" · ".join(morceaux))
         self.bouton_supprimer.setEnabled(not f["athlete_id"])
+        self.bouton_exporter.setEnabled(True)
+        self.liste_index.clear()
+        for i in dpers.index_de(personne_id):
+            jour = QDate.fromString(i["date_releve"], "yyyy-MM-dd").toString("dd/MM/yyyy")
+            valeur = f"{i['valeur']:g}".replace(".", ",")
+            it = QListWidgetItem(f"{i['organisme']} : {valeur} au {jour}"
+                                 + (f" ({i['categorie']})" if i["categorie"] != "Général" else "")
+                                 + (f" · {i['source']}" if i["source"] else ""))
+            it.setData(Qt.ItemDataRole.UserRole, i["id"])
+            self.liste_index.addItem(it)
         self._remplir_combo_liens()
 
     def _champs(self):
@@ -335,3 +376,113 @@ class Personnes(QMainWindow):
         else:
             dpers.delier_parent(self.personne_id, autre)
         self.charger(self.personne_id)
+
+    # ------------------------------------------------------------ index
+    def _ajouter_index(self):
+        if self.personne_id is None:
+            QMessageBox.information(self, "Index", "Enregistre d'abord la fiche.")
+            return
+        try:
+            dpers.ajouter_index(self.personne_id, self.combo_organisme.currentText(), self.valeur_index.text(),
+                                self.date_index.text())
+        except dpers.ErreurPersonne as e:
+            QMessageBox.warning(self, "Index non ajouté", str(e))
+            return
+        self.valeur_index.clear()
+        self.charger(self.personne_id)
+
+    def _retirer_index(self):
+        it = self.liste_index.currentItem()
+        if it is not None:
+            dpers.supprimer_index(it.data(Qt.ItemDataRole.UserRole))
+            self.charger(self.personne_id)
+
+    # ------------------------------------------------------------ passeport coureur (étape 2.4)
+    def exporter_passeport(self):
+        from pathlib import Path
+        from noyau import passeport as pp
+        if self.personne_id is None:
+            return
+        dialogue = QDialog(self)
+        dialogue.setWindowTitle("Exporter le passeport coureur")
+        lay = QVBoxLayout(dialogue)
+        intro = QLabel("Le passeport est un fichier que tu peux importer sur un autre ordinateur ou donner à ton club. "
+                       "Les sorties et leurs traces n'y sont pas (elles voyagent avec la sauvegarde complète). "
+                       "Choisis ce qu'il contient :")
+        intro.setWordWrap(True)
+        lay.addWidget(intro)
+        cases = {}
+        for cle, libelle in pp.LIBELLES_CONTENU.items():
+            c = QCheckBox(libelle)
+            c.setChecked(pp.CONTENU_PAR_DEFAUT[cle])
+            cases[cle] = c
+            lay.addWidget(c)
+        boutons = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel)
+        boutons.accepted.connect(dialogue.accept)
+        boutons.rejected.connect(dialogue.reject)
+        lay.addWidget(boutons)
+        if dialogue.exec() != QDialog.DialogCode.Accepted:
+            return
+        try:
+            passeport = pp.exporter(self.personne_id, {k: c.isChecked() for k, c in cases.items()})
+        except pp.ErreurPasseport as e:
+            QMessageBox.warning(self, "Passeport", str(e))
+            return
+        chemin, _ = QFileDialog.getSaveFileName(self, "Enregistrer le passeport",
+                                                str(Path.home() / pp.nom_de_fichier(passeport)),
+                                                "Passeport coureur (*.json)")
+        if not chemin:
+            return
+        try:
+            pp.ecrire_fichier(chemin, passeport)
+        except OSError as e:
+            QMessageBox.warning(self, "Passeport", f"Impossible d'écrire le fichier : {e}")
+            return
+        n = {k: len(passeport.get(k, [])) for k in ("resultats", "index", "courses_a_venir", "objectifs")}
+        QMessageBox.information(self, "Passeport enregistré",
+                                f"Passeport enregistré :\n{chemin}\n\n{n['resultats']} résultat(s), {n['index']} index, "
+                                f"{n['courses_a_venir']} course(s) à venir, {n['objectifs']} objectif(s).")
+
+    def importer_passeport(self):
+        from pathlib import Path
+        from noyau import passeport as pp
+        chemin, _ = QFileDialog.getOpenFileName(self, "Importer un passeport coureur", str(Path.home()),
+                                                "Passeport coureur (*.json)")
+        if not chemin:
+            return
+        try:
+            passeport = pp.lire_fichier(chemin)
+            ap = pp.apercu(passeport)
+            cible = None
+            if ap["etat"] == "ambigu":
+                choix = {}
+                for pid in ap["candidats"]:
+                    f = dpers.fiche(pid)
+                    lib = f"{f['prenom']} {f['nom']}".strip() + (f" — né(e) le {f['date_naissance']}" if f["date_naissance"] else "") \
+                        + (f" — {f['ville']}" if f["ville"] else "") + f" (fiche n° {pid})"
+                    choix[lib] = pid
+                lib, ok = QInputDialog.getItem(self, "Quelle fiche compléter ?",
+                                               "Plusieurs fiches portent ce nom. Laquelle correspond à ce passeport ?",
+                                               list(choix), 0, False)
+                if not ok:
+                    return
+                cible = choix[lib]
+                ap = pp.apercu(passeport, cible)
+            boite = QMessageBox(QMessageBox.Icon.Question, "Importer ce passeport ?",
+                                "\n".join("• " + l for l in ap["lignes"]) + "\n\nRien n'est ajouté en double.")
+            case = QCheckBox("Remplacer mon profil sportif par celui du passeport (sinon seules les cases vides sont complétées)")
+            boite.setCheckBox(case)
+            boite.setStandardButtons(QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+            if boite.exec() != QMessageBox.StandardButton.Yes:
+                return
+            r = pp.importer(passeport, personne_id=cible, remplacer_profil=case.isChecked())
+        except pp.ErreurPasseport as e:
+            QMessageBox.warning(self, "Passeport non importé", str(e))
+            return
+        a = r["ajouts"]
+        QMessageBox.information(self, "Passeport importé",
+                                ("Nouvelle fiche créée." if r["cree"] else "Fiche existante complétée.")
+                                + f"\n{a['resultats']} résultat(s), {a['index']} index, {a['courses_a_venir']} course(s) "
+                                  f"à venir et {a['objectifs']} objectif(s) ajoutés.")
+        self.actualiser()
+        self.charger(r["personne_id"])

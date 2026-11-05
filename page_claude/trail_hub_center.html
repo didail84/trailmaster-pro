@@ -465,7 +465,8 @@ function donneesExemple() {
     { nom: "Sortie longue 2 h en colline", type_seance: "Sortie longue", date_prevue: cleJour(ajouterJours(auj, 5)), statut: "Prévue" },
   ];
   const traces = new Map(activites.filter((a) => a.type !== "Randonnée").map((a) => [a.id, { id: a.id, activite_id: a.id }]));
-  return { athletes: [athlete], athleteId: 1, tables: { athlete, activites, suivi, sommeil, recup, garmin: [], blessures, soins, courses, resultats, objectifs, materiel, seances, plans: [], musculation: [], traces, analyses: new Map() } };
+  return { athletes: [athlete], athleteId: 1, tables: { athlete, activites, suivi, sommeil, recup, garmin: [], blessures, soins, courses, resultats, objectifs, materiel, seances, plans: [], musculation: [], traces, analyses: new Map(),
+    index: [{ organisme: "ITRA", categorie: "Général", valeur: 512, date_releve: cleJour(ajouterJours(auj, -30)), source: "Exemple" }, { organisme: "UTMB Index", categorie: "Général", valeur: 498, date_releve: cleJour(ajouterJours(auj, -30)), source: "Exemple" }] } };
 }
 function traceExemple(a) {
   const r = aleatoire(a.id * 7919), n = Math.max(80, Math.round(a.distance * 30));
@@ -539,6 +540,9 @@ function lireAthlete(idAth) {
     soins: t("soins", "date DESC"), courses: t("courses_calendrier", "date"), resultats: t("resultats_courses", "date DESC"),
     objectifs: t("objectifs", "date_cible"), materiel: t("materiel", "id"), seances: t("seances_structurees", "date_prevue"),
     plans: t("plans_entrainement", "date_debut DESC"), musculation: t("musculation_suivi", "date"), traces,
+    index: Base.tablesPresentes.has("index_performance") && Base.cols("athletes").includes("personne_id")
+      ? Base.tous("SELECT i.organisme, i.categorie, i.valeur, i.date_releve, i.source FROM index_performance i JOIN athletes a ON a.personne_id = i.personne_id WHERE a.id = ? ORDER BY i.date_releve DESC", [idAth])
+      : [],
     analyses: new Map(Base.tablesPresentes.has("analyses_ia")
       ? Base.tous("SELECT activite_id, contenu FROM analyses_ia WHERE activite_id IS NOT NULL AND athlete_id = ? ORDER BY date_generation, id", [idAth]).map((l) => [l.activite_id, l.contenu])
       : []),
@@ -1011,6 +1015,7 @@ function vueCourses() {
       ${sansDate.map((c) => `<tr><td class="num tres-discret">—</td><td class="tres-discret">date à fixer</td><td class="nom">${esc(c.nom)}</td><td>${esc(c.lieu || c.region || "")}</td><td class="num">${virgule(nb(c.distance_km), 0)} km</td><td class="num">${entier(c.denivele_m)} m</td><td>${esc(c.type_terrain || "")}</td></tr>`).join("")}
       </tbody></table></div>` : `<p class="vide">Aucune course à venir.</p>`}
     </div>
+    ${(d.index || []).length ? `<div class="carte"><header><h3>Index de performance</h3><span class="petit discret">valeurs enregistrées dans le logiciel (Personnes)</span></header><div class="grille g4">${[...new Map(d.index.map((i) => [i.organisme + i.categorie, i])).values()].map((i) => { const hist = d.index.filter((x) => x.organisme === i.organisme && x.categorie === i.categorie); const prec = hist[1]; return `<div class="mesure"><span class="etiquette">${esc(i.organisme)}${i.categorie && i.categorie !== "Général" ? " · " + esc(i.categorie) : ""}</span><span class="valeur">${virgule(nb(i.valeur), Number.isInteger(nb(i.valeur)) ? 0 : 1)}</span><span class="detail">au ${esc(fmtJour(parseDate(i.date_releve)))}${prec ? ` · ${nb(i.valeur) - nb(prec.valeur) >= 0 ? "+" : "−"}${virgule(Math.abs(nb(i.valeur) - nb(prec.valeur)), 0)} depuis le ${esc(fmtJourCourt(parseDate(prec.date_releve)))}` : ""}</span></div>`; }).join("")}</div></div>` : ""}
     <div class="carte"><header><h3>Objectifs</h3></header>
       ${d.objectifs.length ? `<div class="liste">${d.objectifs.map((o) => `<div class="ligne"><span><span class="titre" style="white-space:normal">${esc(o.titre)}</span><span class="sous">${esc(o.type_objectif || "")}${o.date_cible ? " · pour le " + esc(fmtJour(parseDate(o.date_cible))) : ""}${o.priorite ? " · priorité " + esc(String(o.priorite).toLowerCase()) : ""}</span></span><span class="droite"><span class="etat ${pill(o.statut)}">${esc(o.statut || "—")}</span></span></div>`).join("")}</div>` : `<p class="vide">Aucun objectif enregistré.</p>`}
     </div>
@@ -1190,6 +1195,7 @@ function donneesRubrique(sujet) {
     l.push("Km par semaine (26 semaines) : " + semaines(d.activites, 26).map((w) => w.km.toFixed(0)).join(", "));
   }
   if (sujet === "courses") {
+    if ((d.index || []).length) l.push("Index de performance : " + d.index.slice(0, 10).map((i) => `${i.organisme} ${i.valeur} au ${i.date_releve}`).join(" ; "));
     l.push("Résultats : " + d.resultats.slice(0, 8).map((r) => `${r.date} ${r.nom_course} ${r.distance ?? "?"} km ${r.temps || ""} ${r.classement_general || ""}`).join(" ; "));
     l.push("Objectifs : " + d.objectifs.map((o) => `${o.titre} (${o.statut || "?"}, ${o.date_cible || "sans date"})`).join(" ; "));
   }

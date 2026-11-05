@@ -297,3 +297,54 @@ def supprimer(personne_id):
         if athlete_de_la_personne(personne_id, cur):
             raise ErreurPersonne("Cette personne a un profil coureur : supprime-le d'abord dans l'écran Athlètes.")
         cur.execute("DELETE FROM personnes WHERE id=?", (personne_id,))
+
+
+# ------------------------------------------------------------------
+# Index de performance (étape 2.4) : ITRA, UTMB, Betrail…
+# ------------------------------------------------------------------
+
+ORGANISMES_INDEX = ("ITRA", "UTMB Index", "Betrail", "Autre")
+
+
+def index_de(personne_id):
+    """Index de la personne, le plus récent d'abord : dicts {id, uuid, organisme, categorie, valeur, date_releve, source}."""
+    cles = ("id", "uuid", "organisme", "categorie", "valeur", "date_releve", "source")
+    return [dict(zip(cles, l)) for l in base.lire_tous(
+        f"SELECT {', '.join(cles)} FROM index_performance WHERE personne_id=? "
+        "ORDER BY date_releve DESC, organisme, id DESC", (personne_id,))]
+
+
+def ajouter_index(personne_id, organisme, valeur, date_releve, categorie="Général", source="Saisie"):
+    organisme = (organisme or "").strip()
+    if not organisme:
+        raise ErreurPersonne("Choisis l'organisme de l'index (ITRA, UTMB Index, Betrail…).")
+    try:
+        valeur = float(str(valeur).replace(",", "."))
+    except ValueError:
+        raise ErreurPersonne(f"Valeur d'index non valable : {valeur}") from None
+    if not 0 <= valeur <= 1500:
+        raise ErreurPersonne(f"Valeur d'index non plausible : {valeur}")
+    jour = normaliser_date_releve(date_releve)
+    if base.lire_un("SELECT 1 FROM index_performance WHERE personne_id=? AND organisme=? AND categorie=? AND date_releve=?",
+                    (personne_id, organisme, categorie or "Général", jour)):
+        raise ErreurPersonne(f"Un index {organisme} existe déjà à la date du {jour}.")
+    return base.ecrire("INSERT INTO index_performance (personne_id, organisme, categorie, valeur, date_releve, source) "
+                       "VALUES (?,?,?,?,?,?)", (personne_id, organisme, categorie or "Général", valeur, jour, source))
+
+
+def supprimer_index(index_id):
+    base.ecrire("DELETE FROM index_performance WHERE id=?", (index_id,))
+
+
+def normaliser_date_releve(texte):
+    """Date d'un relevé (pas de borne d'âge) : « 05/11/2026 » → « 2026-11-05 »."""
+    t = str(texte or "").strip()
+    for fmt in ("%Y-%m-%d", "%d/%m/%Y", "%d-%m-%Y", "%d.%m.%Y"):
+        try:
+            d = datetime.strptime(t[:10], fmt).date()
+        except ValueError:
+            continue
+        if d > date.today():
+            raise ErreurPersonne(f"La date {t} est dans le futur.")
+        return d.isoformat()
+    raise ErreurPersonne(f"Date non reconnue : {t or '(vide)'}. Écris-la comme 05/11/2026.")

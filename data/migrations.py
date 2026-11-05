@@ -210,10 +210,32 @@ def _m002_personnes_et_roles(cur):
         END""")
 
 
+# ------------------------------------------------------------------
+# Migration 3 — index de performance (étape 2.4, passeport coureur)
+# ------------------------------------------------------------------
+
+def _m003_index_performance(cur):
+    """Index ITRA, UTMB, Betrail… d'une personne, avec leur date : ils
+    voyagent dans le passeport coureur et seront tenus à jour par le Club."""
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS index_performance (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            personne_id INTEGER NOT NULL REFERENCES personnes(id) ON DELETE CASCADE,
+            organisme TEXT NOT NULL,
+            categorie TEXT NOT NULL DEFAULT 'Général',
+            valeur REAL NOT NULL,
+            date_releve TEXT NOT NULL,
+            source TEXT,
+            UNIQUE (personne_id, organisme, categorie, date_releve)
+        )""")
+    _ajouter_uuid(cur, "index_performance")
+
+
 # (numéro, description lisible, fonction) — dans l'ordre, sans trou
 MIGRATIONS = [
     (1, "Identifiant universel (UUID) pour chaque donnée", _m001_identifiants_universels),
     (2, "Fiche Personne unique et rôles", _m002_personnes_et_roles),
+    (3, "Index de performance (ITRA, UTMB, Betrail)", _m003_index_performance),
 ]
 VERSION_LOGICIEL = MIGRATIONS[-1][0]
 
