@@ -179,6 +179,8 @@ def _tableau_passages(page, passages):
             nom = "R · " + nom
         elif pt["type"] == "Barrière horaire":
             nom = "B · " + nom
+        elif pt["type"] == "Assistance":
+            nom = "A · " + nom
         valeurs = [str(i), nom, _virgule(pt["km"]), texte_heure(pt["passage"]),
                    texte_heure(pt["barriere"]) if pt["barriere"] else "—", marge_txt or "—"]
         x = 0.0
@@ -191,9 +193,9 @@ def _tableau_passages(page, passages):
         page.y += hauteur * MM
 
 
-def rendre_fiche_pdf(chemin, rb, passages, trace_prof, nutrition_lignes, checklist):
+def rendre_fiche_pdf(chemin, rb, passages, trace_prof, nutrition_lignes, checklist, scenarios=None, sacs=None):
     """rb : {nom, date_course, depart, distance_km, denivele_m, temps_total_s, allure_plat}.
-    Retourne le nombre de pages."""
+    scenarios / sacs : facultatifs (noyau/course/strategie.py). Retourne le nombre de pages."""
     w = QPdfWriter(chemin)
     w.setPageSize(QPageSize(QPageSize.PageSizeId.A5))
     w.setResolution(RESOLUTION)
@@ -219,10 +221,14 @@ def rendre_fiche_pdf(chemin, rb, passages, trace_prof, nutrition_lignes, checkli
     if rb.get("temps_total_s"):
         arr = passages[-1]["passage"] if passages else None
         page.texte(f"Temps estimé {texte_duree(rb['temps_total_s'])}"
-                   + (f"  ·  arrivée vers {texte_heure(arr)}" if arr else ""), 12, True, marge_bas=3)
+                   + (f"  ·  arrivée vers {texte_heure(arr)}" if arr else ""), 12, True,
+                   marge_bas=1 if scenarios else 3)
+    if scenarios:
+        page.texte("  ·  ".join(f"{sc['libelle']} {texte_duree(sc['temps_s'])} (arrivée {texte_heure(sc['passages'][-1]['passage'])})"
+                                for sc in scenarios.values()), 9, couleur=GRIS, marge_bas=3)
     _profil(page, trace_prof, passages)
     _tableau_passages(page, passages)
-    page.texte("R = ravitaillement · B = barrière horaire · marge = barrière − passage estimé "
+    page.texte("R = ravitaillement · B = barrière horaire · A = assistance · marge = barrière − passage estimé "
                "(! = moins de 30 min). Estimations : garde de la réserve.", 7.5, couleur=GRIS, marge_bas=0)
 
     # ---------- page 2
@@ -239,6 +245,16 @@ def rendre_fiche_pdf(chemin, rb, passages, trace_prof, nutrition_lignes, checkli
             page.texte(n["texte"], 9, couleur=GRIS, x=3 * MM, marge_bas=2)
         page.texte("Aliments génériques, glucides indicatifs : vérifie les étiquettes et teste tout à "
                    "l'entraînement.", 7.5, couleur=GRIS, marge_bas=3)
+    if sacs:
+        page.texte("Sacs d'assistance", 13, True, marge_bas=2)
+        for sac in sacs:
+            h = sac["heures"]
+            page.texte(f"{sac['nom']} (km {_virgule(sac['km'])}) — arrivée {texte_heure(h['ambitieux'])} à "
+                       f"{texte_heure(h['prudent'])}, plutôt vers {texte_heure(h['realiste'])}", 9.5, True, marge_bas=0.3)
+            page.texte(f"Jusqu'à {sac['jusqua']} · {texte_duree(sac['duree_s'])}", 8.5, couleur=GRIS, x=3 * MM, marge_bas=0.5)
+            for ligne in sac["lignes"]:
+                page.texte("• " + ligne, 8.5, x=3 * MM, marge_bas=0.4)
+            page.y += 1.5 * MM
     if checklist:
         page.texte("Checklist du sac", 13, True, marge_bas=2)
         section = None
@@ -255,3 +271,75 @@ def rendre_fiche_pdf(chemin, rb, passages, trace_prof, nutrition_lignes, checkli
             page.texte(it["texte"], 9.5, x=6 * MM, marge_bas=0.8)
     p.end()
     return page.num
+
+
+# ----------------------------------------------------------------------
+# Bracelet d'allures (Trail Hub Center, étape 3)
+# ----------------------------------------------------------------------
+LARGEUR_BRACELET_MM = 32
+
+
+def rendre_bracelet_pdf(chemin, nom_course, lignes, depart=""):
+    """Bande de 32 mm de large à découper et à scotcher sur l'avant-bras (ou à glisser
+    sous un bracelet en silicone) : une ligne par point — km, nom, heure réaliste en gros,
+    heure prudente et barrière en petit, D+ / D− jusqu'au point suivant.
+    Quatre bandes identiques par feuille A4. Retourne le nombre de pages."""
+    w = QPdfWriter(chemin)
+    w.setPageSize(QPageSize(QPageSize.PageSizeId.A4))
+    w.setResolution(RESOLUTION)
+    w.setPageMargins(QMarginsF(8, 8, 8, 8), QPageLayout.Unit.Millimeter)
+    w.setTitle(f"Bracelet d'allures – {nom_course}")
+    p = QPainter(w)
+    p.setRenderHint(QPainter.RenderHint.Antialiasing)
+    largeur = LARGEUR_BRACELET_MM * MM
+    ecart = 12 * MM
+    hauteur_ligne = 11.5 * MM
+    entete = 13 * MM
+    H = w.height()
+    par_page = max(1, int((H - entete) // hauteur_ligne))
+    pages = [lignes[i:i + par_page] for i in range(0, len(lignes), par_page)] or [[]]
+    for n, bloc in enumerate(pages):
+        if n:
+            w.newPage()
+        for copie in range(4):
+            x0 = copie * (largeur + ecart)
+            if x0 + largeur > w.width():
+                break
+            p.setPen(QPen(GRIS, 2, Qt.PenStyle.DashLine))     # trait de coupe
+            p.setBrush(Qt.BrushStyle.NoBrush)
+            p.drawRect(QRectF(x0, 0, largeur, entete + len(bloc) * hauteur_ligne))
+            p.setPen(NOIR)
+            p.setFont(_police(8, True))
+            p.drawText(QRectF(x0 + 1.5 * MM, 1 * MM, largeur - 3 * MM, 6 * MM),
+                       int(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter), nom_course[:26])
+            p.setFont(_police(6))
+            p.setPen(GRIS)
+            p.drawText(QRectF(x0 + 1.5 * MM, 6.5 * MM, largeur - 3 * MM, 5 * MM),
+                       int(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter),
+                       (f"départ {depart} · " if depart else "") + "réaliste / prudent")
+            for i, l in enumerate(bloc):
+                y = entete + i * hauteur_ligne
+                if i % 2 == 0:
+                    p.fillRect(QRectF(x0 + 0.5, y, largeur - 1, hauteur_ligne), QColor("#F2F2F2"))
+                couleur = ROUGE if l["barriere"] else NOIR
+                p.setPen(couleur)
+                p.setFont(_police(7, True))
+                p.drawText(QRectF(x0 + 1.2 * MM, y + 0.6 * MM, 11 * MM, 4.5 * MM),
+                           int(Qt.AlignmentFlag.AlignLeft), _virgule(l["km"]))
+                p.setFont(_police(6.2))
+                p.drawText(QRectF(x0 + 10 * MM, y + 0.6 * MM, largeur - 11 * MM, 4.5 * MM),
+                           int(Qt.AlignmentFlag.AlignLeft), l["nom"][:18])
+                p.setPen(NOIR)
+                p.setFont(_police(11, True))
+                p.drawText(QRectF(x0 + 1.2 * MM, y + 4.2 * MM, 17 * MM, 6.5 * MM),
+                           int(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter), l["realiste"])
+                p.setFont(_police(6.2))
+                p.setPen(GRIS)
+                bas = l["prudent"] + (f"  B {l['barriere']}" if l["barriere"] else "")
+                p.drawText(QRectF(x0 + 17.5 * MM, y + 4.4 * MM, largeur - 18 * MM, 3.2 * MM),
+                           int(Qt.AlignmentFlag.AlignLeft), bas)
+                if l["suite_dplus"] is not None:
+                    p.drawText(QRectF(x0 + 17.5 * MM, y + 7.4 * MM, largeur - 18 * MM, 3.2 * MM),
+                               int(Qt.AlignmentFlag.AlignLeft), f"+{l['suite_dplus']} −{l['suite_dmoins']}")
+    p.end()
+    return len(pages)

@@ -21,6 +21,7 @@ from PySide6.QtWidgets import (
 from noyau.donnees import parcours as dparc  # accès aux données
 
 import noyau.course.roadbook as rbk
+import noyau.course.strategie as strat
 import noyau.entrainement.metriques as met
 from noyau.entrainement.conformite import parser_allure
 from interface.ecran_liste import configurer_table_redimensionnable
@@ -29,7 +30,8 @@ from interface.theme import PALETTE
 from noyau.donnees import courses as dcourse
 
 VERT, ORANGE, ROUGE, BLEU = "#66BB6A", "#FFA726", "#EF5350", "#42A5F5"
-MODES = [("vo2", "Prédit depuis ton VO₂max (estimation basse)"),
+MODES = [("appris", "Appris sur tes sorties (conseillé)"),
+         ("vo2", "Prédit depuis ton VO₂max (estimation basse)"),
          ("allure", "Je donne mon allure sur le plat"),
          ("temps", "Je vise un temps total")]
 INTENSITES = [("facile", "Facile"), ("modere", "Modérée"), ("soutenu", "Soutenue")]
@@ -137,6 +139,7 @@ class RoadbookCourse(_EcranAthlete):
         self._trace, self._wp = [], []
         self._points, self._checklist = [], []
         self._passages, self._plan, self._nutrition = [], None, []
+        self._scenarios, self._sacs, self._facteurs = {}, [], None
         self._distance, self._deniv = 0.0, 0
         self._bloque = False
         self._course_pre = course_preselectionnee
@@ -214,6 +217,29 @@ class RoadbookCourse(_EcranAthlete):
         self.label_niveau.setWordWrap(True)
         self.label_niveau.setObjectName("texteSecondaire")
         l2.addWidget(self.label_niveau)
+        # Trois scénarios (étape 3) : un bloc par scénario, temps total et arrivée
+        ligne_sc = QHBoxLayout()
+        self.blocs_scenarios = {}
+        for code, libelle in strat.SCENARIOS:
+            bloc = QFrame()
+            bloc.setObjectName("carteScenario")
+            lb = QVBoxLayout(bloc)
+            t = QLabel(libelle.upper())
+            t.setObjectName("labelChamp")
+            v = QLabel("—")
+            v.setStyleSheet("font-size: 20px; font-weight: 700; background: transparent;")
+            d = QLabel("")
+            d.setObjectName("texteSecondaire")
+            d.setWordWrap(True)
+            for w_ in (t, v, d):
+                lb.addWidget(w_)
+            self.blocs_scenarios[code] = (v, d)
+            ligne_sc.addWidget(bloc, 1)
+        l2.addLayout(ligne_sc)
+        self.label_scenarios = QLabel("")
+        self.label_scenarios.setWordWrap(True)
+        self.label_scenarios.setObjectName("texteSecondaire")
+        l2.addWidget(self.label_scenarios)
         self.principal.addWidget(c2)
 
         # ---- 3. Conditions
@@ -257,9 +283,9 @@ class RoadbookCourse(_EcranAthlete):
         c4, l4 = self._carte("4. Profil et points de passage")
         self.profil = ProfilWidget()
         l4.addWidget(self.profil)
-        self.table = QTableWidget(0, 8)
-        self.table.setHorizontalHeaderLabels(["Point", "Km", "Type", "Barrière (hh:mm)", "Passage estimé",
-                                              "Marge", "Tronçon", "Temps du tronçon"])
+        self.table = QTableWidget(0, 10)
+        self.table.setHorizontalHeaderLabels(["Point", "Km", "Type", "Barrière (hh:mm)", "Ambitieux", "Réaliste",
+                                              "Prudent", "Marge (prudent)", "Tronçon", "Temps du tronçon"])
         configurer_table_redimensionnable(self.table)
         self.table.setMinimumHeight(240)
         self.table.itemChanged.connect(self._cellule_modifiee)
@@ -297,8 +323,17 @@ class RoadbookCourse(_EcranAthlete):
         l5.addWidget(self.table_nutri)
         self.principal.addWidget(c5)
 
-        # ---- 6. Checklist
-        c6, l6 = self._carte("6. Checklist du sac")
+        # ---- 6. Sacs d'assistance
+        c7, l7 = self._carte("6. Sacs d'assistance")
+        self.label_sacs = QLabel("")
+        self.label_sacs.setWordWrap(True)
+        self.label_sacs.setTextFormat(Qt.TextFormat.RichText)
+        self.label_sacs.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
+        l7.addWidget(self.label_sacs)
+        self.principal.addWidget(c7)
+
+        # ---- 7. Checklist
+        c6, l6 = self._carte("7. Checklist du sac")
         self.liste_check = QListWidget()
         self.liste_check.setStyleSheet(CASES_QSS)
         self.liste_check.setMinimumHeight(260)
@@ -326,8 +361,12 @@ class RoadbookCourse(_EcranAthlete):
         b_pdf = QPushButton("🖨️ Exporter la mini-fiche (PDF A5)")
         b_pdf.setObjectName("boutonPrincipal")
         b_pdf.clicked.connect(self._exporter_pdf)
+        b_bracelet = QPushButton("⌚ Bracelet d'allures (PDF)")
+        b_bracelet.setObjectName("boutonPrincipal")
+        b_bracelet.clicked.connect(self._exporter_bracelet)
         ligne.addWidget(b_save)
         ligne.addWidget(b_pdf)
+        ligne.addWidget(b_bracelet)
         ligne.addStretch()
         self.principal.addLayout(ligne)
         note = QLabel("Les temps sont des estimations (pente, niveau, VO₂max « estimation basse ») : garde de la "
@@ -577,6 +616,7 @@ class RoadbookCourse(_EcranAthlete):
     # ------------------------------------------------------------------
     def _allure_plat(self):
         """-> (allure_min_km | None, message)."""
+        self._facteurs = None
         if len(self._trace) < 2:
             return None, "Charge un tracé GPX pour calculer les temps de passage."
         mode = self.combo_mode.currentData()
@@ -589,6 +629,18 @@ class RoadbookCourse(_EcranAthlete):
             if not s:
                 return None, "Temps visé invalide (ex. 6:30)."
             return rbk.allure_plat_pour_duree(self._trace, s), f"Temps visé : {rbk.texte_duree(s)}."
+        if mode == "appris":
+            jour = self.champ_date.date().toString("yyyy-MM-dd")
+            d = strat.duree_apprise(a, self._distance, self._deniv, jour)
+            self._facteurs = d["facteurs"] if d else None
+            if not d:
+                return None, ("Pas encore assez de sorties Trail/Course sur 2 ans pour apprendre ton temps : "
+                              "choisis une autre méthode.")
+            msg = (f"Temps appris sur {d['nb_sorties']} de tes sorties (distance + D+"
+                   + (", ajusté à la saison" if d["ajustement_saison"] else "") + f") : {rbk.texte_duree(d['secondes'])}.")
+            if d["extrapolation"]:
+                msg += " ⚠️ Course bien plus longue que tes sorties : estimation à prendre avec prudence."
+            return rbk.allure_plat_pour_duree(self._trace, d["secondes"]), msg
         s = rbk.duree_depuis_vo2max(a, self._distance, self._deniv) if a is not None else None
         if not s:
             return None, "Pas de VO₂max estimé pour cet athlète : choisis « allure sur le plat » ou « temps visé »."
@@ -620,14 +672,30 @@ class RoadbookCourse(_EcranAthlete):
                 self._trace, self._points, self.champ_depart.time().toString("HH:mm"), allure, jour)
             self._plan, self._nutrition = rbk.nutrition_par_troncon(
                 self._passages, self.spin_temp.value(), self.spin_poids.value(), self.combo_intensite.currentData())
+            self._scenarios = strat.calculer_scenarios(
+                self._trace, self._points, self.champ_depart.time().toString("HH:mm"),
+                self._passages[-1]["temps_s"], jour, self._facteurs)
+            if self._scenarios:
+                self._passages = self._scenarios["realiste"]["passages"]
+            self._sacs = strat.sacs_assistance(self._scenarios, self._nutrition, self.spin_temp.value())
             self.label_niveau.setText(
                 f"{msg} Allure plat équivalente : {int(allure)}:{int(round((allure % 1) * 60)):02d} /km · "
                 f"temps estimé {rbk.texte_duree(self._passages[-1]['temps_s'])} · "
                 f"arrivée vers {rbk.texte_heure(self._passages[-1]['passage'])}.")
+        if not (allure and prof):
+            self._scenarios, self._sacs = {}, []
+        self._afficher_scenarios()
+        self._afficher_sacs()
         self.profil.definir(prof, self._passages)
         self._remplir_table()
         self._remplir_nutrition()
         self._maj_checklist()
+        etat, phrase = strat.verdict_barrieres(self._scenarios)
+        if etat is not None:
+            couleur = {"ok": VERT, "serre": ORANGE, "depasse": ROUGE}[etat]
+            self.label_marges.setText(("✅ " if etat == "ok" else "⚠️ ") + phrase)
+            self.label_marges.setStyleSheet(f"color: {couleur}; font-weight: 600;")
+            return
         pire, nom = rbk.temps_limite_theorique(self._passages)
         if pire is None:
             self.label_marges.setText("Ajoute des barrières horaires (colonne « Barrière ») pour voir ta marge à chaque point.")
@@ -643,6 +711,70 @@ class RoadbookCourse(_EcranAthlete):
             self.label_marges.setText(f"✅ Toutes les barrières passent avec de la marge (la plus faible : {pire} min à « {nom} »).")
             self.label_marges.setStyleSheet(f"color: {VERT}; font-weight: 600;")
 
+    def _afficher_scenarios(self):
+        for code, (v, d) in self.blocs_scenarios.items():
+            sc = self._scenarios.get(code)
+            if not sc:
+                v.setText("—")
+                d.setText("")
+                continue
+            v.setText(rbk.texte_duree(sc["temps_s"]))
+            al = sc["allure_plat"]
+            marge = "" if sc["pire_marge"] is None else f" · marge mini {sc['pire_marge']} min"
+            d.setText(f"arrivée {rbk.texte_heure(sc['passages'][-1]['passage'])} · plat "
+                      f"{int(al)}:{int(round((al % 1) * 60)) % 60:02d}/km{marge}")
+        if self._scenarios:
+            f = self._scenarios
+            source = ("tirés de la dispersion de tes sorties autour du modèle" if self._facteurs
+                      else "écarts habituels (−6 % / +10 %)")
+            self.label_scenarios.setText(
+                f"Ambitieux = {round((f['ambitieux']['facteur'] - 1) * 100):+d} %, prudent = "
+                f"{round((f['prudent']['facteur'] - 1) * 100):+d} % par rapport au réaliste, {source}. "
+                "Pars sur le réaliste ; le prudent te dit si les barrières tiennent un jour sans.")
+        else:
+            self.label_scenarios.setText("")
+
+    def _afficher_sacs(self):
+        if not self._scenarios:
+            self.label_sacs.setText("Charge un tracé et choisis ton niveau.")
+            return
+        if not self._sacs:
+            self.label_sacs.setText("Mets le type « Assistance » sur les points où tes proches t'attendent : "
+                                    "le logiciel prépare le contenu de chaque sac et l'heure à laquelle ils doivent y être.")
+            return
+        morceaux = []
+        for sac in self._sacs:
+            h = sac["heures"]
+            lignes = "".join(f"<li>{l}</li>" for l in sac["lignes"])
+            morceaux.append(
+                f"<p><b>{sac['nom']}</b> (km {_fr(sac['km'])}) — tes proches : entre "
+                f"{rbk.texte_heure(h['ambitieux'])} et {rbk.texte_heure(h['prudent'])}, plutôt vers "
+                f"<b>{rbk.texte_heure(h['realiste'])}</b>.<br>Pour aller jusqu'à {sac['jusqua']} "
+                f"({rbk.texte_duree(sac['duree_s'])}) :</p><ul>{lignes}</ul>")
+        self.label_sacs.setText("".join(morceaux))
+
+    def _exporter_bracelet(self):
+        if not self._scenarios:
+            QMessageBox.information(self, "Rien à exporter",
+                                    "Charge un tracé et choisis ton niveau pour obtenir les temps de passage.")
+            return
+        nom = (self.champ_nom.text().strip() or "course").replace("/", "-")
+        chemin, _ = QFileDialog.getSaveFileName(self, "Enregistrer le bracelet d'allures",
+                                                f"Bracelet_{nom}.pdf", "PDF (*.pdf)")
+        if not chemin:
+            return
+        from interface.roadbook_fiche import rendre_bracelet_pdf
+        try:
+            pages = rendre_bracelet_pdf(chemin, self.champ_nom.text().strip() or "Course",
+                                        strat.lignes_bracelet(self._scenarios), self.champ_depart.time().toString("HH:mm"))
+        except Exception as e:
+            QMessageBox.warning(self, "Export impossible", str(e))
+            return
+        QMessageBox.information(self, "Bracelet créé",
+                                f"Bracelet d'allures enregistré ({pages} page(s), 4 bandes par feuille) :\n{chemin}\n\n"
+                                "Imprime en « taille réelle » (100 %), découpe une bande, protège-la avec du "
+                                "ruban adhésif transparent et porte-la à l'avant-bras.")
+
     def _remplir_table(self):
         t = self.table
         t.clearContents()
@@ -651,14 +783,18 @@ class RoadbookCourse(_EcranAthlete):
         for i, p in enumerate(self._passages):
             auto = p["nom"] in ("Départ", "Arrivée") and not any(
                 q["nom"] == p["nom"] for q in self._points)
-            vals = [p["nom"], _fr(p["km"]), None, p["barriere_txt"], rbk.texte_heure(p["passage"]), "", "", ""]
-            if p["marge_min"] is not None:
-                m = p["marge_min"]
-                vals[5] = (f"{'−' if m < 0 else '+'}{abs(m) // 60}h{abs(m) % 60:02d}"
+            sc = self._scenarios
+            amb = sc["ambitieux"]["passages"][i] if sc else p
+            prud = sc["prudent"]["passages"][i] if sc else p
+            vals = [p["nom"], _fr(p["km"]), None, p["barriere_txt"], rbk.texte_heure(amb["passage"]),
+                    rbk.texte_heure(p["passage"]), rbk.texte_heure(prud["passage"]), "", "", ""]
+            if prud["marge_min"] is not None:
+                m = prud["marge_min"]
+                vals[7] = (f"{'−' if m < 0 else '+'}{abs(m) // 60}h{abs(m) % 60:02d}"
                            if abs(m) >= 60 else f"{'−' if m < 0 else '+'}{abs(m)} min")
             if i:
-                vals[6] = f"{_fr(p['troncon_km'])} km · D+ {p['troncon_dplus']} / D− {p['troncon_dmoins']}"
-                vals[7] = rbk.texte_duree(p["troncon_s"])
+                vals[8] = f"{_fr(p['troncon_km'])} km · D+ {p['troncon_dplus']} / D− {p['troncon_dmoins']}"
+                vals[9] = rbk.texte_duree(p["troncon_s"])
             for c, v in enumerate(vals):
                 if c == 2:
                     combo = QComboBox()
@@ -668,10 +804,14 @@ class RoadbookCourse(_EcranAthlete):
                     t.setCellWidget(i, 2, combo)
                     continue
                 it = QTableWidgetItem(v)
-                if c in (4, 5, 6, 7):
+                if c >= 4:
                     it.setFlags(it.flags() & ~Qt.ItemFlag.ItemIsEditable)
-                if c == 5 and p["statut"]:
-                    it.setForeground(QColor({"ok": VERT, "serre": ORANGE, "depasse": ROUGE}[p["statut"]]))
+                if c == 5:
+                    f = it.font()
+                    f.setBold(True)
+                    it.setFont(f)
+                if c == 7 and prud["statut"]:
+                    it.setForeground(QColor({"ok": VERT, "serre": ORANGE, "depasse": ROUGE}[prud["statut"]]))
                     f = it.font()
                     f.setBold(True)
                     it.setFont(f)
@@ -792,7 +932,7 @@ class RoadbookCourse(_EcranAthlete):
         d["date_course"] = self.champ_date.date().toString("dd/MM/yyyy")
         try:
             pages = rendre_fiche_pdf(chemin, d, self._passages, rbk.profil(self._trace), self._nutrition,
-                                     self._checklist)
+                                     self._checklist, self._scenarios or None, self._sacs or None)
         except Exception as e:
             QMessageBox.warning(self, "Export impossible", str(e))
             return

@@ -1,5 +1,13 @@
 # Historique des versions
 
+## Trail Hub Center — étape 3.1 : Stratégie de course (bloc 15)
+- Roadbook : nouvelle méthode « Appris sur tes sorties (conseillé) » — le temps de course vient de la régression distance + D+ de tes sorties Trail/Course des 2 dernières années, ajustée à la saison (avertissement si la course est bien plus longue que tes sorties).
+- **Trois scénarios** prudent, réaliste et ambitieux : temps total, heure d'arrivée, allure plat et marge la plus faible pour chacun ; dans le tableau, les heures de passage des trois scénarios et la marge sur les barrières en scénario prudent. L'écart entre scénarios vient de la dispersion réelle de tes sorties autour du modèle (bornée à −15 %/−3 % et +4 %/+25 %), sinon −6 % / +10 %. Verdict clair : barrières sûres même en prudent, serrées, ou en danger.
+- **Sacs d'assistance** : nouveau type de point « Assistance » (là où tes proches t'attendent). Pour chacun : la fourchette d'heures à laquelle ils doivent être là, et le contenu du sac jusqu'à l'assistance suivante — glucides (en gels et barres), eau et ravitaillements où remplir, frontale si le tronçon passe de nuit en scénario prudent, couche chaude, rechanges au-delà de 3 h.
+- **Bracelet d'allures** (PDF A4, 4 bandes de 32 mm à découper) : km, point, heure réaliste en gros, heure prudente, barrière en rouge, D+/D− jusqu'au point suivant.
+- Mini-fiche A5 : temps des trois scénarios en tête, page « Sacs d'assistance », repère « A » pour les points d'assistance.
+- Tests : 261.
+
 ## Trail Hub Center — VMA et VO2max par jour, par semaine ou par mois
 - Écran **VMA & circuits** : les courbes de VMA, VO2max et efficacité se lisent désormais jour par jour (30 jours, 90 jours ou 6 mois), semaine par semaine (12, 26 ou 52 semaines, du lundi au dimanche) ou mois par mois (12 ou 24 mois). À chaque point, la VMA du moment garde la même règle : moyenne des 3 meilleures sorties des 90 jours d'avant. Nouveau : des points orange montrent la meilleure sortie de chaque jour, semaine ou mois.
 - Écrans **Évolution des performances** (VO2max, FC, allure, D+, distance, durée) : même choix jour, semaine ou mois.

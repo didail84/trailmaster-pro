@@ -22,7 +22,7 @@ from data.database import connexion
 from noyau.traces.gpx_utils import _distance_haversine_km, parser_gpx
 from noyau.course.pacing_segments import decouper_par_segments, calculer_pacing
 
-TYPES_POINT = ("Ravitaillement", "Barrière horaire", "Repère")
+TYPES_POINT = ("Ravitaillement", "Barrière horaire", "Assistance", "Repère")   # Assistance : tes proches t'y attendent (étape 3)
 MARGE_SERREE_MIN = 30          # sous 30 min de marge : « serré »
 LONGUEUR_SEGMENT_KM = 0.5
 MAX_POINTS_TRACE = 1500        # trace conservée en base (allégée)

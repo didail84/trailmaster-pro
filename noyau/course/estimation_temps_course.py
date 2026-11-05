@@ -165,10 +165,33 @@ def estimer_temps_course(athlete_id, distance_km, denivele_m, date_course=None, 
                     estimation_finale = estimation_brute * ratio_moyen
                     ajustement_saison = True
 
+    # Dispersion de tes sorties autour du modèle (Trail Hub Center, étape 3) :
+    # rapport temps réel / temps du modèle, sur les sorties d'au moins un
+    # tiers de la distance visée (les plus parlantes pour cette course).
+    ratios = []
+    for d, n, duree in donnees:
+        attendu = a * d + b * n + c
+        if attendu > 0 and d >= distance_km / 3:
+            ratios.append(duree / attendu)
+    if len(ratios) < 5:
+        ratios = [duree / (a * d + b * n + c) for d, n, duree in donnees if a * d + b * n + c > 0]
+    ratios.sort()
+
+    def _quantile(q):
+        if not ratios:
+            return None
+        k = (len(ratios) - 1) * q
+        i = int(k)
+        j = min(i + 1, len(ratios) - 1)
+        return ratios[i] + (ratios[j] - ratios[i]) * (k - i)
+
     return {
         "secondes": estimation_finale,
         "duree_formatee": _formater_duree(estimation_finale),
         "nb_sorties": len(donnees),
         "ajustement_saison": ajustement_saison,
         "extrapolation": extrapolation,
+        "ratio_bas": _quantile(0.2),       # tes 20 % de sorties les plus rapides par rapport au modèle
+        "ratio_haut": _quantile(0.8),      # tes 20 % les plus lentes
+        "nb_sorties_dispersion": len(ratios),
     }
