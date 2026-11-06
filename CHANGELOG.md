@@ -1,5 +1,28 @@
 # Historique des versions
 
+## Trail Hub Center — étape 7 (photos par dossard)
+- **Organisation, nouvel onglet Photos** (13 onglets au total) :
+  - **import** d'un dossier, d'un zip ou d'un lien de partage (Dropbox, Google Drive pour un fichier, lien direct) ; une photo importée deux fois n'apparaît qu'une fois ; date de prise de vue et photographe gardés ;
+  - **téléphones des bénévoles** : page « 📷 Envoyer mes photos » sur le serveur du club ;
+  - **lecture automatique des dossards** sur l'ordinateur, sans Internet (RapidOCR). Seuls les dossards attribués sur la course sont retenus ; une lecture hésitante passe « à vérifier » ;
+  - **correction rapide** : galerie, grande photo, dossards à taper, Entrée pour passer à la suivante ; ta correction a toujours le dernier mot ; masquer ou supprimer une photo.
+- **Droit à l'image** :
+  - case sur chaque inscription, et colonne « droit à l'image » reconnue à l'import des inscrits ;
+  - l'accord donné sur la fiche d'un licencié compte aussi ;
+  - pour un mineur, il faut en plus l'autorisation parentale ;
+  - une photo n'est rendue que si **tous** les coureurs reconnus dessus sont d'accord ;
+  - aucune reconnaissance des visages : seul le numéro de dossard sert.
+- **Rendre les photos aux coureurs** :
+  - **page publique** sur le serveur : dossard + code personnel, chacun ne voit que SES photos ; trop d'essais ratés = pause de 10 minutes ; liens signés qui expirent ;
+  - **codes en PDF** à remettre avec le dossard ;
+  - **un zip par coureur** ;
+  - **e-mail** par la messagerie du club : lien et code, ou photos jointes s'il n'y a pas d'adresse publique ; mot de passe gardé dans le trousseau ;
+  - les photos rendues n'ont plus de données EXIF (ni position GPS, ni appareil).
+- **Club, Licenciés** : les photos de course du licencié sur son profil (bouton « Photos »).
+- **Page Claude**, rubrique Organisation : carte Photos (photos, à vérifier, dossards reconnus, inscrits sans accord). Les photos elles-mêmes restent sur l'ordinateur du club.
+- **Base de données version 18** : photos, dossards lus, codes d'accès, envois ; droit à l'image des inscrits.
+- **À installer** : `Pillow` et `rapidocr_onnxruntime` (dans requirements.txt). Sur un Mac Intel sous macOS 12, versions limitées dans `packaging/contraintes-mac-intel.txt`.
+
 ## Trail Hub Center — étapes 5 et 6, Kids, Analyse, Actualités, plusieurs associations
 - **Club : plusieurs associations et leurs sections, sans mélange** :
   - un club FFA et une association de trail (ou plus) dans le même logiciel, chacun avec ses adhésions, groupes, tarifs, reçus numérotés et agenda ;

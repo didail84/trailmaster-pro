@@ -1176,6 +1176,65 @@ def _m017_actualites(cur):
         _ajouter_uuid(cur, t)
 
 
+def _m018_photos(cur):
+    """Étape 7 : photos d'une course retrouvées par numéro de dossard. Les photos restent dans le dossier de données
+    (jamais dans la base) ; ici leur empreinte, les dossards lus ou corrigés, les codes d'accès des coureurs et
+    l'historique des envois. Droit à l'image noté sur chaque inscription."""
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS photos_course (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            evenement_id INTEGER NOT NULL REFERENCES evenements(id) ON DELETE CASCADE,
+            fichier TEXT NOT NULL,
+            nom_origine TEXT,
+            empreinte TEXT NOT NULL,
+            prise_le TEXT,
+            photographe TEXT,
+            source TEXT,
+            largeur INTEGER,
+            hauteur INTEGER,
+            statut TEXT NOT NULL DEFAULT 'a_lire',
+            lecture_json TEXT,
+            lue_le TEXT,
+            masquee INTEGER DEFAULT 0,
+            importee_le TEXT,
+            UNIQUE (evenement_id, empreinte)
+        )""")
+    cur.execute("CREATE INDEX IF NOT EXISTS idx_photos_course ON photos_course(evenement_id, statut)")
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS photos_dossards (
+            photo_id INTEGER NOT NULL REFERENCES photos_course(id) ON DELETE CASCADE,
+            dossard INTEGER NOT NULL,
+            origine TEXT DEFAULT 'auto',
+            confiance REAL,
+            PRIMARY KEY (photo_id, dossard)
+        )""")
+    cur.execute("CREATE INDEX IF NOT EXISTS idx_photos_dossards ON photos_dossards(dossard)")
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS photos_acces (
+            inscription_id INTEGER PRIMARY KEY REFERENCES inscriptions(id) ON DELETE CASCADE,
+            code TEXT NOT NULL,
+            cree_le TEXT,
+            vues INTEGER DEFAULT 0,
+            derniere_vue TEXT
+        )""")
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS photos_envois (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            inscription_id INTEGER NOT NULL REFERENCES inscriptions(id) ON DELETE CASCADE,
+            canal TEXT NOT NULL,
+            envoye_le TEXT NOT NULL,
+            reussi INTEGER DEFAULT 1,
+            detail TEXT
+        )""")
+    if "droit_image" not in _colonnes(cur, "inscriptions"):
+        cur.execute("ALTER TABLE inscriptions ADD COLUMN droit_image INTEGER")
+    deja = _colonnes(cur, "evenements")
+    for col, defn in (("photos_ouvertes", "INTEGER DEFAULT 0"), ("photos_message", "TEXT")):
+        if col not in deja:
+            cur.execute(f"ALTER TABLE evenements ADD COLUMN {col} {defn}")
+    _ajouter_uuid(cur, "photos_course")
+
+
 MIGRATIONS = [
     (1, "Identifiant universel (UUID) pour chaque donnée", _m001_identifiants_universels),
     (2, "Fiche Personne unique et rôles", _m002_personnes_et_roles),
@@ -1197,6 +1256,7 @@ MIGRATIONS = [
      _m015_jour_de_course),
     (16, "Kids : carnet de progression, badges et équipement des enfants", _m016_kids),
     (17, "Actualités du trail : flux RSS, articles, coureurs connus et leur palmarès", _m017_actualites),
+    (18, "Photos par dossard : photos d'une course, dossards lus, codes d'accès, droit à l'image", _m018_photos),
 ]
 VERSION_LOGICIEL = MIGRATIONS[-1][0]
 

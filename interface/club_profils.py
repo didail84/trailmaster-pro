@@ -242,7 +242,8 @@ class LicenciesClub(_EcranClub):
         lc.addWidget(self.table)
         b = QHBoxLayout()
         for texte, fn, p in (("➕ Résultat", self._ajouter, True), ("✏️ Modifier", self._modifier, False),
-                             ("🗑 Supprimer", self._supprimer, False), ("📈 Index", self._index, False)):
+                             ("🗑 Supprimer", self._supprimer, False), ("📈 Index", self._index, False),
+                             ("📷 Photos", self._photos, False)):
             w = _bouton(texte, p)
             w.clicked.connect(fn)
             b.addWidget(w)
@@ -287,6 +288,15 @@ class LicenciesClub(_EcranClub):
         self.liste.setCurrentRow(ids.index(actuel) if actuel in ids else (0 if ids else -1))
         self.liste.blockSignals(False)
         self._afficher()
+
+    def _photos(self):
+        ph = getattr(self, "_photos_personne", [])
+        if not ph:
+            QMessageBox.information(self, "Photos", "Pas encore de photo de course pour ce licencié (son dossard doit être "
+                                    "reconnu, et chaque coureur visible doit avoir accepté la diffusion de son image).")
+            return
+        from interface.organisation_photos import DialoguePhotos
+        DialoguePhotos(self, self.liste.currentItem().text(), [x["photo_id"] for x in ph]).exec()
 
     def _courant(self):
         i = self.liste.currentRow()
@@ -346,6 +356,14 @@ class LicenciesClub(_EcranClub):
                                     if d["etat"] in ("expiré", "bientôt") else "") for d in p["diplomes"]))
         if p["athlete_id"]:
             l.append("<span style='color:#9E9E9E'>A un profil coureur dans Trail Hub : ses résultats y sont recopiés.</span>")
+        try:                                             # étape 7 : photos de course où son dossard a été reconnu
+            from noyau.donnees import photos as dph
+            ph = dph.photos_de_la_personne(pid)
+        except Exception:
+            ph = []
+        self._photos_personne = ph
+        if ph:
+            l.append(f"📷 {len(ph)} photo(s) de course ({e(', '.join(sorted({x['evenement'] for x in ph})))}) : bouton « Photos »")
         self.fiche.setText("<br>".join(l))
         self._res = p["resultats"]
         t = self.table

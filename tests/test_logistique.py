@@ -189,7 +189,7 @@ def test_ecrans(base_vide, tmp_path, monkeypatch):
     from interface.organisation import OrganisationFenetre
     from interface.organisation_logistique import DialogueChamps, texte_ics
     f = OrganisationFenetre(1)
-    assert f.tabs.count() == 12
+    assert f.tabs.count() == 13
     d = f.demarches
     d.rafraichir()
     assert d.table.rowCount() > 15 and d.cartes["dps"].valeur.text() == "PAPS"

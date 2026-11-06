@@ -1794,7 +1794,7 @@ function lireCalendrier() {
         (SELECT COUNT(*) FROM inscriptions i WHERE i.epreuve_id = p.id AND i.dossard_retire = 1) AS remis,
         (SELECT COALESCE(SUM(i.montant_paye), 0) FROM inscriptions i WHERE i.epreuve_id = p.id AND i.statut != 'annulee') AS recette,
         (SELECT COALESCE(SUM(MAX(COALESCE(i.montant, 0) - COALESCE(i.montant_paye, 0), 0)), 0) FROM inscriptions i WHERE i.epreuve_id = p.id AND i.statut != 'annulee') AS reste
-        FROM epreuves p WHERE p.evenement_id = ? ORDER BY p.distance_km DESC`, [e.id]), classements: classementsBase(e.id), logistique: logistiqueBase(e.id), jour: jourDeCourseBase(e.id) })) : [];
+        FROM epreuves p WHERE p.evenement_id = ? ORDER BY p.distance_km DESC`, [e.id]), classements: classementsBase(e.id), logistique: logistiqueBase(e.id), jour: jourDeCourseBase(e.id), photos: photosBase(e.id) })) : [];
     return { courses, evenements };
   } catch (e) { return { courses: [], evenements: [] }; }
 }
@@ -1986,6 +1986,7 @@ function vueOrganisation() {
     </tbody></table></div></div>
     ${htmlLogistiqueOrga(ev)}
     ${htmlJourOrga(ev)}
+    ${htmlPhotosOrga(ev)}
     ${ev.logistique ? carteLecture("organisation") : ""}
     ${htmlClassementsOrga(ev)}
   </section>`;
@@ -2077,6 +2078,29 @@ function htmlJourOrga(ev) {
         <td>${i.gravite === "urgent" ? `<span class="etat rouge">urgent</span>` : esc(LIB_GRAVITE[i.gravite] || "")}</td><td class="num">${i.dossard ?? ""}</td><td>${i.statut === "clos" ? '<span class="etat vert">clos</span>' : i.statut === "pris_en_charge" ? '<span class="etat orange">pris en charge</span>' : '<span class="etat orange">ouvert</span>'}</td></tr>`).join("")}
       </tbody></table></div>` : `<p class="vide">Aucun incident signalé.</p>`}
     <p class="petit discret">Le tableau de commandement du PC course (carte, retards, alertes) est dans le logiciel, onglet Jour de course ; les téléphones des bénévoles passent par le serveur.</p></div>`;
+}
+
+/* ---------- Photos par dossard (étape 7) : chiffres seulement, les photos restent sur l'ordinateur ---------- */
+function photosBase(evId) {
+  if (!Base.tablesPresentes.has("photos_course")) return null;
+  try {
+    const st = Object.fromEntries(Base.tous("SELECT statut, COUNT(*) AS n FROM photos_course WHERE evenement_id = ? AND masquee = 0 GROUP BY statut", [evId]).map((r) => [r.statut, r.n]));
+    const total = Object.values(st).reduce((a, b) => a + b, 0);
+    if (!total) return null;
+    const coureurs = Base.tous("SELECT COUNT(DISTINCT x.dossard) AS n FROM photos_dossards x JOIN photos_course p ON p.id = x.photo_id WHERE p.evenement_id = ? AND p.masquee = 0", [evId])[0].n;
+    const sansAccord = Base.tous(`SELECT COUNT(*) AS n FROM inscriptions i JOIN epreuves p ON p.id = i.epreuve_id WHERE p.evenement_id = ? AND i.dossard IS NOT NULL AND i.statut NOT IN ('annulee', 'liste_attente') AND COALESCE(i.droit_image, 0) = 0`, [evId])[0].n;
+    const ouvertes = Base.tous("SELECT photos_ouvertes AS o FROM evenements WHERE id = ?", [evId])[0]?.o;
+    return { total, st, coureurs, sansAccord, ouvertes: !!ouvertes };
+  } catch (e) { return null; }
+}
+function htmlPhotosOrga(ev) {
+  const p = ev.photos;
+  if (!p) return "";
+  const stat = (lib, val, det) => `<div class="mesure"><span class="etiquette">${lib}</span><span class="valeur">${val}</span><span class="detail">${det}</span></div>`;
+  return `<div class="carte"><header><h3>Photos par dossard</h3><span class="petit discret">page publique ${p.ouvertes ? "ouverte" : "fermée"}</span></header>
+    <div class="grille g4">${stat("Photos", entier(p.total), `${entier(p.st.sans_dossard || 0)} sans dossard`)}${stat("À vérifier", entier((p.st.a_verifier || 0) + (p.st.a_lire || 0)), "lecture douteuse ou pas encore lue")}
+    ${stat("Dossards reconnus", entier(p.coureurs), "coureurs vus sur au moins une photo")}${stat("Sans accord image", entier(p.sansAccord), "inscrits dont les photos ne sont pas rendues")}</div>
+    <p class="petit discret">Les photos restent sur l'ordinateur du club : la correction des dossards et l'envoi aux coureurs se font dans le logiciel (Organisation, onglet Photos).</p></div>`;
 }
 
 /* ---------- Analyse : prévu ou réel, bilans du club, bilans des événements ---------- */

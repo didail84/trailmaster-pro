@@ -31,7 +31,7 @@ CHAMPS_INSCRIPTION = ("epreuve_id", "personne_id", "nom", "prenom", "sexe", "dat
                       "certificat_date", "questionnaire_mineur", "autorisation_parentale", "justificatif_valide",
                       "contact_urgence_nom", "contact_urgence_tel", "taille_tshirt", "statut", "dossard", "montant",
                       "montant_paye", "paiement_mode", "date_inscription", "source", "ref_externe", "dossard_retire",
-                      "notes")
+                      "notes", "droit_image")
 
 
 def _iso(d):
@@ -330,6 +330,8 @@ SYNONYMES = {
     "contact_urgence_nom": ("contact d'urgence", "personne a prevenir", "nom contact urgence"),
     "contact_urgence_tel": ("telephone d'urgence", "tel urgence", "telephone contact urgence"),
     "taille_tshirt": ("taille", "taille t-shirt", "taille tee-shirt", "t-shirt"),
+    "droit_image": ("droit a l'image", "droit image", "droit a l image", "autorisation photos", "accord photos",
+                    "photos", "utilisation de mon image"),
     "statut_commande": ("statut", "etat", "statut de la commande"),
     "ref": ("numero de commande", "reference", "id", "n° dossier", "numero d'inscription"),
 }
@@ -379,6 +381,9 @@ def analyser_import(contenu, nom_fichier, evenement_id):
              "pps_date": None, "contact_urgence_nom": v("contact_urgence_nom") or None,
              "contact_urgence_tel": v("contact_urgence_tel") or None, "taille_tshirt": v("taille_tshirt") or None,
              "montant": imp.montant(v("montant")), "ref_externe": v("ref") or None}
+        if v("droit_image"):
+            i["droit_image"] = 1 if imp._cle(v("droit_image")) in ("oui", "o", "x", "1", "yes", "vrai", "true", "j'accepte",
+                                                                   "accepte", "d'accord") else 0
         if i["montant"]:
             i["montant_paye"] = i["montant"]
         if v("pps"):

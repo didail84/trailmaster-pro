@@ -19,27 +19,29 @@ PORTEE = {"admin": None, "bureau": "club", "entraineur": "club", "organisateur":
 DOMAINES = {"club": "club", "agenda_club": "presences", "profils": "profils", "personnes": "personnes",
             "organisation": "organisation", "chrono": "chrono", "logistique": "logistique",
             "calendrier": "calendrier", "annuaire": "annuaire", "kids": "kids", "analyse": "analyse",
-            "commandement": "commandement", "comptes": "comptes"}
+            "commandement": "commandement", "comptes": "comptes", "photos": "photos"}
 
 DROITS = {
     "admin": "*",
     "bureau": {"club": "rw", "presences": "rw", "profils": "rw", "personnes": "rw", "organisation": "rw", "chrono": "rw",
-               "logistique": "rw", "calendrier": "rw", "annuaire": "rw", "kids": "rw", "analyse": "r", "commandement": "rw"},
+               "logistique": "rw", "calendrier": "rw", "annuaire": "rw", "kids": "rw", "analyse": "r", "commandement": "rw",
+               "photos": "rw"},
     "entraineur": {"club": "r", "presences": "rw", "profils": "rw", "personnes": "r", "organisation": "r",
-                   "calendrier": "r", "annuaire": "r", "kids": "rw", "analyse": "r"},
+                   "calendrier": "r", "annuaire": "r", "kids": "rw", "analyse": "r", "photos": "r"},
     "organisateur": {"club": "r", "personnes": "r", "profils": "r", "organisation": "rw", "chrono": "rw",
-                     "logistique": "rw", "calendrier": "rw", "annuaire": "r", "commandement": "rw", "analyse": "r"},
+                     "logistique": "rw", "calendrier": "rw", "annuaire": "r", "commandement": "rw", "analyse": "r",
+                     "photos": "rw"},
     "benevole": {},
     "coureur": {},
     "parent": {},
 }
 
 # pages web (téléphone) ouvertes par rôle
-PAGES = {"admin": {"chrono", "appel", "poste", "incident", "commandement", "resultats", "kids"},
-         "bureau": {"chrono", "appel", "poste", "incident", "commandement", "resultats", "kids"},
+PAGES = {"admin": {"chrono", "appel", "poste", "incident", "commandement", "resultats", "kids", "photos"},
+         "bureau": {"chrono", "appel", "poste", "incident", "commandement", "resultats", "kids", "photos"},
          "entraineur": {"appel", "kids", "resultats"},
-         "organisateur": {"chrono", "poste", "incident", "commandement"},
-         "benevole": {"chrono", "poste", "incident"},
+         "organisateur": {"chrono", "poste", "incident", "commandement", "photos"},
+         "benevole": {"chrono", "poste", "incident", "photos"},
          "coureur": {"resultats"},
          "parent": {"kids"}}
 
@@ -53,7 +55,8 @@ PREFIXES_LECTURE = ("lire", "liste", "obtenir", "chercher", "apercu", "bilan", "
                     "evenement", "evenements", "epreuve", "epreuves", "inscription", "inscriptions", "demarches",
                     "benevoles", "postes", "affectations", "ravitaillements", "materiel", "partenaire", "partenaires",
                     "lignes_budget", "sources", "courses", "analyser", "normaliser", "carnet", "badges", "suivi",
-                    "points", "incidents", "rapport", "comparaison", "historique", "lister", "evolution", "bilans")
+                    "points", "incidents", "rapport", "comparaison", "historique", "lister", "evolution", "bilans",
+                    "photo", "photos", "image", "diffusion", "dossards_attribues", "a_lire", "zip_coureur", "dossier")
 # fonctions d'écriture même si leur nom ressemble à une lecture
 ECRITURES = {"choisir_club", "choisir_section", "analyser_import"}
 

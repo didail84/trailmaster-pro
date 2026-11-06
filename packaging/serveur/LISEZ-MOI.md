@@ -46,3 +46,15 @@ journalctl -u trailhub-serveur -n 20        # affiche l'adresse et l'empreinte d
 - Le serveur n'écoute que le réseau local. **N'ouvre pas de port sur la box** : l'accès depuis
   l'extérieur se fera par un tunnel sécurisé (Tailscale ou Cloudflare Tunnel), plus tard.
 - Sauvegarde : copie `/srv/trailhub/` chaque nuit sur le NAS secondaire (fichiers `.db`, `.db-wal`, `.db-shm`).
+
+## Photos par dossard (étape 7)
+
+- Les bénévoles envoient leurs photos depuis le téléphone : page « 📷 Envoyer mes photos » (rôle Bénévole ou
+  Organisateur de l'événement).
+- Pour que le serveur lise lui-même les dossards de ces photos, installe la lecture automatique sur le NAS :
+  `pip install Pillow rapidocr_onnxruntime`. Sans elle, ouvre l'onglet Photos sur le logiciel de bureau
+  et clique « Lire les photos pas encore lues ».
+- Page publique des coureurs : `https://<adresse du serveur>/photos/<événement>` (dossard + code). Pour qu'elle soit
+  vue depuis Internet, il faut ouvrir le port du serveur sur la box (redirection de port) ou passer par un nom de
+  domaine ; sinon, envoie les photos par e-mail en pièces jointes ou en zip.
+- Les photos sont rangées dans `photos/courses/` à côté de la base : pense à ce dossier dans tes sauvegardes.

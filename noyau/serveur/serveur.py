@@ -218,6 +218,9 @@ class Gestionnaire(BaseHTTPRequestHandler):
                 return self._rediriger("/m/")
             if u.path.startswith("/m"):
                 return self._web(verbe, u.path, q)
+            if u.path.startswith("/photos/"):
+                from noyau.serveur import web_photos
+                return web_photos.page_publique(self, u.path[8:], verbe, q)
             if u.path.startswith("/live/"):
                 from noyau.serveur import web_course
                 return web_course.page_publique(self, u.path[6:].strip("/"), q)
@@ -308,7 +311,12 @@ class Gestionnaire(BaseHTTPRequestHandler):
         csrf = csrf_pour(jeton)
         f = {}
         if verbe == "POST":
-            f = self._formulaire()
+            if (self.headers.get("Content-Type") or "").startswith("multipart/form-data"):
+                from noyau.serveur import web_photos                 # photos envoyées depuis le téléphone
+                f, fichiers = web_photos.lire_multipart(self)
+                f["_fichiers"] = fichiers
+            else:
+                f = self._formulaire()
             if not hmac.compare_digest(f.get("csrf", ""), csrf):
                 return self._envoyer(403, web.erreur(c, "Formulaire expiré : recharge la page."))
         if chemin == "/m/deconnexion":
@@ -372,6 +380,8 @@ def _brancher_pages():
     PAGES_EN_PLUS.update(web_course.PAGES)
     from noyau.serveur import web_kids                        # chantier D : carnets des enfants
     PAGES_EN_PLUS.update(web_kids.PAGES)
+    from noyau.serveur import web_photos                      # étape 7 : photos envoyées depuis le téléphone
+    PAGES_EN_PLUS.update(web_photos.PAGES)
 
 
 _brancher_pages()
@@ -389,7 +399,7 @@ def copie_base():
         cible = sqlite3.connect(dest)
         try:
             src.backup(cible)
-            for t in ("sessions_serveur", "comptes_roles", "comptes", "journal_acces"):
+            for t in ("sessions_serveur", "comptes_roles", "comptes", "journal_acces", "photos_acces"):
                 cible.execute(f"DELETE FROM {t}")
             cible.execute("DELETE FROM parametres_app WHERE cle LIKE 'serveur_%'")
             cible.commit()
@@ -420,6 +430,7 @@ def demarrer(port=PORT_DEFAUT, https=True, hote="0.0.0.0", dossier_certificat=No
         ctx.load_cert_chain(cert, cle)
         srv.socket = ctx.wrap_socket(srv.socket, server_side=True)
     _etat.update(serveur=srv, https=https, port=srv.server_address[1], empreinte=emp)
+    _lancer_lecture_photos()
     if en_fond:
         t = threading.Thread(target=srv.serve_forever, name="serveur-trailhub", daemon=True)
         t.start()
@@ -427,6 +438,31 @@ def demarrer(port=PORT_DEFAUT, https=True, hote="0.0.0.0", dossier_certificat=No
     else:
         srv.serve_forever()
     return infos()
+
+
+def _lancer_lecture_photos(pause_s=20):
+    """Sur le serveur, les dossards des photos envoyées par les téléphones sont lus en tâche de fond (si la lecture
+    automatique est installée sur la machine du serveur ; sinon le logiciel de bureau s'en charge)."""
+    from noyau.photos import lecture
+    if _etat.get("lecteur_photos") or not lecture.disponible():
+        return
+
+    def boucle():
+        from noyau.donnees import photos as dph
+        while _etat["serveur"] is not None:
+            try:
+                ids = dph.a_lire(n=20)
+                for i in ids:
+                    dph.lire_sur_place(i)
+            except Exception:
+                ids = []
+            if not ids:
+                time.sleep(pause_s)
+        _etat["lecteur_photos"] = None
+
+    t = threading.Thread(target=boucle, name="photos-trailhub", daemon=True)
+    _etat["lecteur_photos"] = t
+    t.start()
 
 
 def infos():

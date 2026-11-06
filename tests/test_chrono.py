@@ -107,7 +107,7 @@ def test_ecrans(base_vide, tmp_path):
     dch.donner_depart(e1, "2027-04-11T08:30:00.000")
     from interface.organisation import OrganisationFenetre
     f = OrganisationFenetre(1)
-    assert f.tabs.count() == 12
+    assert f.tabs.count() == 13
     c = f.chrono
     c.heure_manuelle.setText("10:42:17")
     c.saisie.setText(str(ds["MARTIN"]))

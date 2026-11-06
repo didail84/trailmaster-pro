@@ -75,6 +75,7 @@ def pyinstaller():
         "--collect-all", "curl_cffi",
         "--collect-all", "ua_generator",
         "--collect-all", "certifi",
+        "--collect-all", "rapidocr_onnxruntime",
     ]
     if sys.platform == "darwin":
         commande += ["--osx-bundle-identifier", "io.github.didail84.trailmasterpro"]

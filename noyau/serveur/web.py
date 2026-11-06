@@ -99,6 +99,8 @@ def accueil(compte):
             liens.append(f"<a class='lien' href='/m/incident?ev={e['id']}'>🚑 Signaler un incident</a>")
         if "commandement" in pages:
             liens.append(f"<a class='lien' href='/m/commandement?ev={e['id']}'>🧭 Tableau de commandement</a>")
+        if "photos" in pages:
+            liens.append(f"<a class='lien' href='/m/photos?ev={e['id']}'>📷 Envoyer mes photos</a>")
         if liens:
             blocs.append(f"<h2>{_e(e['nom'])} · {datetime.fromisoformat(e['date_debut']).strftime('%d/%m/%Y')}</h2>" + "".join(liens))
     if "appel" in pages:

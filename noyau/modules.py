@@ -101,8 +101,10 @@ MODULES = (
            "Organisation (onglet Jour de course) ; les téléphones passent par le serveur.",
            (), blocs=(25, 26, 27), actif_par_defaut=True),
     Module("photos_dossard", "Photos par dossard", "Organisation",
-           "Photos d'une course retrouvées par numéro de dossard.",
-           disponible=False, etape="7", blocs=(28,), actif_par_defaut=False),
+           "Photos d'une course retrouvées par numéro de dossard (lu sur l'ordinateur, sans Internet), droit à l'image "
+           "respecté, page publique par dossard et code, zip par coureur, e-mail, photos sur le profil du licencié. "
+           "Dans la fenêtre Organisation (onglet Photos) ; les téléphones des bénévoles envoient par le serveur.",
+           (), blocs=(28,), actif_par_defaut=True),
     Module("actualites", "Actualités du trail", "Coureur",
            "Les nouvelles du trail en France et dans le monde (flux RSS des sites : titre, date, extrait et lien), "
            "coureurs connus français et étrangers avec leur palmarès vérifié, coureurs suivis.",

@@ -311,6 +311,8 @@ class DialogueInscription(QDialog):
         self.autorisation.setChecked(bool(i.get("autorisation_parentale")))
         self.valide = QCheckBox("Pièce contrôlée par l'organisation")
         self.valide.setChecked(bool(i.get("justificatif_valide")))
+        self.droit_image = QCheckBox("Accepte la diffusion de ses photos de course (droit à l'image)")
+        self.droit_image.setChecked(bool(i.get("droit_image")))
         self.statut = QComboBox()
         for c, l in R.STATUTS:
             self.statut.addItem(l, c)
@@ -329,7 +331,7 @@ class DialogueInscription(QDialog):
         for lib, w in (("Justificatif", self.justif), ("N° de licence", self.num_lic), ("Licence", self.type_lic),
                        ("Autre fédération", self.federation), ("Pass Prévention Santé fait le", _ligne(self.c_pps, self.pps)),
                        ("Certificat médical du", _ligne(self.c_cert, self.cert)), ("", self.questionnaire),
-                       ("", self.autorisation), ("", self.valide), ("Statut", self.statut),
+                       ("", self.autorisation), ("", self.valide), ("", self.droit_image), ("Statut", self.statut),
                        ("Montant (vide = tarif)", self.montant), ("Payé", self.paye), ("Paiement", self.mode),
                        ("Dossard", self.dossard), ("Notes", self.notes)):
             f2.addRow(lib, w)
@@ -372,6 +374,7 @@ class DialogueInscription(QDialog):
                 "pps_date": _val_date(self.c_pps, self.pps), "certificat_date": _val_date(self.c_cert, self.cert),
                 "questionnaire_mineur": 1 if self.questionnaire.isChecked() else 0,
                 "autorisation_parentale": 1 if self.autorisation.isChecked() else 0,
+                "droit_image": 1 if self.droit_image.isChecked() else 0,
                 "justificatif_valide": 1 if self.valide.isChecked() else 0,
                 "contact_urgence_nom": self.urg_nom.text().strip() or None,
                 "contact_urgence_tel": self.urg_tel.text().strip() or None,
@@ -1120,6 +1123,7 @@ class OrganisationFenetre(ConteneurOnglets):
         from interface.organisation_logistique import (                            # étape 4.6
             DemarchesOrga, BenevolesOrga, RavitosOrga, MaterielOrga, PartenairesOrga)
         from interface.organisation_commandement import CommandementOrga                # étape 6
+        from interface.organisation_photos import PhotosOrga                            # étape 7
         self.evenement_id = None
         super().__init__(titre="Organisation",
                          onglets=[("🏁 Événement", EvenementOrga), ("📋 Démarches", DemarchesOrga),
@@ -1127,10 +1131,12 @@ class OrganisationFenetre(ConteneurOnglets):
                                   ("🍌 Ravitaillements", RavitosOrga), ("📦 Matériel", MaterielOrga),
                                   ("🤝 Partenaires et budget", PartenairesOrga), ("🔢 Dossards", DossardsOrga),
                                   ("🧭 Jour de course", CommandementOrga), ("⏱️ Chrono", ChronoOrga),
-                                  ("🏆 Classements", ClassementsOrga), ("📊 Tableau de bord", TableauOrga)],
+                                  ("🏆 Classements", ClassementsOrga), ("📷 Photos", PhotosOrga),
+                                  ("📊 Tableau de bord", TableauOrga)],
                          athlete_id_initial=athlete_id_initial)
         (self.evenement_ecran, self.demarches, self.inscriptions, self.benevoles, self.ravitaillements, self.materiel,
-         self.partenaires, self.dossards, self.commandement, self.chrono, self.classements, self.tableau) = self.ecrans
+         self.partenaires, self.dossards, self.commandement, self.chrono, self.classements, self.photos,
+         self.tableau) = self.ecrans
         self.evenement_id = self.evenement_ecran.evenement_id
 
     def choisir(self, evenement_id):

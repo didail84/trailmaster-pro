@@ -21,14 +21,15 @@ from noyau.serveur import droits as D
 
 MODULES = {m: f"noyau.donnees.{m}" for m in ("club", "agenda_club", "profils", "personnes", "organisation", "chrono",
                                               "logistique", "calendrier", "annuaire", "kids", "analyse",
-                                              "commandement", "comptes")}
+                                              "commandement", "comptes", "photos")}
 
 
 # fonctions gardées sur le poste de chaque personne (son association et sa section du moment)
 LOCALES = {"club": {"club_courant_id", "choisir_club", "section_courante", "choisir_section", "club_principal",
                     "club_id_ou_creer"},
            "personnes": {"normaliser_date", "age", "est_mineur", "normaliser_date_releve"},   # calculs sans base
-           "comptes": {"authentifier", "session", "deconnecter", "journaliser", "purger_sessions"}}
+           "comptes": {"authentifier", "session", "deconnecter", "journaliser", "purger_sessions"},
+           "photos": {"telecharger_lien", "racine"}}          # le lien se télécharge sur ce poste, puis s'importe
 
 
 class Refus(Exception):
@@ -85,8 +86,9 @@ EVENEMENT = {"epreuve_id": "SELECT evenement_id FROM epreuves WHERE id=?",
              "partenaire_id": "SELECT evenement_id FROM partenaires WHERE id=?",
              "ligne_id": "SELECT evenement_id FROM budget_lignes WHERE id=?",
              "point_id": "SELECT evenement_id FROM points_controle WHERE id=?",
-             "incident_id": "SELECT evenement_id FROM incidents WHERE id=?"}
-LISTES = {"inscription_ids": "inscription_id", "ids": None, "personne_ids": "personne_id"}
+             "incident_id": "SELECT evenement_id FROM incidents WHERE id=?",
+             "photo_id": "SELECT evenement_id FROM photos_course WHERE id=?"}
+LISTES = {"inscription_ids": "inscription_id", "ids": None, "personne_ids": "personne_id", "photo_ids": "photo_id"}
 
 
 def _un(sql, v):

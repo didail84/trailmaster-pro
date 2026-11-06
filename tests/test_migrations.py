@@ -57,7 +57,7 @@ def test_la_base_v108_est_en_version_0(base_v108):
 def test_conversion_sans_perte(base_v108):
     avant = {t: contenu(base_v108, t) for t in ("athletes", "activites", "parcours_gpx", "suivi_corporel")}
     bilan = mig.appliquer_migrations(base_v108)
-    assert bilan["avant"] == 0 and bilan["apres"] == mig.VERSION_LOGICIEL and bilan["appliquees"] == [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17]
+    assert bilan["avant"] == 0 and bilan["apres"] == mig.VERSION_LOGICIEL and bilan["appliquees"] == [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18]
     for table, (cols, lignes) in avant.items():
         assert contenu(base_v108, table) == (cols, lignes), table  # toutes les valeurs sont intactes
     c = sqlite3.connect(base_v108)
@@ -80,7 +80,8 @@ def test_conversion_sans_perte(base_v108):
         (14, "Mode serveur : comptes, rôles, sessions, journal des accès, consentements"),
         (15, "Jour de course : points de contrôle, incidents, positions en direct, présence des bénévoles"),
         (16, "Kids : carnet de progression, badges et équipement des enfants"),
-        (17, "Actualités du trail : flux RSS, articles, coureurs connus et leur palmarès")]
+        (17, "Actualités du trail : flux RSS, articles, coureurs connus et leur palmarès"),
+        (18, "Photos par dossard : photos d'une course, dossards lus, codes d'accès, droit à l'image")]
     c.close()
 
 
