@@ -927,6 +927,83 @@ def _m013_associations(cur):
     _ajouter_uuid(cur, "sections")
 
 
+def _m014_serveur(cur):
+    """Étape 5 (mode serveur) : comptes, rôles limités à une association ou un événement, sessions, journal des
+    accès, consentements (accord parental, image, géolocalisation) ; date de mise à jour des adhésions et des
+    inscriptions pour repérer deux modifications en même temps."""
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS comptes (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            identifiant TEXT NOT NULL UNIQUE COLLATE NOCASE,
+            nom_affiche TEXT,
+            personne_id INTEGER REFERENCES personnes(id) ON DELETE SET NULL,
+            mot_de_passe TEXT NOT NULL,
+            actif INTEGER DEFAULT 1,
+            doit_changer INTEGER DEFAULT 1,
+            echecs INTEGER DEFAULT 0,
+            bloque_jusqua TEXT,
+            cree_le TEXT DEFAULT CURRENT_TIMESTAMP,
+            derniere_connexion TEXT
+        )""")
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS comptes_roles (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            compte_id INTEGER NOT NULL REFERENCES comptes(id) ON DELETE CASCADE,
+            role TEXT NOT NULL,
+            club_id INTEGER REFERENCES clubs(id) ON DELETE CASCADE,
+            evenement_id INTEGER REFERENCES evenements(id) ON DELETE CASCADE
+        )""")
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS sessions_serveur (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            compte_id INTEGER NOT NULL REFERENCES comptes(id) ON DELETE CASCADE,
+            jeton_hash TEXT NOT NULL UNIQUE,
+            type TEXT DEFAULT 'web',
+            cree_le TEXT NOT NULL,
+            expire_le TEXT NOT NULL,
+            vu_le TEXT,
+            adresse TEXT,
+            appareil TEXT
+        )""")
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS journal_acces (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            horodatage TEXT NOT NULL,
+            compte_id INTEGER,
+            identifiant TEXT,
+            action TEXT NOT NULL,
+            objet TEXT,
+            detail TEXT,
+            adresse TEXT,
+            reussi INTEGER DEFAULT 1
+        )""")
+    cur.execute("CREATE INDEX IF NOT EXISTS idx_journal_acces ON journal_acces(horodatage)")
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS consentements (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            personne_id INTEGER NOT NULL REFERENCES personnes(id) ON DELETE CASCADE,
+            type TEXT NOT NULL,
+            donne INTEGER NOT NULL DEFAULT 1,
+            donne_par_id INTEGER REFERENCES personnes(id) ON DELETE SET NULL,
+            donne_par_nom TEXT,
+            date TEXT NOT NULL,
+            club_id INTEGER REFERENCES clubs(id) ON DELETE CASCADE,
+            preuve TEXT,
+            retire_le TEXT,
+            notes TEXT
+        )""")
+    for t in ("adhesions", "inscriptions"):
+        if "maj" not in _colonnes(cur, t):
+            cur.execute(f"ALTER TABLE {t} ADD COLUMN maj TEXT")
+        cur.execute(f"UPDATE {t} SET maj = strftime('%Y-%m-%dT%H:%M:%f', 'now') WHERE maj IS NULL")
+        cur.execute(f"CREATE TRIGGER IF NOT EXISTS maj_ins_{t} AFTER INSERT ON {t} FOR EACH ROW WHEN NEW.maj IS NULL "
+                    f"BEGIN UPDATE {t} SET maj = strftime('%Y-%m-%dT%H:%M:%f', 'now') WHERE id = NEW.id; END")
+        cur.execute(f"CREATE TRIGGER IF NOT EXISTS maj_upd_{t} AFTER UPDATE ON {t} FOR EACH ROW WHEN NEW.maj IS OLD.maj "
+                    f"BEGIN UPDATE {t} SET maj = strftime('%Y-%m-%dT%H:%M:%f', 'now') WHERE id = NEW.id; END")
+    for t in ("comptes", "consentements"):
+        _ajouter_uuid(cur, t)
+
+
 MIGRATIONS = [
     (1, "Identifiant universel (UUID) pour chaque donnée", _m001_identifiants_universels),
     (2, "Fiche Personne unique et rôles", _m002_personnes_et_roles),
@@ -943,6 +1020,7 @@ MIGRATIONS = [
     (12, "Logistique d'une course : démarches, bénévoles, ravitaillements, matériel, partenaires et budget",
      _m012_logistique),
     (13, "Plusieurs associations et leurs sections (adhésions, groupes et tarifs sans mélange)", _m013_associations),
+    (14, "Mode serveur : comptes, rôles, sessions, journal des accès, consentements", _m014_serveur),
 ]
 VERSION_LOGICIEL = MIGRATIONS[-1][0]
 

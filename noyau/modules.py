@@ -39,6 +39,11 @@ MODULES = (
            "Personnes, profils coureurs, imports et synchro, réglages, sauvegardes.",
            ("ouvrir_athletes", "ouvrir_personnes", "ouvrir_reglages", "ouvrir_import_et_synchro"),
            obligatoire=True, blocs=(1, 2, 3, 7, 9)),
+    Module("serveur", "Serveur et comptes", "Noyau",
+           "Une seule base pour le bureau, les entraîneurs et les bénévoles (sur le NAS) : comptes et rôles par "
+           "association ou par événement, pages téléphone (chrono, appel, mon poste), journal des accès, "
+           "consentements ; ou brancher ce logiciel sur le serveur du club.",
+           ("ouvrir_serveur",), blocs=(5, 8), actif_par_defaut=False),
     Module("entrainement", "Entraînement", "Coureur",
            "Aujourd'hui, fil d'activité, tableau de bord, journal, sorties, plans, renforcement, "
            "analyses, performance trail, bilans.",

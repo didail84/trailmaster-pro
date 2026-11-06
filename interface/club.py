@@ -520,7 +520,7 @@ class DialogueAdherent(QDialog):
             else:
                 dper.modifier(self.personne_id, p)
             dclub.enregistrer_adhesion(self.club_id, self.personne_id, self.saison, self.adhesion(),
-                                       self.adh["id"] if self.adh else None)
+                                       self.adh["id"] if self.adh else None, (self.adh or {}).get("maj"))
             dclub.definir_groupes(self.personne_id, self.groupes(), self.club_id)
         except (dper.ErreurPersonne, dclub.ErreurClub) as e:
             QMessageBox.warning(self, "Adhérent", str(e))

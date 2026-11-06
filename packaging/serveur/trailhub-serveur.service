@@ -1,0 +1,22 @@
+# Service systemd du serveur Trail Hub Center (OpenMediaVault, Debian, Ubuntu…)
+# Copier dans /etc/systemd/system/, adapter les chemins, puis :
+#   sudo systemctl daemon-reload && sudo systemctl enable --now trailhub-serveur
+[Unit]
+Description=Serveur Trail Hub Center
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=trailhub
+WorkingDirectory=/opt/trailhub
+ExecStart=/usr/bin/python3 /opt/trailhub/trailhub_serveur.py --base /srv/trailhub/trail_hub.db
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=true
+ProtectSystem=strict
+ReadWritePaths=/srv/trailhub
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

@@ -67,6 +67,15 @@ def demarrer():
         precedent(type_, valeur, trace)
     sys.excepthook = noter
 
+    # Étape 5 : Club et Organisation sur le serveur du club si une connexion est enregistrée.
+    try:
+        import data.database as _db
+        _db.creer_base_de_donnees()
+        from noyau.serveur.demarrage import brancher_si_configure
+        brancher_si_configure()
+    except Exception:
+        pass
+
     fenetre = Accueil()
     fenetre.resize(1200, 800)
     fenetre.show()

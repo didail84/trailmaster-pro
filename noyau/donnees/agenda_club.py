@@ -266,7 +266,7 @@ def enregistrer_appel(seance_id, statuts, marquer=True):
     (sauf marquer=False : ajout d'un invité en cours d'appel)."""
     with base.transaction() as cur:
         for pid, v in statuts.items():
-            st, note = (v if isinstance(v, tuple) else (v, None))
+            st, note = (tuple(v) if isinstance(v, (tuple, list)) else (v, None))
             if st is None:
                 cur.execute("DELETE FROM presences_club WHERE seance_id=? AND personne_id=?", (seance_id, pid))
                 continue

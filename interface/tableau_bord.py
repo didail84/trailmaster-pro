@@ -172,6 +172,7 @@ class TableauBord(QMainWindow):
                 ("🍎  Alimentation", self.ouvrir_alimentation, False),
                 ("📒  Annuaire trail", self.ouvrir_annuaire, False),
                 ("📥  Import && Synchro", self.ouvrir_import_et_synchro, False),
+                ("🖧  Serveur && comptes", self.ouvrir_serveur, False),
             ]),
             ("COMPTE", [
                 ("👤  Athlètes", self.ouvrir_athletes, False),
@@ -1559,6 +1560,10 @@ class TableauBord(QMainWindow):
         from interface.annuaire import AnnuaireFenetre
         self._ouvrir_ou_activer("annuaire", lambda: AnnuaireFenetre(athlete_id_initial=self.athlete_actif_id))
 
+    def ouvrir_serveur(self):
+        from interface.serveur import ServeurFenetre
+        self._ouvrir_ou_activer("serveur", lambda: ServeurFenetre(athlete_id_initial=self.athlete_actif_id))
+
     def ouvrir_club(self):
         from interface.club import ClubFenetre
         self._ouvrir_ou_activer("club", lambda: ClubFenetre(athlete_id_initial=self.athlete_actif_id))
@@ -1786,6 +1791,8 @@ class TableauBord(QMainWindow):
              self.ouvrir_annuaire),
             ("Club", "adherents licencies licence ffa cotisation recu groupes helloasso saison categories",
              self.ouvrir_club),
+            ("Serveur et comptes", "nas reseau comptes mots de passe benevoles droits journal consentements connexion",
+             self.ouvrir_serveur),
             ("Fil d'activité", "strava cartes sorties analyses", self.ouvrir_fil_activite),
             ("Analyses & Forme", "fatigue charge vma sommeil hrv", self.ouvrir_analyses_et_forme),
             ("Performance trail", "montees vam allure pente fatigue efficacite terrain meteo", self.ouvrir_performance_trail),

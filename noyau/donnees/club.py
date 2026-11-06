@@ -10,6 +10,7 @@ reçus et agenda ; une personne inscrite dans deux associations garde une
 seule fiche. « L'association courante » (Réglages) est celle des écrans.
 """
 
+import threading
 from datetime import date
 
 from noyau.donnees import base, personnes as dper
@@ -44,10 +45,15 @@ def club(club_id):
     return dict(zip(("id",) + CHAMPS_CLUB, l)) if l else None
 
 
+# En mode serveur, chaque appel porte l'association et les sections choisies par la personne qui appelle
+# (noyau/serveur/rpc.py) : elles priment sur le réglage du serveur, le temps de l'appel.
+contexte_appel = threading.local()
+
+
 def club_courant_id():
     """L'association choisie dans les écrans (sinon la première créée), ou None."""
     from data.database import obtenir_parametre
-    v = obtenir_parametre("club_courant")
+    v = getattr(contexte_appel, "club_id", None) or obtenir_parametre("club_courant")
     if v and str(v).isdigit() and base.lire_un("SELECT 1 FROM clubs WHERE id=?", (int(v),)):
         return int(v)
     l = base.lire_un("SELECT id FROM clubs ORDER BY id LIMIT 1")
@@ -118,7 +124,8 @@ def supprimer_section(section_id):
 def section_courante(club_id):
     """La section choisie dans les écrans pour cette association, ou None (toute l'association)."""
     from data.database import obtenir_parametre
-    v = obtenir_parametre(f"section_courante_{club_id}")
+    sections_appel = getattr(contexte_appel, "sections", None)
+    v = sections_appel.get(str(club_id)) if sections_appel is not None else obtenir_parametre(f"section_courante_{club_id}")
     if v and str(v).isdigit() and base.lire_un("SELECT 1 FROM sections WHERE id=? AND club_id=?", (int(v), club_id)):
         return int(v)
     return None
@@ -219,11 +226,11 @@ _COLS = ("a.id", "a.personne_id", "a.saison", "a.type_licence", "a.numero_licenc
          "p.contact_urgence_nom", "p.contact_urgence_tel",
          "(SELECT group_concat(g.nom, ', ') FROM groupes_membres m JOIN groupes g ON g.id = m.groupe_id "
          "WHERE m.personne_id = p.id AND g.club_id = a.club_id)", "a.club_id", "a.section_id",
-         "(SELECT s.nom FROM sections s WHERE s.id = a.section_id)")
+         "(SELECT s.nom FROM sections s WHERE s.id = a.section_id)", "a.maj")
 _CLES = ("id", "personne_id", "saison", "type_licence", "numero_licence", "date_licence", "statut", "sante_type",
          "sante_date", "autorisation_parentale", "droit_image", "tarif", "cotisation", "montant_paye", "paiement_mode",
          "paiement_date", "recu_numero", "source", "notes", "nom", "prenom", "date_naissance", "sexe", "email",
-         "telephone", "ville", "contact_urgence_nom", "contact_urgence_tel", "groupes", "club_id", "section_id", "section")
+         "telephone", "ville", "contact_urgence_nom", "contact_urgence_tel", "groupes", "club_id", "section_id", "section", "maj")
 
 
 def _completer(a):
@@ -283,7 +290,14 @@ def _verifier_adhesion(v):
         v["numero_licence"] = "".join(str(v["numero_licence"]).split())
 
 
-def enregistrer_adhesion(club_id, personne_id, saison, champs, adhesion_id=None):
+def enregistrer_adhesion(club_id, personne_id, saison, champs, adhesion_id=None, si_maj=None):
+    """si_maj : la date de mise à jour lue à l'ouverture de la fiche ; refus si quelqu'un l'a modifiée depuis
+    (mode serveur, deux personnes sur la même adhésion)."""
+    if si_maj and adhesion_id:
+        l = base.lire_un("SELECT maj FROM adhesions WHERE id=?", (adhesion_id,))
+        if l and l[0] and l[0] != si_maj:
+            raise ErreurClub(f"Cette adhésion vient d'être modifiée par quelqu'un d'autre (à {l[0][11:19]}) : ferme-la et "
+                             "rouvre-la pour voir ses changements, puis refais les tiens.")
     v = {k: champs.get(k) for k in CHAMPS_ADHESION if k in champs}
     _verifier_adhesion(v)
     if adhesion_id is None:

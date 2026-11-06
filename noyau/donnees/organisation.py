@@ -146,8 +146,8 @@ def _evenement_de_l_epreuve(epreuve_id):
 
 
 def inscriptions(evenement_id, epreuve_id=None):
-    cles = ("id",) + CHAMPS_INSCRIPTION + ("epreuve",)
-    sql = (f"SELECT i.id, {', '.join('i.' + c for c in CHAMPS_INSCRIPTION)}, p.nom FROM inscriptions i "
+    cles = ("id",) + CHAMPS_INSCRIPTION + ("epreuve", "maj")
+    sql = (f"SELECT i.id, {', '.join('i.' + c for c in CHAMPS_INSCRIPTION)}, p.nom, i.maj FROM inscriptions i "
            "JOIN epreuves p ON p.id = i.epreuve_id WHERE p.evenement_id=?")
     par = [evenement_id]
     if epreuve_id:
@@ -194,8 +194,20 @@ def _preparer(v, epreuve_id):
     return v
 
 
-def enregistrer_inscription(champs, inscription_id=None):
-    """Crée ou modifie une inscription. Le montant est calculé selon le tarif de l'épreuve s'il n'est pas donné."""
+def _verifier_maj(table, ligne_id, si_maj, quoi):
+    """Deux personnes sur la même fiche (mode serveur) : refuse d'écraser une modification plus récente."""
+    if not si_maj or not ligne_id:
+        return
+    l = base.lire_un(f"SELECT maj FROM {table} WHERE id=?", (ligne_id,))
+    if l and l[0] and l[0] != si_maj:
+        raise ErreurOrganisation(f"{quoi} vient d'être modifiée par quelqu'un d'autre (à {l[0][11:19]}) : ferme-la et "
+                                 "rouvre-la pour voir ses changements, puis refais les tiens.")
+
+
+def enregistrer_inscription(champs, inscription_id=None, si_maj=None):
+    """Crée ou modifie une inscription. Le montant est calculé selon le tarif de l'épreuve s'il n'est pas donné.
+    si_maj : la date de mise à jour lue à l'ouverture de la fiche (refus si elle a changé depuis)."""
+    _verifier_maj("inscriptions", inscription_id, si_maj, "Cette inscription")
     v = {k: champs.get(k) for k in CHAMPS_INSCRIPTION if k in champs}
     epreuve_id = v.get("epreuve_id") or (base.lire_un("SELECT epreuve_id FROM inscriptions WHERE id=?",
                                                       (inscription_id,)) or [None])[0]

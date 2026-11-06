@@ -258,6 +258,7 @@ class DialogueInscription(QDialog):
         super().__init__(parent)
         self.evenement_id, i = evenement_id, inscription or {}
         self.inscription_id = i.get("id")
+        self._maj = i.get("maj")                         # mode serveur : refus si quelqu'un l'a modifiée entre-temps
         self.ev = dor.evenement(evenement_id)
         self.eps = dor.epreuves(evenement_id)
         self.setWindowTitle("Inscription" if inscription else "Nouvelle inscription")
@@ -394,7 +395,7 @@ class DialogueInscription(QDialog):
 
     def accept(self):
         try:
-            dor.enregistrer_inscription(self.champs(), self.inscription_id)
+            dor.enregistrer_inscription(self.champs(), self.inscription_id, getattr(self, "_maj", None))
         except dor.ErreurOrganisation as e:
             QMessageBox.warning(self, "Inscription", str(e))
             return
