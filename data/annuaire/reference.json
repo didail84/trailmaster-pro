@@ -1,0 +1,3315 @@
+{
+ "version": "2026-11-06.2",
+ "zone": "Provence-Alpes-Côte d'Azur (04, 05, 06, 13, 83, 84)",
+ "avertissement": "Première base, incomplète : clubs et magasins relevés dans des annuaires publics (PagesJaunes, sites des enseignes, réseau École de Trail). Les clubs sont indiqués par commune seulement. Complète et corrige dans le logiciel.",
+ "structures": [
+  {
+   "cle": "club-athle-club-sportif-avignon-montfavet-athletisme-avignon",
+   "type": "club_athle",
+   "nom": "Club Sportif Avignon Montfavet Athlétisme",
+   "sigle": null,
+   "commune": "Avignon",
+   "code_postal": "84000",
+   "departement": "84",
+   "adresse": null,
+   "site": null,
+   "affiliation": null,
+   "enseigne": null,
+   "categorie": null,
+   "source": "PagesJaunes, rubrique clubs d'athlétisme (novembre 2026)",
+   "notes": null
+  },
+  {
+   "cle": "club-athle-entente-sportive-avignon-athletisme-avignon",
+   "type": "club_athle",
+   "nom": "Entente Sportive Avignon Athlétisme",
+   "sigle": "ES Avignon",
+   "commune": "Avignon",
+   "code_postal": "84000",
+   "departement": "84",
+   "adresse": null,
+   "site": null,
+   "affiliation": null,
+   "enseigne": null,
+   "categorie": null,
+   "source": "PagesJaunes, rubrique clubs d'athlétisme (novembre 2026)",
+   "notes": null
+  },
+  {
+   "cle": "club-athle-avignon-le-pontet-athletisme-avignon",
+   "type": "club_athle",
+   "nom": "Avignon Le Pontet Athlétisme",
+   "sigle": null,
+   "commune": "Avignon",
+   "code_postal": "84000",
+   "departement": "84",
+   "adresse": null,
+   "site": null,
+   "affiliation": null,
+   "enseigne": null,
+   "categorie": null,
+   "source": "PagesJaunes, rubrique clubs d'athlétisme (novembre 2026)",
+   "notes": null
+  },
+  {
+   "cle": "club-athle-union-sportive-le-pontet-athletisme-le-pontet",
+   "type": "club_athle",
+   "nom": "Union Sportive Le Pontet Athlétisme",
+   "sigle": null,
+   "commune": "Le Pontet",
+   "code_postal": "84130",
+   "departement": "84",
+   "adresse": null,
+   "site": null,
+   "affiliation": null,
+   "enseigne": null,
+   "categorie": null,
+   "source": "PagesJaunes, rubrique clubs d'athlétisme (novembre 2026)",
+   "notes": null
+  },
+  {
+   "cle": "club-athle-union-athletique-orangeoise-orange",
+   "type": "club_athle",
+   "nom": "Union Athlétique Orangeoise",
+   "sigle": "UAO",
+   "commune": "Orange",
+   "code_postal": "84100",
+   "departement": "84",
+   "adresse": null,
+   "site": null,
+   "affiliation": null,
+   "enseigne": null,
+   "categorie": null,
+   "source": "PagesJaunes, rubrique clubs d'athlétisme (novembre 2026)",
+   "notes": null
+  },
+  {
+   "cle": "club-athle-union-athletique-carpentrassienne-carpentras",
+   "type": "club_athle",
+   "nom": "Union Athlétique Carpentrassienne",
+   "sigle": null,
+   "commune": "Carpentras",
+   "code_postal": "84200",
+   "departement": "84",
+   "adresse": null,
+   "site": null,
+   "affiliation": null,
+   "enseigne": null,
+   "categorie": null,
+   "source": "PagesJaunes, rubrique clubs d'athlétisme (novembre 2026)",
+   "notes": null
+  },
+  {
+   "cle": "club-athle-athletic-club-de-vedene-vedene",
+   "type": "club_athle",
+   "nom": "Athlétic Club de Vedène",
+   "sigle": null,
+   "commune": "Vedène",
+   "code_postal": "84270",
+   "departement": "84",
+   "adresse": null,
+   "site": null,
+   "affiliation": null,
+   "enseigne": null,
+   "categorie": null,
+   "source": "PagesJaunes, rubrique clubs d'athlétisme (novembre 2026)",
+   "notes": null
+  },
+  {
+   "cle": "club-running-les-c-apt-heurs-84-gargas",
+   "type": "club_running",
+   "nom": "Les C Apt'Heurs 84",
+   "sigle": null,
+   "commune": "Gargas",
+   "code_postal": "84400",
+   "departement": "84",
+   "adresse": null,
+   "site": null,
+   "affiliation": null,
+   "enseigne": null,
+   "categorie": null,
+   "source": "PagesJaunes, rubrique clubs d'athlétisme (novembre 2026)",
+   "notes": null
+  },
+  {
+   "cle": "club-running-esprit-running-villelaure-villelaure",
+   "type": "club_running",
+   "nom": "Esprit Running Villelaure",
+   "sigle": null,
+   "commune": "Villelaure",
+   "code_postal": "84530",
+   "departement": "84",
+   "adresse": null,
+   "site": null,
+   "affiliation": null,
+   "enseigne": null,
+   "categorie": null,
+   "source": "PagesJaunes, rubrique clubs d'athlétisme (novembre 2026)",
+   "notes": null
+  },
+  {
+   "cle": "club-running-la-foulee-romaine-vaison-la-romaine",
+   "type": "club_running",
+   "nom": "La Foulée Romaine",
+   "sigle": null,
+   "commune": "Vaison-la-Romaine",
+   "code_postal": "84110",
+   "departement": "84",
+   "adresse": null,
+   "site": null,
+   "affiliation": null,
+   "enseigne": null,
+   "categorie": null,
+   "source": "PagesJaunes, rubrique clubs d'athlétisme (novembre 2026)",
+   "notes": null
+  },
+  {
+   "cle": "club-running-les-galopants-caumont-sur-durance",
+   "type": "club_running",
+   "nom": "Les Galopants",
+   "sigle": null,
+   "commune": "Caumont-sur-Durance",
+   "code_postal": "84510",
+   "departement": "84",
+   "adresse": null,
+   "site": null,
+   "affiliation": null,
+   "enseigne": null,
+   "categorie": null,
+   "source": "PagesJaunes, rubrique clubs d'athlétisme (novembre 2026)",
+   "notes": null
+  },
+  {
+   "cle": "club-trail-sablet-terre-de-trail-sablet",
+   "type": "club_trail",
+   "nom": "Sablet Terre de Trail",
+   "sigle": null,
+   "commune": "Sablet",
+   "code_postal": "84110",
+   "departement": "84",
+   "adresse": null,
+   "site": null,
+   "affiliation": null,
+   "enseigne": null,
+   "categorie": null,
+   "source": "PagesJaunes, rubrique clubs d'athlétisme (novembre 2026)",
+   "notes": null
+  },
+  {
+   "cle": "section-trail-club-alpin-francais-avignon-et-vaucluse-section-trail-avignon",
+   "type": "section_trail",
+   "nom": "Club Alpin Français Avignon et Vaucluse — section trail",
+   "sigle": "CAF Avignon",
+   "commune": "Avignon",
+   "code_postal": "84000",
+   "departement": "84",
+   "adresse": null,
+   "site": "https://cafavignon.ffcam.fr/trail.html",
+   "affiliation": "FFCAM",
+   "enseigne": null,
+   "categorie": null,
+   "source": "Site du club (cafavignon.ffcam.fr)",
+   "notes": null
+  },
+  {
+   "cle": "organisateur-challenge-du-pays-d-aigues-pertuis",
+   "type": "organisateur",
+   "nom": "Challenge du Pays d'Aigues",
+   "sigle": null,
+   "commune": "Pertuis",
+   "code_postal": "84120",
+   "departement": "84",
+   "adresse": null,
+   "site": null,
+   "affiliation": null,
+   "enseigne": null,
+   "categorie": null,
+   "source": "PagesJaunes, rubrique clubs d'athlétisme (novembre 2026)",
+   "notes": null
+  },
+  {
+   "cle": "club-athle-athletic-club-phoceen-marseille",
+   "type": "club_athle",
+   "nom": "Athletic Club Phocéen",
+   "sigle": "ACP",
+   "commune": "Marseille",
+   "code_postal": "13015",
+   "departement": "13",
+   "adresse": null,
+   "site": null,
+   "affiliation": null,
+   "enseigne": null,
+   "categorie": null,
+   "source": "PagesJaunes, rubrique clubs d'athlétisme (novembre 2026)",
+   "notes": null
+  },
+  {
+   "cle": "club-athle-om-athletisme-marseille",
+   "type": "club_athle",
+   "nom": "OM Athlétisme",
+   "sigle": null,
+   "commune": "Marseille",
+   "code_postal": "13009",
+   "departement": "13",
+   "adresse": null,
+   "site": null,
+   "affiliation": null,
+   "enseigne": null,
+   "categorie": null,
+   "source": "PagesJaunes, rubrique clubs d'athlétisme (novembre 2026)",
+   "notes": null
+  },
+  {
+   "cle": "club-athle-sco-athle-marseille",
+   "type": "club_athle",
+   "nom": "SCO Athlé",
+   "sigle": "SCO Sainte-Marguerite",
+   "commune": "Marseille",
+   "code_postal": "13000",
+   "departement": "13",
+   "adresse": null,
+   "site": null,
+   "affiliation": null,
+   "enseigne": null,
+   "categorie": null,
+   "source": "PagesJaunes, rubrique running (novembre 2026)",
+   "notes": null
+  },
+  {
+   "cle": "club-athle-team-jap-jeunes-athletes-provencaux-marseille",
+   "type": "club_athle",
+   "nom": "Team JAP (Jeunes Athlètes Provençaux)",
+   "sigle": null,
+   "commune": "Marseille",
+   "code_postal": "13016",
+   "departement": "13",
+   "adresse": null,
+   "site": null,
+   "affiliation": null,
+   "enseigne": null,
+   "categorie": null,
+   "source": "PagesJaunes, rubrique clubs d'athlétisme (novembre 2026)",
+   "notes": null
+  },
+  {
+   "cle": "club-athle-athle-provence-clubs-aix-en-provence",
+   "type": "club_athle",
+   "nom": "Athlé Provence Clubs",
+   "sigle": null,
+   "commune": "Aix-en-Provence",
+   "code_postal": "13100",
+   "departement": "13",
+   "adresse": null,
+   "site": null,
+   "affiliation": null,
+   "enseigne": null,
+   "categorie": null,
+   "source": "PagesJaunes, rubrique clubs d'athlétisme (novembre 2026)",
+   "notes": null
+  },
+  {
+   "cle": "club-athle-stade-olympique-arlesien-arles",
+   "type": "club_athle",
+   "nom": "Stade Olympique Arlésien",
+   "sigle": null,
+   "commune": "Arles",
+   "code_postal": "13200",
+   "departement": "13",
+   "adresse": null,
+   "site": null,
+   "affiliation": null,
+   "enseigne": null,
+   "categorie": null,
+   "source": "PagesJaunes, rubrique clubs d'athlétisme (novembre 2026)",
+   "notes": null
+  },
+  {
+   "cle": "club-athle-sporting-club-chateaurenardais-chateaurenard",
+   "type": "club_athle",
+   "nom": "Sporting Club Châteaurenardais",
+   "sigle": null,
+   "commune": "Châteaurenard",
+   "code_postal": "13160",
+   "departement": "13",
+   "adresse": null,
+   "site": null,
+   "affiliation": null,
+   "enseigne": null,
+   "categorie": null,
+   "source": "PagesJaunes, rubrique clubs d'athlétisme (novembre 2026)",
+   "notes": null
+  },
+  {
+   "cle": "club-athle-stadium-club-marignanais-marignane",
+   "type": "club_athle",
+   "nom": "Stadium Club Marignanais",
+   "sigle": null,
+   "commune": "Marignane",
+   "code_postal": "13700",
+   "departement": "13",
+   "adresse": null,
+   "site": null,
+   "affiliation": null,
+   "enseigne": null,
+   "categorie": null,
+   "source": "PagesJaunes, rubrique clubs d'athlétisme (novembre 2026)",
+   "notes": null
+  },
+  {
+   "cle": "club-athle-club-athletique-de-croix-sainte-martigues",
+   "type": "club_athle",
+   "nom": "Club Athlétique de Croix-Sainte",
+   "sigle": null,
+   "commune": "Martigues",
+   "code_postal": "13500",
+   "departement": "13",
+   "adresse": null,
+   "site": null,
+   "affiliation": null,
+   "enseigne": null,
+   "categorie": null,
+   "source": "PagesJaunes, rubrique clubs d'athlétisme (novembre 2026)",
+   "notes": null
+  },
+  {
+   "cle": "club-athle-athletic-club-saint-andiolais-molleges",
+   "type": "club_athle",
+   "nom": "Athletic Club Saint-Andiolais",
+   "sigle": "ACSA",
+   "commune": "Mollégès",
+   "code_postal": "13940",
+   "departement": "13",
+   "adresse": null,
+   "site": null,
+   "affiliation": null,
+   "enseigne": null,
+   "categorie": null,
+   "source": "PagesJaunes, rubrique clubs d'athlétisme (novembre 2026)",
+   "notes": null
+  },
+  {
+   "cle": "club-athle-vitrolles-sports-athletisme-vitrolles",
+   "type": "club_athle",
+   "nom": "Vitrolles Sports Athlétisme",
+   "sigle": null,
+   "commune": "Vitrolles",
+   "code_postal": "13127",
+   "departement": "13",
+   "adresse": null,
+   "site": null,
+   "affiliation": null,
+   "enseigne": null,
+   "categorie": null,
+   "source": "PagesJaunes, rubrique clubs d'athlétisme (novembre 2026)",
+   "notes": null
+  },
+  {
+   "cle": "club-athle-la-croisette-berroise-berre-l-etang",
+   "type": "club_athle",
+   "nom": "La Croisette Berroise",
+   "sigle": null,
+   "commune": "Berre-l'Étang",
+   "code_postal": "13130",
+   "departement": "13",
+   "adresse": null,
+   "site": null,
+   "affiliation": null,
+   "enseigne": null,
+   "categorie": null,
+   "source": "PagesJaunes, rubrique clubs d'athlétisme (novembre 2026)",
+   "notes": null
+  },
+  {
+   "cle": "club-athle-athletic-club-mallemortais-mallemort",
+   "type": "club_athle",
+   "nom": "Athletic Club Mallemortais",
+   "sigle": null,
+   "commune": "Mallemort",
+   "code_postal": "13370",
+   "departement": "13",
+   "adresse": null,
+   "site": null,
+   "affiliation": null,
+   "enseigne": null,
+   "categorie": null,
+   "source": "PagesJaunes, rubrique clubs d'athlétisme (novembre 2026)",
+   "notes": null
+  },
+  {
+   "cle": "club-athle-union-athletique-de-la-vallee-de-l-huveaune-aubagne",
+   "type": "club_athle",
+   "nom": "Union Athlétique de la Vallée de l'Huveaune",
+   "sigle": "UAVH",
+   "commune": "Aubagne",
+   "code_postal": "13400",
+   "departement": "13",
+   "adresse": null,
+   "site": null,
+   "affiliation": null,
+   "enseigne": null,
+   "categorie": null,
+   "source": "PagesJaunes, rubrique clubs d'athlétisme (novembre 2026)",
+   "notes": null
+  },
+  {
+   "cle": "club-athle-association-pelican-athletisme-pelissanne",
+   "type": "club_athle",
+   "nom": "Association Pélican Athlétisme",
+   "sigle": null,
+   "commune": "Pélissanne",
+   "code_postal": "13330",
+   "departement": "13",
+   "adresse": null,
+   "site": null,
+   "affiliation": null,
+   "enseigne": null,
+   "categorie": null,
+   "source": "PagesJaunes, rubrique clubs d'athlétisme (novembre 2026)",
+   "notes": null
+  },
+  {
+   "cle": "club-athle-saint-mitre-athletic-club-13-saint-mitre-les-remparts",
+   "type": "club_athle",
+   "nom": "Saint-Mitre Athletic Club 13",
+   "sigle": "SMAC13",
+   "commune": "Saint-Mitre-les-Remparts",
+   "code_postal": "13920",
+   "departement": "13",
+   "adresse": null,
+   "site": null,
+   "affiliation": null,
+   "enseigne": null,
+   "categorie": null,
+   "source": "PagesJaunes, rubrique clubs d'athlétisme (novembre 2026)",
+   "notes": null
+  },
+  {
+   "cle": "club-athle-peynier-athletic-club-peynier",
+   "type": "club_athle",
+   "nom": "Peynier Athletic Club",
+   "sigle": null,
+   "commune": "Peynier",
+   "code_postal": "13790",
+   "departement": "13",
+   "adresse": null,
+   "site": null,
+   "affiliation": null,
+   "enseigne": null,
+   "categorie": null,
+   "source": "PagesJaunes, rubrique clubs d'athlétisme (novembre 2026)",
+   "notes": null
+  },
+  {
+   "cle": "club-running-courir-a-bouc-bel-air-bouc-bel-air",
+   "type": "club_running",
+   "nom": "Courir à Bouc-Bel-Air",
+   "sigle": null,
+   "commune": "Bouc-Bel-Air",
+   "code_postal": "13320",
+   "departement": "13",
+   "adresse": null,
+   "site": null,
+   "affiliation": null,
+   "enseigne": null,
+   "categorie": null,
+   "source": "PagesJaunes, rubrique clubs d'athlétisme (novembre 2026)",
+   "notes": null
+  },
+  {
+   "cle": "club-running-les-joggeurs-aubagnais-aubagne",
+   "type": "club_running",
+   "nom": "Les Joggeurs Aubagnais",
+   "sigle": null,
+   "commune": "Aubagne",
+   "code_postal": "13400",
+   "departement": "13",
+   "adresse": null,
+   "site": null,
+   "affiliation": null,
+   "enseigne": null,
+   "categorie": null,
+   "source": "PagesJaunes, rubrique clubs d'athlétisme (novembre 2026)",
+   "notes": null
+  },
+  {
+   "cle": "club-running-courir-a-meyreuil-meyreuil",
+   "type": "club_running",
+   "nom": "Courir à Meyreuil",
+   "sigle": null,
+   "commune": "Meyreuil",
+   "code_postal": "13590",
+   "departement": "13",
+   "adresse": null,
+   "site": null,
+   "affiliation": null,
+   "enseigne": null,
+   "categorie": null,
+   "source": "PagesJaunes, rubrique clubs d'athlétisme (novembre 2026)",
+   "notes": null
+  },
+  {
+   "cle": "club-running-le-clan-cross-loisir-athletic-novais-noves",
+   "type": "club_running",
+   "nom": "Le Clan Cross Loisir Athletic Novais",
+   "sigle": null,
+   "commune": "Noves",
+   "code_postal": "13550",
+   "departement": "13",
+   "adresse": null,
+   "site": null,
+   "affiliation": null,
+   "enseigne": null,
+   "categorie": null,
+   "source": "PagesJaunes, rubrique clubs d'athlétisme (novembre 2026)",
+   "notes": null
+  },
+  {
+   "cle": "club-running-kilometre-610-le-puy-sainte-reparade",
+   "type": "club_running",
+   "nom": "Kilomètre 610",
+   "sigle": null,
+   "commune": "Le Puy-Sainte-Réparade",
+   "code_postal": "13610",
+   "departement": "13",
+   "adresse": null,
+   "site": null,
+   "affiliation": null,
+   "enseigne": null,
+   "categorie": null,
+   "source": "PagesJaunes, rubrique clubs d'athlétisme (novembre 2026)",
+   "notes": null
+  },
+  {
+   "cle": "club-running-courir-a-sausset-sausset-les-pins",
+   "type": "club_running",
+   "nom": "Courir à Sausset",
+   "sigle": null,
+   "commune": "Sausset-les-Pins",
+   "code_postal": "13960",
+   "departement": "13",
+   "adresse": null,
+   "site": null,
+   "affiliation": null,
+   "enseigne": null,
+   "categorie": null,
+   "source": "PagesJaunes, rubrique clubs d'athlétisme (novembre 2026)",
+   "notes": null
+  },
+  {
+   "cle": "club-running-marathoniack-cabries",
+   "type": "club_running",
+   "nom": "Marathoniack",
+   "sigle": null,
+   "commune": "Cabriès",
+   "code_postal": "13480",
+   "departement": "13",
+   "adresse": null,
+   "site": null,
+   "affiliation": null,
+   "enseigne": null,
+   "categorie": null,
+   "source": "PagesJaunes, rubrique clubs d'athlétisme (novembre 2026)",
+   "notes": null
+  },
+  {
+   "cle": "club-running-ventabren-jogging-aventure-ventabren",
+   "type": "club_running",
+   "nom": "Ventabren Jogging Aventure",
+   "sigle": null,
+   "commune": "Ventabren",
+   "code_postal": "13122",
+   "departement": "13",
+   "adresse": null,
+   "site": null,
+   "affiliation": null,
+   "enseigne": null,
+   "categorie": null,
+   "source": "PagesJaunes, rubrique clubs d'athlétisme (novembre 2026)",
+   "notes": null
+  },
+  {
+   "cle": "club-trail-ultra-trail-des-continents-marseille",
+   "type": "club_trail",
+   "nom": "Ultra Trail des Continents",
+   "sigle": "UTC",
+   "commune": "Marseille",
+   "code_postal": "13008",
+   "departement": "13",
+   "adresse": null,
+   "site": null,
+   "affiliation": null,
+   "enseigne": null,
+   "categorie": null,
+   "source": "PagesJaunes, rubrique clubs d'athlétisme (novembre 2026)",
+   "notes": null
+  },
+  {
+   "cle": "club-trail-trail-des-5-calanques-saint-mitre-les-remparts",
+   "type": "club_trail",
+   "nom": "Trail des 5 Calanques",
+   "sigle": "T5C",
+   "commune": "Saint-Mitre-les-Remparts",
+   "code_postal": "13920",
+   "departement": "13",
+   "adresse": null,
+   "site": null,
+   "affiliation": null,
+   "enseigne": null,
+   "categorie": null,
+   "source": "PagesJaunes, rubrique clubs d'athlétisme (novembre 2026)",
+   "notes": null
+  },
+  {
+   "cle": "club-trail-team-trail-salonais-salon-de-provence",
+   "type": "club_trail",
+   "nom": "Team Trail Salonais",
+   "sigle": "TTS",
+   "commune": "Salon-de-Provence",
+   "code_postal": "13300",
+   "departement": "13",
+   "adresse": null,
+   "site": null,
+   "affiliation": null,
+   "enseigne": null,
+   "categorie": null,
+   "source": "PagesJaunes, rubrique clubs d'athlétisme (novembre 2026)",
+   "notes": null
+  },
+  {
+   "cle": "organisateur-massilia-marathon-marseille",
+   "type": "organisateur",
+   "nom": "Massilia Marathon",
+   "sigle": null,
+   "commune": "Marseille",
+   "code_postal": "13012",
+   "departement": "13",
+   "adresse": null,
+   "site": null,
+   "affiliation": null,
+   "enseigne": null,
+   "categorie": null,
+   "source": "PagesJaunes, rubrique clubs d'athlétisme (novembre 2026)",
+   "notes": null
+  },
+  {
+   "cle": "club-athle-londais-athletic-mediterraneen-la-londe-les-maures",
+   "type": "club_athle",
+   "nom": "Londais Athlétic Méditerranéen",
+   "sigle": "LAM",
+   "commune": "La Londe-les-Maures",
+   "code_postal": "83250",
+   "departement": "83",
+   "adresse": null,
+   "site": null,
+   "affiliation": null,
+   "enseigne": null,
+   "categorie": null,
+   "source": "PagesJaunes, rubrique clubs d'athlétisme (novembre 2026)",
+   "notes": null
+  },
+  {
+   "cle": "club-athle-toulon-etudiant-club-athletisme-toulon",
+   "type": "club_athle",
+   "nom": "Toulon Étudiant Club Athlétisme",
+   "sigle": "TEC",
+   "commune": "Toulon",
+   "code_postal": "83100",
+   "departement": "83",
+   "adresse": null,
+   "site": null,
+   "affiliation": null,
+   "enseigne": null,
+   "categorie": null,
+   "source": "PagesJaunes, rubrique clubs d'athlétisme (novembre 2026)",
+   "notes": null
+  },
+  {
+   "cle": "club-athle-athletic-club-de-cavalaire-cavalaire-sur-mer",
+   "type": "club_athle",
+   "nom": "Athletic Club de Cavalaire",
+   "sigle": null,
+   "commune": "Cavalaire-sur-Mer",
+   "code_postal": "83240",
+   "departement": "83",
+   "adresse": null,
+   "site": null,
+   "affiliation": null,
+   "enseigne": null,
+   "categorie": null,
+   "source": "PagesJaunes, rubrique clubs d'athlétisme (novembre 2026)",
+   "notes": null
+  },
+  {
+   "cle": "club-athle-athletic-club-carcois-carces",
+   "type": "club_athle",
+   "nom": "Athletic Club Carçois",
+   "sigle": null,
+   "commune": "Carcès",
+   "code_postal": "83570",
+   "departement": "83",
+   "adresse": null,
+   "site": null,
+   "affiliation": null,
+   "enseigne": null,
+   "categorie": null,
+   "source": "PagesJaunes, rubrique clubs d'athlétisme (novembre 2026)",
+   "notes": null
+  },
+  {
+   "cle": "club-athle-athletic-club-zacharien-sainte-baume-saint-zacharie",
+   "type": "club_athle",
+   "nom": "Athletic Club Zacharien Sainte-Baume",
+   "sigle": "ACZ",
+   "commune": "Saint-Zacharie",
+   "code_postal": "83640",
+   "departement": "83",
+   "adresse": null,
+   "site": null,
+   "affiliation": null,
+   "enseigne": null,
+   "categorie": null,
+   "source": "PagesJaunes, rubrique clubs d'athlétisme (novembre 2026)",
+   "notes": null
+  },
+  {
+   "cle": "club-athle-athletisme-flassannais-flassans-sur-issole",
+   "type": "club_athle",
+   "nom": "Athlétisme Flassannais",
+   "sigle": null,
+   "commune": "Flassans-sur-Issole",
+   "code_postal": "83340",
+   "departement": "83",
+   "adresse": null,
+   "site": null,
+   "affiliation": null,
+   "enseigne": null,
+   "categorie": null,
+   "source": "PagesJaunes, rubrique clubs d'athlétisme (novembre 2026)",
+   "notes": null
+  },
+  {
+   "cle": "club-athle-azur-sprint-83-seillans",
+   "type": "club_athle",
+   "nom": "Azur Sprint 83",
+   "sigle": null,
+   "commune": "Seillans",
+   "code_postal": "83440",
+   "departement": "83",
+   "adresse": null,
+   "site": null,
+   "affiliation": null,
+   "enseigne": null,
+   "categorie": null,
+   "source": "PagesJaunes, rubrique clubs d'athlétisme (novembre 2026)",
+   "notes": null
+  },
+  {
+   "cle": "club-athle-association-sportive-sanary-cap-garonne-sanary-sur-mer",
+   "type": "club_athle",
+   "nom": "Association Sportive Sanary Cap Garonne",
+   "sigle": null,
+   "commune": "Sanary-sur-Mer",
+   "code_postal": "83110",
+   "departement": "83",
+   "adresse": null,
+   "site": null,
+   "affiliation": null,
+   "enseigne": null,
+   "categorie": null,
+   "source": "PagesJaunes, rubrique clubs d'athlétisme (novembre 2026)",
+   "notes": null
+  },
+  {
+   "cle": "club-running-free-race-brignoles",
+   "type": "club_running",
+   "nom": "Free Race",
+   "sigle": null,
+   "commune": "Brignoles",
+   "code_postal": "83170",
+   "departement": "83",
+   "adresse": null,
+   "site": null,
+   "affiliation": null,
+   "enseigne": null,
+   "categorie": null,
+   "source": "PagesJaunes, rubrique clubs d'athlétisme (novembre 2026)",
+   "notes": null
+  },
+  {
+   "cle": "club-running-team-no-speed-limit-trans-en-provence",
+   "type": "club_running",
+   "nom": "Team No Speed Limit",
+   "sigle": null,
+   "commune": "Trans-en-Provence",
+   "code_postal": "83720",
+   "departement": "83",
+   "adresse": null,
+   "site": null,
+   "affiliation": null,
+   "enseigne": null,
+   "categorie": null,
+   "source": "PagesJaunes, rubrique clubs d'athlétisme (novembre 2026)",
+   "notes": null
+  },
+  {
+   "cle": "club-running-l-oppidum-defi-pourrieres",
+   "type": "club_running",
+   "nom": "L'Oppidum Défi",
+   "sigle": null,
+   "commune": "Pourrières",
+   "code_postal": "83910",
+   "departement": "83",
+   "adresse": null,
+   "site": null,
+   "affiliation": null,
+   "enseigne": null,
+   "categorie": null,
+   "source": "PagesJaunes, rubrique clubs d'athlétisme (novembre 2026)",
+   "notes": null
+  },
+  {
+   "cle": "club-running-1000-pattes-en-dracenie-ampus",
+   "type": "club_running",
+   "nom": "1000 Pattes en Dracénie",
+   "sigle": null,
+   "commune": "Ampus",
+   "code_postal": "83111",
+   "departement": "83",
+   "adresse": null,
+   "site": null,
+   "affiliation": null,
+   "enseigne": null,
+   "categorie": null,
+   "source": "PagesJaunes, rubrique clubs d'athlétisme (novembre 2026)",
+   "notes": null
+  },
+  {
+   "cle": "club-running-amicale-des-coureurs-de-fond-hyerois-les-levriers-hyeres",
+   "type": "club_running",
+   "nom": "Amicale des Coureurs de Fond Hyérois « Les Lévriers »",
+   "sigle": null,
+   "commune": "Hyères",
+   "code_postal": "83400",
+   "departement": "83",
+   "adresse": null,
+   "site": null,
+   "affiliation": null,
+   "enseigne": null,
+   "categorie": null,
+   "source": "PagesJaunes, rubrique clubs d'athlétisme (novembre 2026)",
+   "notes": null
+  },
+  {
+   "cle": "club-running-la-foulee-ollioulaise-ollioules",
+   "type": "club_running",
+   "nom": "La Foulée Ollioulaise",
+   "sigle": null,
+   "commune": "Ollioules",
+   "code_postal": "83190",
+   "departement": "83",
+   "adresse": null,
+   "site": null,
+   "affiliation": null,
+   "enseigne": null,
+   "categorie": null,
+   "source": "PagesJaunes, rubrique clubs d'athlétisme (novembre 2026)",
+   "notes": null
+  },
+  {
+   "cle": "club-running-les-k-beausset-le-beausset",
+   "type": "club_running",
+   "nom": "Les K'Beausset",
+   "sigle": null,
+   "commune": "Le Beausset",
+   "code_postal": "83330",
+   "departement": "83",
+   "adresse": null,
+   "site": null,
+   "affiliation": null,
+   "enseigne": null,
+   "categorie": null,
+   "source": "PagesJaunes, rubrique clubs d'athlétisme (novembre 2026)",
+   "notes": null
+  },
+  {
+   "cle": "club-trail-nature-trail-vidauban-vidauban",
+   "type": "club_trail",
+   "nom": "Nature Trail Vidauban",
+   "sigle": "NTV",
+   "commune": "Vidauban",
+   "code_postal": "83550",
+   "departement": "83",
+   "adresse": null,
+   "site": null,
+   "affiliation": null,
+   "enseigne": null,
+   "categorie": null,
+   "source": "PagesJaunes, rubrique clubs d'athlétisme (novembre 2026)",
+   "notes": null
+  },
+  {
+   "cle": "club-trail-trail-athletisme-bessois-besse-sur-issole",
+   "type": "club_trail",
+   "nom": "Trail Athlétisme Bessois",
+   "sigle": null,
+   "commune": "Besse-sur-Issole",
+   "code_postal": "83890",
+   "departement": "83",
+   "adresse": null,
+   "site": null,
+   "affiliation": null,
+   "enseigne": null,
+   "categorie": null,
+   "source": "PagesJaunes, rubrique clubs d'athlétisme (novembre 2026)",
+   "notes": null
+  },
+  {
+   "cle": "organisateur-cap-garonne-organisation-le-pradet",
+   "type": "organisateur",
+   "nom": "Cap Garonne Organisation",
+   "sigle": "CGO",
+   "commune": "Le Pradet",
+   "code_postal": "83220",
+   "departement": "83",
+   "adresse": null,
+   "site": null,
+   "affiliation": null,
+   "enseigne": null,
+   "categorie": null,
+   "source": "PagesJaunes, rubrique clubs d'athlétisme (novembre 2026)",
+   "notes": null
+  },
+  {
+   "cle": "organisateur-course-du-soleil-la-londe-les-maures",
+   "type": "organisateur",
+   "nom": "Course du Soleil",
+   "sigle": null,
+   "commune": "La Londe-les-Maures",
+   "code_postal": "83250",
+   "departement": "83",
+   "adresse": null,
+   "site": null,
+   "affiliation": null,
+   "enseigne": null,
+   "categorie": null,
+   "source": "PagesJaunes, rubrique clubs d'athlétisme (novembre 2026)",
+   "notes": null
+  },
+  {
+   "cle": "organisateur-course-pedestre-du-plateau-de-l-issole-gareoult",
+   "type": "organisateur",
+   "nom": "Course Pédestre du Plateau de l'Issole",
+   "sigle": null,
+   "commune": "Garéoult",
+   "code_postal": "83136",
+   "departement": "83",
+   "adresse": null,
+   "site": null,
+   "affiliation": null,
+   "enseigne": null,
+   "categorie": null,
+   "source": "PagesJaunes, rubrique clubs d'athlétisme (novembre 2026)",
+   "notes": null
+  },
+  {
+   "cle": "club-athle-nice-metropole-athletisme-nice",
+   "type": "club_athle",
+   "nom": "Nice Métropole Athlétisme",
+   "sigle": null,
+   "commune": "Nice",
+   "code_postal": "06300",
+   "departement": "06",
+   "adresse": null,
+   "site": null,
+   "affiliation": null,
+   "enseigne": null,
+   "categorie": null,
+   "source": "PagesJaunes, rubrique clubs d'athlétisme (novembre 2026)",
+   "notes": null
+  },
+  {
+   "cle": "club-athle-athletic-club-de-cannes-cannes",
+   "type": "club_athle",
+   "nom": "Athlétic Club de Cannes",
+   "sigle": null,
+   "commune": "Cannes",
+   "code_postal": "06150",
+   "departement": "06",
+   "adresse": null,
+   "site": null,
+   "affiliation": null,
+   "enseigne": null,
+   "categorie": null,
+   "source": "PagesJaunes, rubrique clubs d'athlétisme (novembre 2026)",
+   "notes": null
+  },
+  {
+   "cle": "club-athle-breil-athletic-club-breil-sur-roya",
+   "type": "club_athle",
+   "nom": "Breil Athletic Club",
+   "sigle": "BAC",
+   "commune": "Breil-sur-Roya",
+   "code_postal": "06540",
+   "departement": "06",
+   "adresse": null,
+   "site": null,
+   "affiliation": null,
+   "enseigne": null,
+   "categorie": null,
+   "source": "PagesJaunes, rubrique clubs d'athlétisme (novembre 2026)",
+   "notes": null
+  },
+  {
+   "cle": "club-trail-run-trail-sospel-sospel",
+   "type": "club_trail",
+   "nom": "Run & Trail Sospel",
+   "sigle": "RTS",
+   "commune": "Sospel",
+   "code_postal": "06380",
+   "departement": "06",
+   "adresse": null,
+   "site": null,
+   "affiliation": null,
+   "enseigne": null,
+   "categorie": null,
+   "source": "PagesJaunes, rubrique clubs d'athlétisme (novembre 2026)",
+   "notes": null
+  },
+  {
+   "cle": "organisateur-ronde-des-collines-nicoises-nice",
+   "type": "organisateur",
+   "nom": "Ronde des Collines Niçoises",
+   "sigle": "ARCN",
+   "commune": "Nice",
+   "code_postal": "06200",
+   "departement": "06",
+   "adresse": null,
+   "site": null,
+   "affiliation": null,
+   "enseigne": null,
+   "categorie": null,
+   "source": "PagesJaunes, rubrique clubs d'athlétisme (novembre 2026)",
+   "notes": null
+  },
+  {
+   "cle": "club-athle-athletic-club-dignois-athletisme-digne-les-bains",
+   "type": "club_athle",
+   "nom": "Athletic Club Dignois Athlétisme",
+   "sigle": "ACD",
+   "commune": "Digne-les-Bains",
+   "code_postal": "04000",
+   "departement": "04",
+   "adresse": null,
+   "site": null,
+   "affiliation": null,
+   "enseigne": null,
+   "categorie": null,
+   "source": "PagesJaunes, rubrique clubs d'athlétisme (novembre 2026)",
+   "notes": null
+  },
+  {
+   "cle": "club-athle-athletisme-durance-luberon-verdon-sainte-tulle",
+   "type": "club_athle",
+   "nom": "Athlétisme Durance Luberon Verdon",
+   "sigle": null,
+   "commune": "Sainte-Tulle",
+   "code_postal": "04220",
+   "departement": "04",
+   "adresse": null,
+   "site": null,
+   "affiliation": null,
+   "enseigne": null,
+   "categorie": null,
+   "source": "PagesJaunes, rubrique clubs d'athlétisme (novembre 2026)",
+   "notes": null
+  },
+  {
+   "cle": "club-running-la-foulee-oraison",
+   "type": "club_running",
+   "nom": "La Foulée",
+   "sigle": null,
+   "commune": "Oraison",
+   "code_postal": "04700",
+   "departement": "04",
+   "adresse": null,
+   "site": null,
+   "affiliation": null,
+   "enseigne": null,
+   "categorie": null,
+   "source": "PagesJaunes, rubrique clubs d'athlétisme (novembre 2026)",
+   "notes": null
+  },
+  {
+   "cle": "club-running-running-club-escalais-l-escale",
+   "type": "club_running",
+   "nom": "Running Club Escalais",
+   "sigle": null,
+   "commune": "L'Escale",
+   "code_postal": "04160",
+   "departement": "04",
+   "adresse": null,
+   "site": null,
+   "affiliation": null,
+   "enseigne": null,
+   "categorie": null,
+   "source": "PagesJaunes, rubrique running (novembre 2026)",
+   "notes": "Commune déduite du nom : à vérifier."
+  },
+  {
+   "cle": "club-athle-club-athletique-veynois-veynes",
+   "type": "club_athle",
+   "nom": "Club Athlétique Veynois",
+   "sigle": null,
+   "commune": "Veynes",
+   "code_postal": "05400",
+   "departement": "05",
+   "adresse": null,
+   "site": null,
+   "affiliation": null,
+   "enseigne": null,
+   "categorie": null,
+   "source": "PagesJaunes, rubrique clubs d'athlétisme (novembre 2026)",
+   "notes": null
+  },
+  {
+   "cle": "club-athle-embrunais-athletic-club-embrun",
+   "type": "club_athle",
+   "nom": "Embrunais Athletic Club",
+   "sigle": null,
+   "commune": "Embrun",
+   "code_postal": "05200",
+   "departement": "05",
+   "adresse": null,
+   "site": null,
+   "affiliation": null,
+   "enseigne": null,
+   "categorie": null,
+   "source": "PagesJaunes, rubrique clubs d'athlétisme (novembre 2026)",
+   "notes": null
+  },
+  {
+   "cle": "ecole-trail-ecole-de-trail-antibes-antibes",
+   "type": "ecole_trail",
+   "nom": "École de Trail Antibes",
+   "sigle": null,
+   "commune": "Antibes",
+   "code_postal": "06600",
+   "departement": "06",
+   "adresse": null,
+   "site": "https://www.ecoledetrail.com/",
+   "affiliation": null,
+   "enseigne": null,
+   "categorie": null,
+   "source": "Réseau École de Trail (ecoledetrail.com)",
+   "notes": null
+  },
+  {
+   "cle": "ecole-trail-ecole-de-trail-pays-d-aix-aix-en-provence",
+   "type": "ecole_trail",
+   "nom": "École de Trail Pays d'Aix",
+   "sigle": null,
+   "commune": null,
+   "code_postal": null,
+   "departement": "13",
+   "adresse": null,
+   "site": "https://www.ecoledetrail.com/",
+   "affiliation": null,
+   "enseigne": null,
+   "categorie": null,
+   "source": "Réseau École de Trail (ecoledetrail.com)",
+   "notes": "Pays d'Aix : commune exacte à vérifier."
+  },
+  {
+   "cle": "ecole-trail-ecole-de-trail-molleges-molleges",
+   "type": "ecole_trail",
+   "nom": "École de Trail Mollégès",
+   "sigle": null,
+   "commune": "Mollégès",
+   "code_postal": "13940",
+   "departement": "13",
+   "adresse": null,
+   "site": "https://www.ecoledetrail.com/",
+   "affiliation": null,
+   "enseigne": null,
+   "categorie": null,
+   "source": "Réseau École de Trail (ecoledetrail.com)",
+   "notes": null
+  },
+  {
+   "cle": "ecole-trail-ecole-de-trail-c-ur-du-var-le-luc",
+   "type": "ecole_trail",
+   "nom": "École de Trail Cœur du Var",
+   "sigle": null,
+   "commune": null,
+   "code_postal": null,
+   "departement": "83",
+   "adresse": null,
+   "site": "https://www.ecoledetrail.com/",
+   "affiliation": null,
+   "enseigne": null,
+   "categorie": null,
+   "source": "Réseau École de Trail (ecoledetrail.com)",
+   "notes": "Cœur du Var : commune exacte à vérifier."
+  },
+  {
+   "cle": "magasin-endurance-shop-avignon-avignon",
+   "type": "magasin",
+   "nom": "Endurance Shop Avignon",
+   "sigle": null,
+   "commune": "Avignon",
+   "code_postal": "84000",
+   "departement": "84",
+   "adresse": "38 rue Carnot",
+   "site": null,
+   "affiliation": null,
+   "enseigne": "Endurance Shop",
+   "categorie": "specialiste",
+   "source": "au-magasin.fr",
+   "notes": null
+  },
+  {
+   "cle": "magasin-running-conseil-avignon-le-pontet",
+   "type": "magasin",
+   "nom": "Running Conseil Avignon",
+   "sigle": null,
+   "commune": "Le Pontet",
+   "code_postal": "84130",
+   "departement": "84",
+   "adresse": "Rue Panisset",
+   "site": null,
+   "affiliation": null,
+   "enseigne": "Running Conseil",
+   "categorie": "specialiste",
+   "source": "PagesJaunes, rubrique running (novembre 2026)",
+   "notes": null
+  },
+  {
+   "cle": "magasin-terre-de-running-luberon-maubec",
+   "type": "magasin",
+   "nom": "Terre de Running Luberon",
+   "sigle": null,
+   "commune": "Maubec",
+   "code_postal": "84660",
+   "departement": "84",
+   "adresse": "104 route de Cavaillon, Coustellet",
+   "site": null,
+   "affiliation": null,
+   "enseigne": "Terre de Running",
+   "categorie": "specialiste",
+   "source": "PagesJaunes, rubrique running (novembre 2026)",
+   "notes": null
+  },
+  {
+   "cle": "magasin-i-run-marseille-pont-de-vivaux-marseille",
+   "type": "magasin",
+   "nom": "i-Run Marseille Pont-de-Vivaux",
+   "sigle": null,
+   "commune": "Marseille",
+   "code_postal": "13010",
+   "departement": "13",
+   "adresse": "165 boulevard Pont-de-Vivaux",
+   "site": null,
+   "affiliation": null,
+   "enseigne": "i-Run",
+   "categorie": "specialiste",
+   "source": "Site i-Run (liste des magasins PACA)",
+   "notes": null
+  },
+  {
+   "cle": "magasin-i-run-marseille-centre-marseille",
+   "type": "magasin",
+   "nom": "i-Run Marseille Centre",
+   "sigle": null,
+   "commune": "Marseille",
+   "code_postal": "13002",
+   "departement": "13",
+   "adresse": "15 rue de la République",
+   "site": null,
+   "affiliation": null,
+   "enseigne": "i-Run",
+   "categorie": "specialiste",
+   "source": "Site i-Run (liste des magasins PACA)",
+   "notes": null
+  },
+  {
+   "cle": "magasin-i-run-aix-en-provence-centre-aix-en-provence",
+   "type": "magasin",
+   "nom": "i-Run Aix-en-Provence Centre",
+   "sigle": null,
+   "commune": "Aix-en-Provence",
+   "code_postal": "13100",
+   "departement": "13",
+   "adresse": "5 place de Narvik",
+   "site": null,
+   "affiliation": null,
+   "enseigne": "i-Run",
+   "categorie": "specialiste",
+   "source": "Site i-Run (liste des magasins PACA)",
+   "notes": null
+  },
+  {
+   "cle": "magasin-i-run-aix-en-provence-les-milles-aix-en-provence",
+   "type": "magasin",
+   "nom": "i-Run Aix-en-Provence Les Milles",
+   "sigle": null,
+   "commune": "Aix-en-Provence",
+   "code_postal": "13290",
+   "departement": "13",
+   "adresse": "428 rue Marcellin Berthelot",
+   "site": null,
+   "affiliation": null,
+   "enseigne": "i-Run",
+   "categorie": "specialiste",
+   "source": "Site i-Run (liste des magasins PACA)",
+   "notes": null
+  },
+  {
+   "cle": "magasin-i-run-martigues-saint-mitre-les-remparts",
+   "type": "magasin",
+   "nom": "i-Run Martigues",
+   "sigle": null,
+   "commune": "Saint-Mitre-les-Remparts",
+   "code_postal": "13920",
+   "departement": "13",
+   "adresse": "ZAC des Étangs, 26 rue des Saladelles",
+   "site": null,
+   "affiliation": null,
+   "enseigne": "i-Run",
+   "categorie": "specialiste",
+   "source": "Site i-Run (liste des magasins PACA)",
+   "notes": null
+  },
+  {
+   "cle": "magasin-gbg-running-13-aubagne",
+   "type": "magasin",
+   "nom": "GBG Running 13",
+   "sigle": null,
+   "commune": "Aubagne",
+   "code_postal": "13400",
+   "departement": "13",
+   "adresse": "506 avenue des Caniers",
+   "site": null,
+   "affiliation": null,
+   "enseigne": "Indépendant",
+   "categorie": "specialiste",
+   "source": "PagesJaunes, rubrique running (novembre 2026)",
+   "notes": null
+  },
+  {
+   "cle": "magasin-running-conseil-marseille-marseille",
+   "type": "magasin",
+   "nom": "Running Conseil Marseille",
+   "sigle": null,
+   "commune": "Marseille",
+   "code_postal": "13000",
+   "departement": "13",
+   "adresse": null,
+   "site": null,
+   "affiliation": null,
+   "enseigne": "Running Conseil",
+   "categorie": "specialiste",
+   "source": "cylex-locale.fr",
+   "notes": null
+  },
+  {
+   "cle": "magasin-terre-de-running-la-garde-la-garde",
+   "type": "magasin",
+   "nom": "Terre de Running La Garde",
+   "sigle": null,
+   "commune": "La Garde",
+   "code_postal": "83130",
+   "departement": "83",
+   "adresse": "375 avenue Saint-Just",
+   "site": null,
+   "affiliation": null,
+   "enseigne": "Terre de Running",
+   "categorie": "specialiste",
+   "source": "running-var.fr (où s'équiper dans le Var)",
+   "notes": null
+  },
+  {
+   "cle": "magasin-terre-de-running-toulon-toulon",
+   "type": "magasin",
+   "nom": "Terre de Running Toulon",
+   "sigle": null,
+   "commune": "Toulon",
+   "code_postal": "83000",
+   "departement": "83",
+   "adresse": "7 bis rue Berthelot",
+   "site": null,
+   "affiliation": null,
+   "enseigne": "Terre de Running",
+   "categorie": "specialiste",
+   "source": "running-var.fr (où s'équiper dans le Var)",
+   "notes": null
+  },
+  {
+   "cle": "magasin-azur-tri-and-run-frejus",
+   "type": "magasin",
+   "nom": "Azur Tri and Run",
+   "sigle": null,
+   "commune": "Fréjus",
+   "code_postal": "83600",
+   "departement": "83",
+   "adresse": "36 rue de l'Intendance",
+   "site": null,
+   "affiliation": null,
+   "enseigne": "Indépendant",
+   "categorie": "specialiste",
+   "source": "running-var.fr (où s'équiper dans le Var)",
+   "notes": null
+  },
+  {
+   "cle": "magasin-running-conseil-ollioules-ollioules",
+   "type": "magasin",
+   "nom": "Running Conseil Ollioules",
+   "sigle": null,
+   "commune": "Ollioules",
+   "code_postal": "83190",
+   "departement": "83",
+   "adresse": "Espace Mermoz, avenue Jean Mermoz",
+   "site": null,
+   "affiliation": null,
+   "enseigne": "Running Conseil",
+   "categorie": "specialiste",
+   "source": "running-var.fr (où s'équiper dans le Var)",
+   "notes": null
+  },
+  {
+   "cle": "magasin-running-conseil-nice-nice",
+   "type": "magasin",
+   "nom": "Running Conseil Nice",
+   "sigle": null,
+   "commune": "Nice",
+   "code_postal": "06000",
+   "departement": "06",
+   "adresse": "3 rue Chauvain",
+   "site": null,
+   "affiliation": null,
+   "enseigne": "Running Conseil",
+   "categorie": "specialiste",
+   "source": "PagesJaunes, rubrique running (novembre 2026)",
+   "notes": null
+  },
+  {
+   "cle": "magasin-running-station-nice-nice",
+   "type": "magasin",
+   "nom": "Running Station Nice",
+   "sigle": null,
+   "commune": "Nice",
+   "code_postal": "06000",
+   "departement": "06",
+   "adresse": "12 avenue Félix Faure",
+   "site": null,
+   "affiliation": null,
+   "enseigne": "Indépendant",
+   "categorie": "specialiste",
+   "source": "PagesJaunes, rubrique running (novembre 2026)",
+   "notes": null
+  },
+  {
+   "cle": "magasin-running-cycle-passion-grasse",
+   "type": "magasin",
+   "nom": "Running Cycle Passion",
+   "sigle": null,
+   "commune": "Grasse",
+   "code_postal": "06130",
+   "departement": "06",
+   "adresse": "320 route de Cannes",
+   "site": null,
+   "affiliation": null,
+   "enseigne": "Indépendant",
+   "categorie": "specialiste",
+   "source": "PagesJaunes, rubrique running (novembre 2026)",
+   "notes": null
+  },
+  {
+   "cle": "magasin-endurance-shop-gap-gap",
+   "type": "magasin",
+   "nom": "Endurance Shop Gap",
+   "sigle": null,
+   "commune": "Gap",
+   "code_postal": "05000",
+   "departement": "05",
+   "adresse": "30 rue Pasteur",
+   "site": null,
+   "affiliation": null,
+   "enseigne": "Endurance Shop",
+   "categorie": "specialiste",
+   "source": "PagesJaunes, rubrique running (novembre 2026)",
+   "notes": null
+  },
+  {
+   "cle": "magasin-chullanka-aix-en-provence-aix-en-provence",
+   "type": "magasin",
+   "nom": "Chullanka Aix-en-Provence",
+   "sigle": null,
+   "commune": "Aix-en-Provence",
+   "code_postal": "13290",
+   "departement": "13",
+   "adresse": "Rue Arnaud Borrili, Les Milles",
+   "site": null,
+   "affiliation": null,
+   "enseigne": "Chullanka",
+   "categorie": "outdoor",
+   "source": "PagesJaunes, rubrique running (novembre 2026)",
+   "notes": null
+  },
+  {
+   "cle": "magasin-chullanka-antibes-antibes",
+   "type": "magasin",
+   "nom": "Chullanka Antibes",
+   "sigle": null,
+   "commune": "Antibes",
+   "code_postal": "06600",
+   "departement": "06",
+   "adresse": "2222 route de Grasse",
+   "site": null,
+   "affiliation": null,
+   "enseigne": "Chullanka",
+   "categorie": "outdoor",
+   "source": "PagesJaunes, rubrique running (novembre 2026)",
+   "notes": null
+  },
+  {
+   "cle": "magasin-chullanka-gap-gap",
+   "type": "magasin",
+   "nom": "Chullanka Gap",
+   "sigle": null,
+   "commune": "Gap",
+   "code_postal": "05000",
+   "departement": "05",
+   "adresse": "ZA Tokoro, 8 boulevard d'Orient",
+   "site": null,
+   "affiliation": null,
+   "enseigne": "Chullanka",
+   "categorie": "outdoor",
+   "source": "PagesJaunes, rubrique running (novembre 2026)",
+   "notes": null
+  },
+  {
+   "cle": "magasin-chullanka-briancon-briancon",
+   "type": "magasin",
+   "nom": "Chullanka Briançon",
+   "sigle": null,
+   "commune": "Briançon",
+   "code_postal": "05100",
+   "departement": "05",
+   "adresse": "Zone industrielle Sud",
+   "site": null,
+   "affiliation": null,
+   "enseigne": "Chullanka",
+   "categorie": "outdoor",
+   "source": "PagesJaunes, rubrique running (novembre 2026)",
+   "notes": null
+  },
+  {
+   "cle": "magasin-au-vieux-campeur-gap-gap",
+   "type": "magasin",
+   "nom": "Au Vieux Campeur Gap",
+   "sigle": null,
+   "commune": "Gap",
+   "code_postal": "05000",
+   "departement": "05",
+   "adresse": "963 avenue d'Embrun",
+   "site": null,
+   "affiliation": null,
+   "enseigne": "Au Vieux Campeur",
+   "categorie": "outdoor",
+   "source": "PagesJaunes, rubrique running (novembre 2026)",
+   "notes": null
+  },
+  {
+   "cle": "magasin-millet-cap-3000-saint-laurent-du-var",
+   "type": "magasin",
+   "nom": "Millet Cap 3000",
+   "sigle": null,
+   "commune": "Saint-Laurent-du-Var",
+   "code_postal": "06700",
+   "departement": "06",
+   "adresse": "Centre commercial Cap 3000, avenue Eugène Donadeï",
+   "site": null,
+   "affiliation": null,
+   "enseigne": "Millet",
+   "categorie": "outdoor",
+   "source": "PagesJaunes, rubrique running (novembre 2026)",
+   "notes": null
+  },
+  {
+   "cle": "magasin-la-montagne-sport-barcelonnette",
+   "type": "magasin",
+   "nom": "La Montagne Sport",
+   "sigle": null,
+   "commune": "Barcelonnette",
+   "code_postal": "04400",
+   "departement": "04",
+   "adresse": "25 avenue Antoine Signoret",
+   "site": null,
+   "affiliation": null,
+   "enseigne": "Indépendant",
+   "categorie": "outdoor",
+   "source": "PagesJaunes, rubrique running (novembre 2026)",
+   "notes": null
+  },
+  {
+   "cle": "magasin-decathlon-cavaillon-cavaillon",
+   "type": "magasin",
+   "nom": "Decathlon Cavaillon",
+   "sigle": null,
+   "commune": "Cavaillon",
+   "code_postal": "84300",
+   "departement": "84",
+   "adresse": "Rue Georges Vève",
+   "site": null,
+   "affiliation": null,
+   "enseigne": "Decathlon",
+   "categorie": "generaliste",
+   "source": "PagesJaunes, rubrique running (novembre 2026)",
+   "notes": null
+  },
+  {
+   "cle": "magasin-decathlon-avignon-nord-le-pontet",
+   "type": "magasin",
+   "nom": "Decathlon Avignon Nord",
+   "sigle": null,
+   "commune": "Le Pontet",
+   "code_postal": "84130",
+   "departement": "84",
+   "adresse": "182 avenue du Maréchal Leclerc",
+   "site": null,
+   "affiliation": null,
+   "enseigne": "Decathlon",
+   "categorie": "generaliste",
+   "source": "PagesJaunes, rubrique running (novembre 2026)",
+   "notes": null
+  },
+  {
+   "cle": "magasin-decathlon-aubagne-aubagne",
+   "type": "magasin",
+   "nom": "Decathlon Aubagne",
+   "sigle": null,
+   "commune": "Aubagne",
+   "code_postal": "13400",
+   "departement": "13",
+   "adresse": "ZI Les Paluds, avenue des Caniers",
+   "site": null,
+   "affiliation": null,
+   "enseigne": "Decathlon",
+   "categorie": "generaliste",
+   "source": "PagesJaunes, rubrique running (novembre 2026)",
+   "notes": null
+  },
+  {
+   "cle": "magasin-decathlon-martigues-martigues",
+   "type": "magasin",
+   "nom": "Decathlon Martigues",
+   "sigle": null,
+   "commune": "Martigues",
+   "code_postal": "13500",
+   "departement": "13",
+   "adresse": "ZAC de Figuerolles",
+   "site": null,
+   "affiliation": null,
+   "enseigne": "Decathlon",
+   "categorie": "generaliste",
+   "source": "PagesJaunes, rubrique running (novembre 2026)",
+   "notes": null
+  },
+  {
+   "cle": "magasin-decathlon-aix-les-milles-aix-en-provence",
+   "type": "magasin",
+   "nom": "Decathlon Aix Les Milles",
+   "sigle": null,
+   "commune": "Aix-en-Provence",
+   "code_postal": "13290",
+   "departement": "13",
+   "adresse": "160 rue Guillaume du Vair, Les Milles",
+   "site": null,
+   "affiliation": null,
+   "enseigne": "Decathlon",
+   "categorie": "generaliste",
+   "source": "PagesJaunes, rubrique running (novembre 2026)",
+   "notes": null
+  },
+  {
+   "cle": "magasin-decathlon-antibes-antibes",
+   "type": "magasin",
+   "nom": "Decathlon Antibes",
+   "sigle": null,
+   "commune": "Antibes",
+   "code_postal": "06600",
+   "departement": "06",
+   "adresse": "1800 chemin de Millot Nord",
+   "site": null,
+   "affiliation": null,
+   "enseigne": "Decathlon",
+   "categorie": "generaliste",
+   "source": "PagesJaunes, rubrique running (novembre 2026)",
+   "notes": null
+  },
+  {
+   "cle": "magasin-decathlon-la-garde-la-garde",
+   "type": "magasin",
+   "nom": "Decathlon La Garde",
+   "sigle": null,
+   "commune": "La Garde",
+   "code_postal": "83130",
+   "departement": "83",
+   "adresse": "636 avenue de Draguignan",
+   "site": null,
+   "affiliation": null,
+   "enseigne": "Decathlon",
+   "categorie": "generaliste",
+   "source": "running-var.fr (où s'équiper dans le Var)",
+   "notes": null
+  },
+  {
+   "cle": "magasin-decathlon-gap-gap",
+   "type": "magasin",
+   "nom": "Decathlon Gap",
+   "sigle": null,
+   "commune": "Gap",
+   "code_postal": "05000",
+   "departement": "05",
+   "adresse": "65 avenue Émile Didier",
+   "site": null,
+   "affiliation": null,
+   "enseigne": "Decathlon",
+   "categorie": "generaliste",
+   "source": "PagesJaunes, rubrique running (novembre 2026)",
+   "notes": null
+  },
+  {
+   "cle": "magasin-decathlon-manosque-manosque",
+   "type": "magasin",
+   "nom": "Decathlon Manosque",
+   "sigle": null,
+   "commune": "Manosque",
+   "code_postal": "04100",
+   "departement": "04",
+   "adresse": "Allée Nicéphore Niépce, ZI Saint-Joseph",
+   "site": null,
+   "affiliation": null,
+   "enseigne": "Decathlon",
+   "categorie": "generaliste",
+   "source": "PagesJaunes, rubrique running (novembre 2026)",
+   "notes": null
+  },
+  {
+   "cle": "magasin-decathlon-digne-les-bains-digne-les-bains",
+   "type": "magasin",
+   "nom": "Decathlon Digne-les-Bains",
+   "sigle": null,
+   "commune": "Digne-les-Bains",
+   "code_postal": "04000",
+   "departement": "04",
+   "adresse": "5 route de Marseille",
+   "site": null,
+   "affiliation": null,
+   "enseigne": "Decathlon",
+   "categorie": "generaliste",
+   "source": "PagesJaunes, rubrique running (novembre 2026)",
+   "notes": null
+  },
+  {
+   "cle": "magasin-intersport-pertuis-pertuis",
+   "type": "magasin",
+   "nom": "Intersport Pertuis",
+   "sigle": null,
+   "commune": "Pertuis",
+   "code_postal": "84120",
+   "departement": "84",
+   "adresse": "Quartier Saint-Martin, route d'Aix",
+   "site": null,
+   "affiliation": null,
+   "enseigne": "Intersport",
+   "categorie": "generaliste",
+   "source": "PagesJaunes, rubrique running (novembre 2026)",
+   "notes": null
+  },
+  {
+   "cle": "magasin-intersport-carpentras-carpentras",
+   "type": "magasin",
+   "nom": "Intersport Carpentras",
+   "sigle": null,
+   "commune": "Carpentras",
+   "code_postal": "84200",
+   "departement": "84",
+   "adresse": "Avenue Frédéric Mistral",
+   "site": null,
+   "affiliation": null,
+   "enseigne": "Intersport",
+   "categorie": "generaliste",
+   "source": "PagesJaunes, rubrique running (novembre 2026)",
+   "notes": null
+  },
+  {
+   "cle": "magasin-intersport-grand-littoral-marseille",
+   "type": "magasin",
+   "nom": "Intersport Grand Littoral",
+   "sigle": null,
+   "commune": "Marseille",
+   "code_postal": "13015",
+   "departement": "13",
+   "adresse": "Centre commercial Grand Littoral, 11 avenue de Saint-Antoine",
+   "site": null,
+   "affiliation": null,
+   "enseigne": "Intersport",
+   "categorie": "generaliste",
+   "source": "PagesJaunes, rubrique running (novembre 2026)",
+   "notes": null
+  },
+  {
+   "cle": "magasin-intersport-plan-de-campagne-cabries",
+   "type": "magasin",
+   "nom": "Intersport Plan de Campagne",
+   "sigle": null,
+   "commune": "Cabriès",
+   "code_postal": "13480",
+   "departement": "13",
+   "adresse": "Plan de Campagne, RD 6",
+   "site": null,
+   "affiliation": null,
+   "enseigne": "Intersport",
+   "categorie": "generaliste",
+   "source": "PagesJaunes, rubrique running (novembre 2026)",
+   "notes": null
+  },
+  {
+   "cle": "magasin-intersport-la-valette-du-var-la-valette-du-var",
+   "type": "magasin",
+   "nom": "Intersport La Valette-du-Var",
+   "sigle": null,
+   "commune": "La Valette-du-Var",
+   "code_postal": "83160",
+   "departement": "83",
+   "adresse": "300 avenue de l'Université",
+   "site": null,
+   "affiliation": null,
+   "enseigne": "Intersport",
+   "categorie": "generaliste",
+   "source": "running-var.fr (où s'équiper dans le Var)",
+   "notes": null
+  },
+  {
+   "cle": "magasin-intersport-gap-gap",
+   "type": "magasin",
+   "nom": "Intersport Gap",
+   "sigle": null,
+   "commune": "Gap",
+   "code_postal": "05000",
+   "departement": "05",
+   "adresse": "1 boulevard d'Orient",
+   "site": null,
+   "affiliation": null,
+   "enseigne": "Intersport",
+   "categorie": "generaliste",
+   "source": "PagesJaunes, rubrique running (novembre 2026)",
+   "notes": null
+  },
+  {
+   "cle": "magasin-intersport-briancon-briancon",
+   "type": "magasin",
+   "nom": "Intersport Briançon",
+   "sigle": null,
+   "commune": "Briançon",
+   "code_postal": "05100",
+   "departement": "05",
+   "adresse": "Espace Sud, 187 rue des Tabellions",
+   "site": null,
+   "affiliation": null,
+   "enseigne": "Intersport",
+   "categorie": "generaliste",
+   "source": "PagesJaunes, rubrique running (novembre 2026)",
+   "notes": null
+  },
+  {
+   "cle": "magasin-intersport-sisteron-sisteron",
+   "type": "magasin",
+   "nom": "Intersport Sisteron",
+   "sigle": null,
+   "commune": "Sisteron",
+   "code_postal": "04200",
+   "departement": "04",
+   "adresse": "Zone commerciale Val Durance, 48 allée des Genêts",
+   "site": null,
+   "affiliation": null,
+   "enseigne": "Intersport",
+   "categorie": "generaliste",
+   "source": "PagesJaunes, rubrique running (novembre 2026)",
+   "notes": null
+  },
+  {
+   "cle": "magasin-intersport-manosque-manosque",
+   "type": "magasin",
+   "nom": "Intersport Manosque",
+   "sigle": null,
+   "commune": "Manosque",
+   "code_postal": "04100",
+   "departement": "04",
+   "adresse": "520 avenue de la Libération",
+   "site": null,
+   "affiliation": null,
+   "enseigne": "Intersport",
+   "categorie": "generaliste",
+   "source": "PagesJaunes, rubrique running (novembre 2026)",
+   "notes": null
+  },
+  {
+   "cle": "magasin-sport-2000-mondovelo-l-isle-sur-la-sorgue",
+   "type": "magasin",
+   "nom": "Sport 2000 Mondovélo",
+   "sigle": null,
+   "commune": "L'Isle-sur-la-Sorgue",
+   "code_postal": "84800",
+   "departement": "84",
+   "adresse": "La Rode",
+   "site": null,
+   "affiliation": null,
+   "enseigne": "Sport 2000",
+   "categorie": "generaliste",
+   "source": "PagesJaunes, rubrique running (novembre 2026)",
+   "notes": null
+  },
+  {
+   "cle": "magasin-sport-2000-orange-orange",
+   "type": "magasin",
+   "nom": "Sport 2000 Orange",
+   "sigle": null,
+   "commune": "Orange",
+   "code_postal": "84100",
+   "departement": "84",
+   "adresse": "Les Vignes, 1 rue Cinsault",
+   "site": null,
+   "affiliation": null,
+   "enseigne": "Sport 2000",
+   "categorie": "generaliste",
+   "source": "PagesJaunes, rubrique running (novembre 2026)",
+   "notes": null
+  },
+  {
+   "cle": "magasin-sport-2000-la-ciotat-la-ciotat",
+   "type": "magasin",
+   "nom": "Sport 2000 La Ciotat",
+   "sigle": null,
+   "commune": "La Ciotat",
+   "code_postal": "13600",
+   "departement": "13",
+   "adresse": "Avenue Émile Bodin",
+   "site": null,
+   "affiliation": null,
+   "enseigne": "Sport 2000",
+   "categorie": "generaliste",
+   "source": "PagesJaunes, rubrique running (novembre 2026)",
+   "notes": null
+  },
+  {
+   "cle": "magasin-sport-2000-arles-arles",
+   "type": "magasin",
+   "nom": "Sport 2000 Arles",
+   "sigle": null,
+   "commune": "Arles",
+   "code_postal": "13200",
+   "departement": "13",
+   "adresse": "22 avenue de la Libération",
+   "site": null,
+   "affiliation": null,
+   "enseigne": "Sport 2000",
+   "categorie": "generaliste",
+   "source": "PagesJaunes, rubrique running (novembre 2026)",
+   "notes": null
+  },
+  {
+   "cle": "magasin-sport-2000-istres-istres",
+   "type": "magasin",
+   "nom": "Sport 2000 Istres",
+   "sigle": null,
+   "commune": "Istres",
+   "code_postal": "13800",
+   "departement": "13",
+   "adresse": "ZAC des Cognets Sud",
+   "site": null,
+   "affiliation": null,
+   "enseigne": "Sport 2000",
+   "categorie": "generaliste",
+   "source": "PagesJaunes, rubrique running (novembre 2026)",
+   "notes": null
+  },
+  {
+   "cle": "magasin-sport-2000-la-valentine-marseille",
+   "type": "magasin",
+   "nom": "Sport 2000 La Valentine",
+   "sigle": null,
+   "commune": "Marseille",
+   "code_postal": "13011",
+   "departement": "13",
+   "adresse": "Centre commercial La Valentine, route de la Sablière",
+   "site": null,
+   "affiliation": null,
+   "enseigne": "Sport 2000",
+   "categorie": "generaliste",
+   "source": "PagesJaunes, rubrique running (novembre 2026)",
+   "notes": null
+  },
+  {
+   "cle": "magasin-sport-2000-menton-menton",
+   "type": "magasin",
+   "nom": "Sport 2000 Menton",
+   "sigle": null,
+   "commune": "Menton",
+   "code_postal": "06500",
+   "departement": "06",
+   "adresse": "19 rue Partouneaux",
+   "site": null,
+   "affiliation": null,
+   "enseigne": "Sport 2000",
+   "categorie": "generaliste",
+   "source": "PagesJaunes, rubrique running (novembre 2026)",
+   "notes": null
+  },
+  {
+   "cle": "magasin-sport-2000-embrun-embrun",
+   "type": "magasin",
+   "nom": "Sport 2000 Embrun",
+   "sigle": null,
+   "commune": "Embrun",
+   "code_postal": "05200",
+   "departement": "05",
+   "adresse": "8 rue Clovis Hugues",
+   "site": null,
+   "affiliation": null,
+   "enseigne": "Sport 2000",
+   "categorie": "generaliste",
+   "source": "PagesJaunes, rubrique running (novembre 2026)",
+   "notes": null
+  },
+  {
+   "cle": "magasin-ekosport-le-pontet-le-pontet",
+   "type": "magasin",
+   "nom": "Ekosport Le Pontet",
+   "sigle": null,
+   "commune": "Le Pontet",
+   "code_postal": "84130",
+   "departement": "84",
+   "adresse": "Rue Verdette",
+   "site": null,
+   "affiliation": null,
+   "enseigne": "Ekosport",
+   "categorie": "generaliste",
+   "source": "PagesJaunes, rubrique running (novembre 2026)",
+   "notes": null
+  },
+  {
+   "cle": "magasin-ekosport-gap-gap",
+   "type": "magasin",
+   "nom": "Ekosport Gap",
+   "sigle": null,
+   "commune": "Gap",
+   "code_postal": "05000",
+   "departement": "05",
+   "adresse": "45 avenue Bernard Givaudan",
+   "site": null,
+   "affiliation": null,
+   "enseigne": "Ekosport",
+   "categorie": "generaliste",
+   "source": "PagesJaunes, rubrique running (novembre 2026)",
+   "notes": null
+  },
+  {
+   "cle": "magasin-go-sport-gap-gap",
+   "type": "magasin",
+   "nom": "Go Sport Gap",
+   "sigle": null,
+   "commune": "Gap",
+   "code_postal": "05000",
+   "departement": "05",
+   "adresse": "24 route des Fauvins",
+   "site": null,
+   "affiliation": null,
+   "enseigne": "Go Sport",
+   "categorie": "generaliste",
+   "source": "PagesJaunes, rubrique running (novembre 2026)",
+   "notes": null
+  },
+  {
+   "cle": "magasin-ora-sport-alpilles-saint-remy-de-provence",
+   "type": "magasin",
+   "nom": "ORA Sport Alpilles",
+   "sigle": null,
+   "commune": "Saint-Rémy-de-Provence",
+   "code_postal": "13210",
+   "departement": "13",
+   "adresse": "Place du Général de Gaulle",
+   "site": null,
+   "affiliation": null,
+   "enseigne": "Indépendant",
+   "categorie": "generaliste",
+   "source": "PagesJaunes, rubrique running (novembre 2026)",
+   "notes": null
+  }
+ ],
+ "marques": [
+  {
+   "cle": "marque-salomon",
+   "nom": "Salomon",
+   "pays": "France",
+   "categories": [
+    "chaussures",
+    "textile",
+    "sacs",
+    "batons"
+   ],
+   "groupe": "Amer Sports",
+   "source": "Liste établie pour Trail Hub Center (novembre 2026)"
+  },
+  {
+   "cle": "marque-hoka",
+   "nom": "Hoka",
+   "pays": "France / États-Unis",
+   "categories": [
+    "chaussures",
+    "textile"
+   ],
+   "groupe": "Deckers",
+   "source": "Liste établie pour Trail Hub Center (novembre 2026)"
+  },
+  {
+   "cle": "marque-asics",
+   "nom": "Asics",
+   "pays": "Japon",
+   "categories": [
+    "chaussures",
+    "textile"
+   ],
+   "groupe": null,
+   "source": "Liste établie pour Trail Hub Center (novembre 2026)"
+  },
+  {
+   "cle": "marque-brooks",
+   "nom": "Brooks",
+   "pays": "États-Unis",
+   "categories": [
+    "chaussures",
+    "textile"
+   ],
+   "groupe": null,
+   "source": "Liste établie pour Trail Hub Center (novembre 2026)"
+  },
+  {
+   "cle": "marque-saucony",
+   "nom": "Saucony",
+   "pays": "États-Unis",
+   "categories": [
+    "chaussures"
+   ],
+   "groupe": null,
+   "source": "Liste établie pour Trail Hub Center (novembre 2026)"
+  },
+  {
+   "cle": "marque-new-balance",
+   "nom": "New Balance",
+   "pays": "États-Unis",
+   "categories": [
+    "chaussures",
+    "textile"
+   ],
+   "groupe": null,
+   "source": "Liste établie pour Trail Hub Center (novembre 2026)"
+  },
+  {
+   "cle": "marque-nike",
+   "nom": "Nike",
+   "pays": "États-Unis",
+   "categories": [
+    "chaussures",
+    "textile"
+   ],
+   "groupe": null,
+   "source": "Liste établie pour Trail Hub Center (novembre 2026)"
+  },
+  {
+   "cle": "marque-adidas",
+   "nom": "Adidas",
+   "pays": "Allemagne",
+   "categories": [
+    "chaussures",
+    "textile"
+   ],
+   "groupe": null,
+   "source": "Liste établie pour Trail Hub Center (novembre 2026)"
+  },
+  {
+   "cle": "marque-puma",
+   "nom": "Puma",
+   "pays": "Allemagne",
+   "categories": [
+    "chaussures",
+    "textile"
+   ],
+   "groupe": null,
+   "source": "Liste établie pour Trail Hub Center (novembre 2026)"
+  },
+  {
+   "cle": "marque-mizuno",
+   "nom": "Mizuno",
+   "pays": "Japon",
+   "categories": [
+    "chaussures",
+    "textile"
+   ],
+   "groupe": null,
+   "source": "Liste établie pour Trail Hub Center (novembre 2026)"
+  },
+  {
+   "cle": "marque-on",
+   "nom": "On",
+   "pays": "Suisse",
+   "categories": [
+    "chaussures",
+    "textile"
+   ],
+   "groupe": null,
+   "source": "Liste établie pour Trail Hub Center (novembre 2026)"
+  },
+  {
+   "cle": "marque-altra",
+   "nom": "Altra",
+   "pays": "États-Unis",
+   "categories": [
+    "chaussures"
+   ],
+   "groupe": null,
+   "source": "Liste établie pour Trail Hub Center (novembre 2026)"
+  },
+  {
+   "cle": "marque-merrell",
+   "nom": "Merrell",
+   "pays": "États-Unis",
+   "categories": [
+    "chaussures"
+   ],
+   "groupe": null,
+   "source": "Liste établie pour Trail Hub Center (novembre 2026)"
+  },
+  {
+   "cle": "marque-la-sportiva",
+   "nom": "La Sportiva",
+   "pays": "Italie",
+   "categories": [
+    "chaussures",
+    "textile"
+   ],
+   "groupe": null,
+   "source": "Liste établie pour Trail Hub Center (novembre 2026)"
+  },
+  {
+   "cle": "marque-scarpa",
+   "nom": "Scarpa",
+   "pays": "Italie",
+   "categories": [
+    "chaussures"
+   ],
+   "groupe": null,
+   "source": "Liste établie pour Trail Hub Center (novembre 2026)"
+  },
+  {
+   "cle": "marque-dynafit",
+   "nom": "Dynafit",
+   "pays": "Allemagne / Italie",
+   "categories": [
+    "chaussures",
+    "textile",
+    "sacs",
+    "batons"
+   ],
+   "groupe": "Oberalp",
+   "source": "Liste établie pour Trail Hub Center (novembre 2026)"
+  },
+  {
+   "cle": "marque-inov-8",
+   "nom": "Inov-8",
+   "pays": "Royaume-Uni",
+   "categories": [
+    "chaussures",
+    "textile",
+    "sacs"
+   ],
+   "groupe": null,
+   "source": "Liste établie pour Trail Hub Center (novembre 2026)"
+  },
+  {
+   "cle": "marque-topo-athletic",
+   "nom": "Topo Athletic",
+   "pays": "États-Unis",
+   "categories": [
+    "chaussures"
+   ],
+   "groupe": null,
+   "source": "Liste établie pour Trail Hub Center (novembre 2026)"
+  },
+  {
+   "cle": "marque-craft",
+   "nom": "Craft",
+   "pays": "Suède",
+   "categories": [
+    "chaussures",
+    "textile"
+   ],
+   "groupe": null,
+   "source": "Liste établie pour Trail Hub Center (novembre 2026)"
+  },
+  {
+   "cle": "marque-kiprun",
+   "nom": "Kiprun",
+   "pays": "France",
+   "categories": [
+    "chaussures",
+    "textile",
+    "sacs",
+    "batons",
+    "accessoires"
+   ],
+   "groupe": "Decathlon",
+   "source": "Liste établie pour Trail Hub Center (novembre 2026)"
+  },
+  {
+   "cle": "marque-norda",
+   "nom": "Norda",
+   "pays": "Canada",
+   "categories": [
+    "chaussures"
+   ],
+   "groupe": null,
+   "source": "Liste établie pour Trail Hub Center (novembre 2026)"
+  },
+  {
+   "cle": "marque-vj-shoes",
+   "nom": "VJ Shoes",
+   "pays": "Finlande",
+   "categories": [
+    "chaussures"
+   ],
+   "groupe": null,
+   "source": "Liste établie pour Trail Hub Center (novembre 2026)"
+  },
+  {
+   "cle": "marque-icebug",
+   "nom": "Icebug",
+   "pays": "Suède",
+   "categories": [
+    "chaussures"
+   ],
+   "groupe": null,
+   "source": "Liste établie pour Trail Hub Center (novembre 2026)"
+  },
+  {
+   "cle": "marque-arc-teryx",
+   "nom": "Arc'teryx",
+   "pays": "Canada",
+   "categories": [
+    "chaussures",
+    "textile"
+   ],
+   "groupe": "Amer Sports",
+   "source": "Liste établie pour Trail Hub Center (novembre 2026)"
+  },
+  {
+   "cle": "marque-the-north-face",
+   "nom": "The North Face",
+   "pays": "États-Unis",
+   "categories": [
+    "chaussures",
+    "textile",
+    "sacs"
+   ],
+   "groupe": null,
+   "source": "Liste établie pour Trail Hub Center (novembre 2026)"
+  },
+  {
+   "cle": "marque-columbia",
+   "nom": "Columbia",
+   "pays": "États-Unis",
+   "categories": [
+    "chaussures",
+    "textile"
+   ],
+   "groupe": null,
+   "source": "Liste établie pour Trail Hub Center (novembre 2026)"
+  },
+  {
+   "cle": "marque-under-armour",
+   "nom": "Under Armour",
+   "pays": "États-Unis",
+   "categories": [
+    "chaussures",
+    "textile"
+   ],
+   "groupe": null,
+   "source": "Liste établie pour Trail Hub Center (novembre 2026)"
+  },
+  {
+   "cle": "marque-diadora",
+   "nom": "Diadora",
+   "pays": "Italie",
+   "categories": [
+    "chaussures"
+   ],
+   "groupe": null,
+   "source": "Liste établie pour Trail Hub Center (novembre 2026)"
+  },
+  {
+   "cle": "marque-joma",
+   "nom": "Joma",
+   "pays": "Espagne",
+   "categories": [
+    "chaussures",
+    "textile"
+   ],
+   "groupe": null,
+   "source": "Liste établie pour Trail Hub Center (novembre 2026)"
+  },
+  {
+   "cle": "marque-tecnica",
+   "nom": "Tecnica",
+   "pays": "Italie",
+   "categories": [
+    "chaussures"
+   ],
+   "groupe": null,
+   "source": "Liste établie pour Trail Hub Center (novembre 2026)"
+  },
+  {
+   "cle": "marque-scott",
+   "nom": "Scott",
+   "pays": "Suisse",
+   "categories": [
+    "chaussures",
+    "textile",
+    "sacs"
+   ],
+   "groupe": null,
+   "source": "Liste établie pour Trail Hub Center (novembre 2026)"
+  },
+  {
+   "cle": "marque-kailas",
+   "nom": "Kailas",
+   "pays": "Chine",
+   "categories": [
+    "chaussures",
+    "textile",
+    "sacs"
+   ],
+   "groupe": null,
+   "source": "Liste établie pour Trail Hub Center (novembre 2026)"
+  },
+  {
+   "cle": "marque-mammut",
+   "nom": "Mammut",
+   "pays": "Suisse",
+   "categories": [
+    "chaussures",
+    "textile",
+    "sacs"
+   ],
+   "groupe": null,
+   "source": "Liste établie pour Trail Hub Center (novembre 2026)"
+  },
+  {
+   "cle": "marque-raidlight",
+   "nom": "Raidlight",
+   "pays": "France",
+   "categories": [
+    "chaussures",
+    "textile",
+    "sacs",
+    "batons",
+    "accessoires"
+   ],
+   "groupe": null,
+   "source": "Liste établie pour Trail Hub Center (novembre 2026)"
+  },
+  {
+   "cle": "marque-salming",
+   "nom": "Salming",
+   "pays": "Suède",
+   "categories": [
+    "chaussures"
+   ],
+   "groupe": null,
+   "source": "Liste établie pour Trail Hub Center (novembre 2026)"
+  },
+  {
+   "cle": "marque-compressport",
+   "nom": "Compressport",
+   "pays": "Suisse",
+   "categories": [
+    "textile",
+    "accessoires"
+   ],
+   "groupe": null,
+   "source": "Liste établie pour Trail Hub Center (novembre 2026)"
+  },
+  {
+   "cle": "marque-bv-sport",
+   "nom": "BV Sport",
+   "pays": "France",
+   "categories": [
+    "textile",
+    "accessoires"
+   ],
+   "groupe": null,
+   "source": "Liste établie pour Trail Hub Center (novembre 2026)"
+  },
+  {
+   "cle": "marque-odlo",
+   "nom": "Odlo",
+   "pays": "Suisse (origine Norvège)",
+   "categories": [
+    "textile"
+   ],
+   "groupe": null,
+   "source": "Liste établie pour Trail Hub Center (novembre 2026)"
+  },
+  {
+   "cle": "marque-icebreaker",
+   "nom": "Icebreaker",
+   "pays": "Nouvelle-Zélande",
+   "categories": [
+    "textile"
+   ],
+   "groupe": null,
+   "source": "Liste établie pour Trail Hub Center (novembre 2026)"
+  },
+  {
+   "cle": "marque-patagonia",
+   "nom": "Patagonia",
+   "pays": "États-Unis",
+   "categories": [
+    "textile"
+   ],
+   "groupe": null,
+   "source": "Liste établie pour Trail Hub Center (novembre 2026)"
+  },
+  {
+   "cle": "marque-ciele",
+   "nom": "Ciele",
+   "pays": "Canada",
+   "categories": [
+    "textile",
+    "accessoires"
+   ],
+   "groupe": null,
+   "source": "Liste établie pour Trail Hub Center (novembre 2026)"
+  },
+  {
+   "cle": "marque-buff",
+   "nom": "Buff",
+   "pays": "Espagne",
+   "categories": [
+    "textile",
+    "accessoires"
+   ],
+   "groupe": null,
+   "source": "Liste établie pour Trail Hub Center (novembre 2026)"
+  },
+  {
+   "cle": "marque-gore-wear",
+   "nom": "Gore Wear",
+   "pays": "États-Unis / Allemagne",
+   "categories": [
+    "textile"
+   ],
+   "groupe": null,
+   "source": "Liste établie pour Trail Hub Center (novembre 2026)"
+  },
+  {
+   "cle": "marque-montura",
+   "nom": "Montura",
+   "pays": "Italie",
+   "categories": [
+    "textile",
+    "chaussures"
+   ],
+   "groupe": null,
+   "source": "Liste établie pour Trail Hub Center (novembre 2026)"
+  },
+  {
+   "cle": "marque-millet",
+   "nom": "Millet",
+   "pays": "France",
+   "categories": [
+    "textile",
+    "sacs"
+   ],
+   "groupe": null,
+   "source": "Liste établie pour Trail Hub Center (novembre 2026)"
+  },
+  {
+   "cle": "marque-lafuma",
+   "nom": "Lafuma",
+   "pays": "France",
+   "categories": [
+    "textile",
+    "sacs"
+   ],
+   "groupe": null,
+   "source": "Liste établie pour Trail Hub Center (novembre 2026)"
+  },
+  {
+   "cle": "marque-ronhill",
+   "nom": "Ronhill",
+   "pays": "Royaume-Uni",
+   "categories": [
+    "textile"
+   ],
+   "groupe": null,
+   "source": "Liste établie pour Trail Hub Center (novembre 2026)"
+  },
+  {
+   "cle": "marque-uglow",
+   "nom": "Uglow",
+   "pays": "France",
+   "categories": [
+    "textile"
+   ],
+   "groupe": null,
+   "source": "Liste établie pour Trail Hub Center (novembre 2026)"
+  },
+  {
+   "cle": "marque-circle-sportswear",
+   "nom": "Circle Sportswear",
+   "pays": "France",
+   "categories": [
+    "textile"
+   ],
+   "groupe": null,
+   "source": "Liste établie pour Trail Hub Center (novembre 2026)"
+  },
+  {
+   "cle": "marque-saysky",
+   "nom": "Saysky",
+   "pays": "Danemark",
+   "categories": [
+    "textile"
+   ],
+   "groupe": null,
+   "source": "Liste établie pour Trail Hub Center (novembre 2026)"
+  },
+  {
+   "cle": "marque-janji",
+   "nom": "Janji",
+   "pays": "États-Unis",
+   "categories": [
+    "textile"
+   ],
+   "groupe": null,
+   "source": "Liste établie pour Trail Hub Center (novembre 2026)"
+  },
+  {
+   "cle": "marque-rab",
+   "nom": "Rab",
+   "pays": "Royaume-Uni",
+   "categories": [
+    "textile"
+   ],
+   "groupe": null,
+   "source": "Liste établie pour Trail Hub Center (novembre 2026)"
+  },
+  {
+   "cle": "marque-lurbel",
+   "nom": "Lurbel",
+   "pays": "Espagne",
+   "categories": [
+    "textile",
+    "accessoires"
+   ],
+   "groupe": null,
+   "source": "Liste établie pour Trail Hub Center (novembre 2026)"
+  },
+  {
+   "cle": "marque-sidas",
+   "nom": "Sidas",
+   "pays": "France",
+   "categories": [
+    "accessoires"
+   ],
+   "groupe": null,
+   "source": "Liste établie pour Trail Hub Center (novembre 2026)"
+  },
+  {
+   "cle": "marque-injinji",
+   "nom": "Injinji",
+   "pays": "États-Unis",
+   "categories": [
+    "accessoires"
+   ],
+   "groupe": null,
+   "source": "Liste établie pour Trail Hub Center (novembre 2026)"
+  },
+  {
+   "cle": "marque-x-socks",
+   "nom": "X-Socks",
+   "pays": "Suisse / Italie",
+   "categories": [
+    "accessoires"
+   ],
+   "groupe": null,
+   "source": "Liste établie pour Trail Hub Center (novembre 2026)"
+  },
+  {
+   "cle": "marque-monnet",
+   "nom": "Monnet",
+   "pays": "France",
+   "categories": [
+    "accessoires"
+   ],
+   "groupe": null,
+   "source": "Liste établie pour Trail Hub Center (novembre 2026)"
+  },
+  {
+   "cle": "marque-ultraspire",
+   "nom": "UltrAspire",
+   "pays": "États-Unis",
+   "categories": [
+    "sacs"
+   ],
+   "groupe": null,
+   "source": "Liste établie pour Trail Hub Center (novembre 2026)"
+  },
+  {
+   "cle": "marque-ultimate-direction",
+   "nom": "Ultimate Direction",
+   "pays": "États-Unis",
+   "categories": [
+    "sacs"
+   ],
+   "groupe": null,
+   "source": "Liste établie pour Trail Hub Center (novembre 2026)"
+  },
+  {
+   "cle": "marque-nathan",
+   "nom": "Nathan",
+   "pays": "États-Unis",
+   "categories": [
+    "sacs",
+    "accessoires"
+   ],
+   "groupe": null,
+   "source": "Liste établie pour Trail Hub Center (novembre 2026)"
+  },
+  {
+   "cle": "marque-camelbak",
+   "nom": "CamelBak",
+   "pays": "États-Unis",
+   "categories": [
+    "sacs"
+   ],
+   "groupe": null,
+   "source": "Liste établie pour Trail Hub Center (novembre 2026)"
+  },
+  {
+   "cle": "marque-osprey",
+   "nom": "Osprey",
+   "pays": "États-Unis",
+   "categories": [
+    "sacs"
+   ],
+   "groupe": null,
+   "source": "Liste établie pour Trail Hub Center (novembre 2026)"
+  },
+  {
+   "cle": "marque-instinct",
+   "nom": "Instinct",
+   "pays": "France",
+   "categories": [
+    "sacs"
+   ],
+   "groupe": null,
+   "source": "Liste établie pour Trail Hub Center (novembre 2026)"
+  },
+  {
+   "cle": "marque-oxsitis",
+   "nom": "Oxsitis",
+   "pays": "France",
+   "categories": [
+    "sacs"
+   ],
+   "groupe": null,
+   "source": "Liste établie pour Trail Hub Center (novembre 2026)"
+  },
+  {
+   "cle": "marque-black-diamond",
+   "nom": "Black Diamond",
+   "pays": "États-Unis",
+   "categories": [
+    "batons",
+    "frontales",
+    "sacs"
+   ],
+   "groupe": null,
+   "source": "Liste établie pour Trail Hub Center (novembre 2026)"
+  },
+  {
+   "cle": "marque-leki",
+   "nom": "Leki",
+   "pays": "Allemagne",
+   "categories": [
+    "batons"
+   ],
+   "groupe": null,
+   "source": "Liste établie pour Trail Hub Center (novembre 2026)"
+  },
+  {
+   "cle": "marque-komperdell",
+   "nom": "Komperdell",
+   "pays": "Autriche",
+   "categories": [
+    "batons"
+   ],
+   "groupe": null,
+   "source": "Liste établie pour Trail Hub Center (novembre 2026)"
+  },
+  {
+   "cle": "marque-gabel",
+   "nom": "Gabel",
+   "pays": "Italie",
+   "categories": [
+    "batons"
+   ],
+   "groupe": null,
+   "source": "Liste établie pour Trail Hub Center (novembre 2026)"
+  },
+  {
+   "cle": "marque-masters",
+   "nom": "Masters",
+   "pays": "Italie",
+   "categories": [
+    "batons"
+   ],
+   "groupe": null,
+   "source": "Liste établie pour Trail Hub Center (novembre 2026)"
+  },
+  {
+   "cle": "marque-c-a-m-p",
+   "nom": "C.A.M.P.",
+   "pays": "Italie",
+   "categories": [
+    "batons",
+    "sacs"
+   ],
+   "groupe": null,
+   "source": "Liste établie pour Trail Hub Center (novembre 2026)"
+  },
+  {
+   "cle": "marque-petzl",
+   "nom": "Petzl",
+   "pays": "France",
+   "categories": [
+    "frontales"
+   ],
+   "groupe": null,
+   "source": "Liste établie pour Trail Hub Center (novembre 2026)"
+  },
+  {
+   "cle": "marque-silva",
+   "nom": "Silva",
+   "pays": "Suède",
+   "categories": [
+    "frontales"
+   ],
+   "groupe": null,
+   "source": "Liste établie pour Trail Hub Center (novembre 2026)"
+  },
+  {
+   "cle": "marque-ledlenser",
+   "nom": "Ledlenser",
+   "pays": "Allemagne",
+   "categories": [
+    "frontales"
+   ],
+   "groupe": null,
+   "source": "Liste établie pour Trail Hub Center (novembre 2026)"
+  },
+  {
+   "cle": "marque-nitecore",
+   "nom": "Nitecore",
+   "pays": "Chine",
+   "categories": [
+    "frontales"
+   ],
+   "groupe": null,
+   "source": "Liste établie pour Trail Hub Center (novembre 2026)"
+  },
+  {
+   "cle": "marque-fenix",
+   "nom": "Fenix",
+   "pays": "Chine",
+   "categories": [
+    "frontales"
+   ],
+   "groupe": null,
+   "source": "Liste établie pour Trail Hub Center (novembre 2026)"
+  },
+  {
+   "cle": "marque-lupine",
+   "nom": "Lupine",
+   "pays": "Allemagne",
+   "categories": [
+    "frontales"
+   ],
+   "groupe": null,
+   "source": "Liste établie pour Trail Hub Center (novembre 2026)"
+  },
+  {
+   "cle": "marque-garmin",
+   "nom": "Garmin",
+   "pays": "États-Unis",
+   "categories": [
+    "montres"
+   ],
+   "groupe": null,
+   "source": "Liste établie pour Trail Hub Center (novembre 2026)"
+  },
+  {
+   "cle": "marque-coros",
+   "nom": "Coros",
+   "pays": "Chine",
+   "categories": [
+    "montres"
+   ],
+   "groupe": null,
+   "source": "Liste établie pour Trail Hub Center (novembre 2026)"
+  },
+  {
+   "cle": "marque-suunto",
+   "nom": "Suunto",
+   "pays": "Finlande",
+   "categories": [
+    "montres"
+   ],
+   "groupe": null,
+   "source": "Liste établie pour Trail Hub Center (novembre 2026)"
+  },
+  {
+   "cle": "marque-polar",
+   "nom": "Polar",
+   "pays": "Finlande",
+   "categories": [
+    "montres"
+   ],
+   "groupe": null,
+   "source": "Liste établie pour Trail Hub Center (novembre 2026)"
+  },
+  {
+   "cle": "marque-apple",
+   "nom": "Apple",
+   "pays": "États-Unis",
+   "categories": [
+    "montres"
+   ],
+   "groupe": null,
+   "source": "Liste établie pour Trail Hub Center (novembre 2026)"
+  },
+  {
+   "cle": "marque-amazfit",
+   "nom": "Amazfit",
+   "pays": "Chine",
+   "categories": [
+    "montres"
+   ],
+   "groupe": null,
+   "source": "Liste établie pour Trail Hub Center (novembre 2026)"
+  },
+  {
+   "cle": "marque-overstims",
+   "nom": "Overstims",
+   "pays": "France",
+   "categories": [
+    "nutrition"
+   ],
+   "groupe": null,
+   "source": "Liste établie pour Trail Hub Center (novembre 2026)"
+  },
+  {
+   "cle": "marque-baouw",
+   "nom": "Baouw",
+   "pays": "France",
+   "categories": [
+    "nutrition"
+   ],
+   "groupe": null,
+   "source": "Liste établie pour Trail Hub Center (novembre 2026)"
+  },
+  {
+   "cle": "marque-meltonic",
+   "nom": "Meltonic",
+   "pays": "France",
+   "categories": [
+    "nutrition"
+   ],
+   "groupe": null,
+   "source": "Liste établie pour Trail Hub Center (novembre 2026)"
+  },
+  {
+   "cle": "marque-isostar",
+   "nom": "Isostar",
+   "pays": "Suisse",
+   "categories": [
+    "nutrition"
+   ],
+   "groupe": null,
+   "source": "Liste établie pour Trail Hub Center (novembre 2026)"
+  },
+  {
+   "cle": "marque-maurten",
+   "nom": "Maurten",
+   "pays": "Suède",
+   "categories": [
+    "nutrition"
+   ],
+   "groupe": null,
+   "source": "Liste établie pour Trail Hub Center (novembre 2026)"
+  },
+  {
+   "cle": "marque-gu",
+   "nom": "GU",
+   "pays": "États-Unis",
+   "categories": [
+    "nutrition"
+   ],
+   "groupe": null,
+   "source": "Liste établie pour Trail Hub Center (novembre 2026)"
+  },
+  {
+   "cle": "marque-sis-science-in-sport",
+   "nom": "SiS (Science in Sport)",
+   "pays": "Royaume-Uni",
+   "categories": [
+    "nutrition"
+   ],
+   "groupe": null,
+   "source": "Liste établie pour Trail Hub Center (novembre 2026)"
+  },
+  {
+   "cle": "marque-powerbar",
+   "nom": "PowerBar",
+   "pays": "Allemagne",
+   "categories": [
+    "nutrition"
+   ],
+   "groupe": null,
+   "source": "Liste établie pour Trail Hub Center (novembre 2026)"
+  },
+  {
+   "cle": "marque-naak",
+   "nom": "Näak",
+   "pays": "Canada",
+   "categories": [
+    "nutrition"
+   ],
+   "groupe": null,
+   "source": "Liste établie pour Trail Hub Center (novembre 2026)"
+  },
+  {
+   "cle": "marque-ta-energy",
+   "nom": "TA Energy",
+   "pays": "France",
+   "categories": [
+    "nutrition"
+   ],
+   "groupe": null,
+   "source": "Liste établie pour Trail Hub Center (novembre 2026)"
+  },
+  {
+   "cle": "marque-aptonia",
+   "nom": "Aptonia",
+   "pays": "France",
+   "categories": [
+    "nutrition"
+   ],
+   "groupe": "Decathlon",
+   "source": "Liste établie pour Trail Hub Center (novembre 2026)"
+  },
+  {
+   "cle": "marque-punch-power",
+   "nom": "Punch Power",
+   "pays": "France",
+   "categories": [
+    "nutrition"
+   ],
+   "groupe": null,
+   "source": "Liste établie pour Trail Hub Center (novembre 2026)"
+  },
+  {
+   "cle": "marque-squeezy",
+   "nom": "Squeezy",
+   "pays": "Allemagne",
+   "categories": [
+    "nutrition"
+   ],
+   "groupe": null,
+   "source": "Liste établie pour Trail Hub Center (novembre 2026)"
+  },
+  {
+   "cle": "marque-high5",
+   "nom": "High5",
+   "pays": "Royaume-Uni",
+   "categories": [
+    "nutrition"
+   ],
+   "groupe": null,
+   "source": "Liste établie pour Trail Hub Center (novembre 2026)"
+  },
+  {
+   "cle": "marque-tailwind",
+   "nom": "Tailwind",
+   "pays": "États-Unis",
+   "categories": [
+    "nutrition"
+   ],
+   "groupe": null,
+   "source": "Liste établie pour Trail Hub Center (novembre 2026)"
+  },
+  {
+   "cle": "marque-precision-fuel-hydration",
+   "nom": "Precision Fuel & Hydration",
+   "pays": "Royaume-Uni",
+   "categories": [
+    "nutrition"
+   ],
+   "groupe": null,
+   "source": "Liste établie pour Trail Hub Center (novembre 2026)"
+  },
+  {
+   "cle": "marque-nutripure",
+   "nom": "Nutripure",
+   "pays": "France",
+   "categories": [
+    "nutrition"
+   ],
+   "groupe": null,
+   "source": "Liste établie pour Trail Hub Center (novembre 2026)"
+  },
+  {
+   "cle": "marque-stc-nutrition",
+   "nom": "STC Nutrition",
+   "pays": "France",
+   "categories": [
+    "nutrition"
+   ],
+   "groupe": null,
+   "source": "Liste établie pour Trail Hub Center (novembre 2026)"
+  },
+  {
+   "cle": "marque-enervit",
+   "nom": "Enervit",
+   "pays": "Italie",
+   "categories": [
+    "nutrition"
+   ],
+   "groupe": null,
+   "source": "Liste établie pour Trail Hub Center (novembre 2026)"
+  },
+  {
+   "cle": "marque-hammer-nutrition",
+   "nom": "Hammer Nutrition",
+   "pays": "États-Unis",
+   "categories": [
+    "nutrition"
+   ],
+   "groupe": null,
+   "source": "Liste établie pour Trail Hub Center (novembre 2026)"
+  },
+  {
+   "cle": "marque-clif",
+   "nom": "Clif",
+   "pays": "États-Unis",
+   "categories": [
+    "nutrition"
+   ],
+   "groupe": null,
+   "source": "Liste établie pour Trail Hub Center (novembre 2026)"
+  },
+  {
+   "cle": "marque-mulebar",
+   "nom": "Mulebar",
+   "pays": "Royaume-Uni",
+   "categories": [
+    "nutrition"
+   ],
+   "groupe": null,
+   "source": "Liste établie pour Trail Hub Center (novembre 2026)"
+  },
+  {
+   "cle": "marque-apurna",
+   "nom": "Apurna",
+   "pays": "France",
+   "categories": [
+    "nutrition"
+   ],
+   "groupe": null,
+   "source": "Liste établie pour Trail Hub Center (novembre 2026)"
+  },
+  {
+   "cle": "marque-ergysport",
+   "nom": "Ergysport",
+   "pays": "France",
+   "categories": [
+    "nutrition"
+   ],
+   "groupe": null,
+   "source": "Liste établie pour Trail Hub Center (novembre 2026)"
+  },
+  {
+   "cle": "marque-fenioux",
+   "nom": "Fenioux",
+   "pays": "France",
+   "categories": [
+    "nutrition"
+   ],
+   "groupe": null,
+   "source": "Liste établie pour Trail Hub Center (novembre 2026)"
+  },
+  {
+   "cle": "marque-julbo",
+   "nom": "Julbo",
+   "pays": "France",
+   "categories": [
+    "accessoires"
+   ],
+   "groupe": null,
+   "source": "Liste établie pour Trail Hub Center (novembre 2026)"
+  },
+  {
+   "cle": "marque-oakley",
+   "nom": "Oakley",
+   "pays": "États-Unis",
+   "categories": [
+    "accessoires"
+   ],
+   "groupe": null,
+   "source": "Liste établie pour Trail Hub Center (novembre 2026)"
+  },
+  {
+   "cle": "marque-bliz",
+   "nom": "Bliz",
+   "pays": "Suède",
+   "categories": [
+    "accessoires"
+   ],
+   "groupe": null,
+   "source": "Liste établie pour Trail Hub Center (novembre 2026)"
+  },
+  {
+   "cle": "marque-cebe",
+   "nom": "Cébé",
+   "pays": "France",
+   "categories": [
+    "accessoires"
+   ],
+   "groupe": null,
+   "source": "Liste établie pour Trail Hub Center (novembre 2026)"
+  }
+ ],
+ "avertissement_marques": "Marques de chaussures, textile, matériel et nutrition de trail et de running. Pays : celui du siège ou de l'origine de la marque. Ajoute celles qui manquent."
+}

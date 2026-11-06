@@ -12,9 +12,9 @@ from noyau.donnees import base
 from noyau.materiel.equipements import EQUIPEMENTS, LIBELLE_NIVEAU, reconnaitre
 
 COLONNES_EQUIPEMENT = ("id", "nom", "type", "statut", "equipement", "poids_g", "quantite", "caracteristiques",
-                       "controle_le", "notes", "date_achat")
+                       "controle_le", "notes", "date_achat", "marque", "magasin")
 CHAMPS_MODIFIABLES = ("nom", "type", "statut", "equipement", "poids_g", "quantite", "caracteristiques",
-                      "controle_le", "notes")
+                      "controle_le", "notes", "marque", "magasin")
 COLONNES_LISTE = ("id", "course_id", "ordre", "libelle", "equipement", "niveau", "quantite", "valeur_min",
                   "precision", "dans_le_sac")
 # Type de la table materiel proposé pour chaque famille d'équipement (écran Matériel)

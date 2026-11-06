@@ -506,6 +506,46 @@ def _m008_agenda_club(cur):
         _ajouter_uuid(cur, t)
 
 
+def _m009_annuaire(cur):
+    """Annuaire trail : clubs, écoles et sections trail, organisateurs, magasins et marques. Les fiches de
+    référence (livrées avec le logiciel) et les tiennes sont dans la même table ; tes notes, favoris et
+    corrections ne sont jamais écrasés par une mise à jour de la référence. Le matériel gagne sa marque et
+    son magasin."""
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS annuaire (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            cle_reference TEXT UNIQUE,
+            type TEXT NOT NULL,
+            nom TEXT NOT NULL,
+            sigle TEXT,
+            enseigne TEXT,
+            categorie TEXT,
+            commune TEXT,
+            code_postal TEXT,
+            departement TEXT,
+            adresse TEXT,
+            site TEXT,
+            affiliation TEXT,
+            pays TEXT,
+            categories TEXT,
+            groupe TEXT,
+            source TEXT,
+            notes TEXT,
+            mes_notes TEXT,
+            favori INTEGER DEFAULT 0,
+            masque INTEGER DEFAULT 0,
+            modifie INTEGER DEFAULT 0,
+            verifie_le TEXT,
+            date_creation TEXT DEFAULT CURRENT_TIMESTAMP
+        )""")
+    cur.execute("CREATE INDEX IF NOT EXISTS idx_annuaire_type ON annuaire(type, departement)")
+    deja = _colonnes(cur, "materiel")
+    for col in ("marque", "magasin"):
+        if col not in deja:
+            cur.execute(f"ALTER TABLE materiel ADD COLUMN {col} TEXT")
+    _ajouter_uuid(cur, "annuaire")
+
+
 # (numéro, description lisible, fonction) — dans l'ordre, sans trou
 MIGRATIONS = [
     (1, "Identifiant universel (UUID) pour chaque donnée", _m001_identifiants_universels),
@@ -516,6 +556,7 @@ MIGRATIONS = [
     (6, "Fractionné : séances perso et répétitions faites pendant les sorties", _m006_fractionne),
     (7, "Espace Club : club, groupes, adhésions et licences par saison, tarifs", _m007_club),
     (8, "Agenda du club : séries hebdomadaires, séances, appel des présences", _m008_agenda_club),
+    (9, "Annuaire trail : clubs, écoles, magasins et marques ; marque et magasin du matériel", _m009_annuaire),
 ]
 VERSION_LOGICIEL = MIGRATIONS[-1][0]
 

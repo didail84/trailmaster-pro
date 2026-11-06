@@ -72,6 +72,23 @@ class Champ:
     type: str = "texte"  # texte | texte_long | entier | decimal | date | choix
     choix: list = field(default_factory=list)
     obligatoire: bool = False
+    suggestions: object = None   # texte : fonction qui renvoie les propositions (ex. marques de l'annuaire)
+
+
+def ajouter_suggestions(champ_texte, source):
+    """Propose des valeurs pendant la saisie (insensible aux majuscules, sur une partie du mot). `source` :
+    une liste ou une fonction qui renvoie la liste. Une erreur de la source n'empêche jamais la saisie."""
+    from PySide6.QtCore import Qt as _Qt
+    from PySide6.QtWidgets import QCompleter
+    try:
+        valeurs = list(source() if callable(source) else source)
+    except Exception:
+        valeurs = []
+    c = QCompleter(valeurs, champ_texte)
+    c.setCaseSensitivity(_Qt.CaseSensitivity.CaseInsensitive)
+    c.setFilterMode(_Qt.MatchFlag.MatchContains)
+    champ_texte.setCompleter(c)
+    return c
 
 
 class EcranListe(QMainWindow):
@@ -293,7 +310,10 @@ class EcranListe(QMainWindow):
             w = QTextEdit()
             w.setFixedHeight(60)
             return w
-        return QLineEdit()
+        w = QLineEdit()
+        if champ.suggestions:
+            ajouter_suggestions(w, champ.suggestions)
+        return w
 
     def _valeur_widget(self, champ):
         w = self.widgets_champs[champ.nom]

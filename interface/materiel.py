@@ -13,7 +13,7 @@ TYPES_MATERIEL_VERS_ACTIVITES = {
 
 
 def _calculer_km_reel(id_ligne, valeurs):
-    nom, type_materiel, date_achat, km_actuels, km_max, statut, notes = valeurs
+    nom, type_materiel, _marque, date_achat = valeurs[:4]
 
     if not date_achat:
         return "— (pas de date d'achat)"
@@ -29,6 +29,16 @@ def _calculer_km_reel(id_ligne, valeurs):
     return f"{round(total or 0, 1)} km"
 
 
+def _marques():
+    from noyau.donnees import annuaire as dan
+    return dan.noms_de_marques()
+
+
+def _magasins():
+    from noyau.donnees import annuaire as dan
+    return dan.noms_de_magasins()
+
+
 class Materiel(EcranListe):
 
     def __init__(self, athlete_id_initial=None):
@@ -38,7 +48,9 @@ class Materiel(EcranListe):
                 "type", "Type", "choix",
                 choix=["Chaussures", "Sac à dos", "Vêtement", "Montre GPS", "Bâtons", "Autre"],
             ),
+            Champ("marque", "Marque", "texte", suggestions=_marques),
             Champ("date_achat", "Date d'achat", "date"),
+            Champ("magasin", "Acheté chez", "texte", suggestions=_magasins),
             Champ("km_actuels", "Km parcourus (saisi)", "decimal"),
             Champ("km_max_recommande", "Km max recommandé", "decimal"),
             Champ(

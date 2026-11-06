@@ -40,7 +40,7 @@ def test_conversion_d_une_base_v108(tmp_path, monkeypatch):
     monkeypatch.setattr(db, "CHEMIN_BDD", chemin)
     brut(chemin, "INSERT INTO athletes (id, nom, prenom, sexe) VALUES (18, 'Beltran', 'Didier', 'H'), (19, 'Autre', 'Coureur', 'F')")
     bilan = mig.appliquer_migrations(chemin)
-    assert bilan["appliquees"] == [1, 2, 3, 4, 5, 6, 7, 8]
+    assert bilan["appliquees"] == [1, 2, 3, 4, 5, 6, 7, 8, 9]
     personnes = P.lister()
     assert [(p["nom"], p["roles"], p["athlete_id"]) for p in personnes] == [
         ("Autre", ["coureur"], 19), ("Beltran", ["coureur"], 18)]

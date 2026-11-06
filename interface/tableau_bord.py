@@ -166,6 +166,7 @@ class TableauBord(QMainWindow):
             ("OUTILS", [
                 ("🌦️  Météo", self.ouvrir_meteo, False),
                 ("🍎  Alimentation", self.ouvrir_alimentation, False),
+                ("📒  Annuaire trail", self.ouvrir_annuaire, False),
                 ("📥  Import && Synchro", self.ouvrir_import_et_synchro, False),
             ]),
             ("COMPTE", [
@@ -1541,6 +1542,10 @@ class TableauBord(QMainWindow):
         from interface.fractionne import FractionneFenetre
         self._ouvrir_ou_activer("fractionne", lambda: FractionneFenetre(athlete_id_initial=self.athlete_actif_id))
 
+    def ouvrir_annuaire(self):
+        from interface.annuaire import AnnuaireFenetre
+        self._ouvrir_ou_activer("annuaire", lambda: AnnuaireFenetre(athlete_id_initial=self.athlete_actif_id))
+
     def ouvrir_club(self):
         from interface.club import ClubFenetre
         self._ouvrir_ou_activer("club", lambda: ClubFenetre(athlete_id_initial=self.athlete_actif_id))
@@ -1760,6 +1765,8 @@ class TableauBord(QMainWindow):
             ("Planification", "plan calendrier seances", self.ouvrir_planification),
             ("Fractionné", "vma piste cotes intervalles 30/30 400 1000 minuteur bips", self.ouvrir_fractionne),
             ("Renforcement & Mobilité", "muscu", self.ouvrir_renforcement),
+            ("Annuaire trail", "clubs ecoles de trail magasins marques boutiques running chaussures adresse",
+             self.ouvrir_annuaire),
             ("Club", "adherents licencies licence ffa cotisation recu groupes helloasso saison categories",
              self.ouvrir_club),
             ("Fil d'activité", "strava cartes sorties analyses", self.ouvrir_fil_activite),

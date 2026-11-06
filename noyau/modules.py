@@ -62,6 +62,10 @@ MODULES = (
            "Produits de course et Nutri-Score, fait maison (barres, gels, boissons), comparatif, tolérances "
            "et besoins par heure, fiches aliments.",
            ("ouvrir_alimentation",), blocs=(12,)),
+    Module("annuaire", "Annuaire trail", "Coureur",
+           "Clubs d'athlétisme et de trail, écoles et sections trail, organisateurs, magasins et marques (base "
+           "PACA livrée, à compléter) ; marques et magasins proposés dans ton matériel.",
+           ("ouvrir_annuaire",)),
     Module("meteo", "Météo", "Coureur", "Prévisions pour tes sorties (connexion Internet nécessaire).",
            ("ouvrir_meteo",)),
     Module("fractionne", "Fractionné", "Coureur",

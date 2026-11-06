@@ -192,6 +192,12 @@ class DialogueProduit(QDialog):
         form = QFormLayout()
         self.nom = QLineEdit(p.get("nom") or "")
         self.marque = QLineEdit(p.get("marque") or "")
+        try:
+            from interface.ecran_liste import ajouter_suggestions
+            from noyau.donnees import annuaire as dan
+            ajouter_suggestions(self.marque, lambda: dan.noms_de_marques("nutrition"))
+        except Exception:                   # l'annuaire est facultatif pour saisir un produit
+            pass
         self.categorie = QComboBox()
         self.categorie.addItems(cat.CATEGORIES)
         self.categorie.setCurrentText(p.get("categorie") or "Gel")

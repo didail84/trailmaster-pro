@@ -5,6 +5,7 @@ calculer exactement comme lui :
     départ, produits génériques ;
   - matériel obligatoire : catalogue des équipements et caractéristiques ;
   - fractionné : bibliothèque des séances types ;
+  - annuaire : clubs, écoles, magasins et marques de la base livrée ;
   - club : catégories FFA, types de licence, pièces de santé, statuts, vacances
     scolaires et types de séances de l'agenda.
 
@@ -28,7 +29,7 @@ from noyau.entrainement import fractionne as efr                                
 from noyau.club import categories as ccat, adhesions as cadh, agenda as cag              # noqa: E402
 
 PAGE = RACINE / "page_claude" / "trail_hub_center.html"
-REPERES = {"NUTRITION": None, "MATERIEL": None, "FRACTIONNE": None, "CLUB": None}
+REPERES = {"NUTRITION": None, "MATERIEL": None, "FRACTIONNE": None, "CLUB": None, "ANNUAIRE": None}
 
 
 def donnees():
@@ -67,9 +68,21 @@ def donnees_club():
             "estimations": sorted([list(x) for x in cag.ESTIMATIONS]), "decrochage": cag.ABSENCES_DECROCHAGE}
 
 
+def donnees_annuaire():
+    from noyau.annuaire import regles as ar
+    ref = ar.lire_reference()
+    champs = ("type", "nom", "sigle", "enseigne", "categorie", "commune", "code_postal", "departement", "adresse", "site",
+              "affiliation", "source", "notes")
+    return {"version": ref["version"], "zone": ref["zone"], "avertissement": ref["avertissement"],
+            "types": [list(x) for x in ar.TYPES], "categoriesMagasin": [list(x) for x in ar.CATEGORIES_MAGASIN],
+            "categoriesMarque": [list(x) for x in ar.CATEGORIES_MARQUE], "departements": [list(x) for x in ar.DEPARTEMENTS],
+            "structures": [[x.get(k) for k in champs] for x in ref["structures"]], "champs": list(champs),
+            "marques": [[x["nom"], x["pays"], x["categories"], x.get("groupe")] for x in ref["marques"]]}
+
+
 def bloc(nom):
     contenu = {"NUTRITION": donnees, "MATERIEL": donnees_materiel, "FRACTIONNE": donnees_fractionne,
-               "CLUB": donnees_club}[nom]()
+               "CLUB": donnees_club, "ANNUAIRE": donnees_annuaire}[nom]()
     return f"/*{nom}_DEBUT*/" + json.dumps(contenu, ensure_ascii=False, separators=(",", ":")) + f"/*{nom}_FIN*/"
 
 

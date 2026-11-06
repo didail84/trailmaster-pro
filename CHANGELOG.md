@@ -1,5 +1,26 @@
 # Historique des versions
 
+## Trail Hub Center — Annuaire trail (nouveau module)
+- **Nouveau module « Annuaire trail »** (espace Coureur, allumé par défaut). Il ouvre la fenêtre **📒 Annuaire trail** (menu Outils), en trois onglets :
+  - **Clubs et écoles** : clubs d'athlétisme, de running et de trail, sections trail, écoles de trail, organisateurs de courses ;
+  - **Magasins** : spécialistes running et trail, magasins outdoor, grandes surfaces de sport avec un rayon running ;
+  - **Marques** : chaussures, textile, sacs, bâtons, frontales, montres, nutrition, accessoires. L'onglet montre aussi combien d'objets de ton matériel sont de chaque marque.
+- **Base de référence livrée**, région PACA (04, 05, 06, 13, 83, 84) :
+  - 78 clubs, écoles, sections et organisateurs ;
+  - 56 magasins ;
+  - 111 marques.
+
+  Cette première base est **incomplète** : elle vient d'annuaires publics (PagesJaunes, sites i-Run, Terre de Running, running-var.fr, réseau École de Trail). Chaque fiche indique sa source. Les clubs sont indiqués **par commune seulement**, car l'adresse d'une association est souvent le domicile d'un bénévole.
+- **Actions sur les fiches** :
+  - recherche et filtres (département, type, catégorie, favoris) ;
+  - ajouter, corriger, mettre en favori, noter, marquer « vérifiée aujourd'hui » ;
+  - ouvrir le site, ou une recherche sur le web s'il n'y a pas de site ;
+  - importer un tableau CSV (sans doublon, en complétant les cases vides) et exporter.
+- **Mises à jour de la base de référence** : une fiche que tu as corrigée n'est jamais écrasée. Une fiche retirée reste masquée. Tes notes et favoris sont gardés.
+- **Matériel** : chaque objet a maintenant une **marque** et un **magasin d'achat**. Ils sont proposés pendant la saisie, et la marque suit le type d'objet (frontales pour une lampe, sacs pour un sac…). Même chose dans l'écran Matériel (usure) et pour la marque des produits de nutrition.
+- **Base de données version 9** : table annuaire ; marque et magasin du matériel.
+- **Page Claude** : nouvelle rubrique **Annuaire trail**, avec recherche et filtres. Elle affiche la base livrée, ou celle de ta base avec tes ajouts, favoris et notes.
+
 ## Trail Hub Center — étape 4.2 : Agenda du club et appel des présences (blocs 17 à 19)
 - Deux nouveaux onglets dans la fenêtre **🏟️ Club** :
   - **📅 Agenda**

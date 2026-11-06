@@ -156,8 +156,19 @@ class DialogueEquipement(QDialog):
         self.statut.addItems(["Actif", "À surveiller", "Retiré"])
         self.statut.setCurrentText(o.get("statut") or "Actif")
         self.notes = QLineEdit(o.get("notes") or "")
+        self.marque = QLineEdit(o.get("marque") or "")
+        self.marque.setPlaceholderText("ex. Petzl, Salomon, Raidlight (proposées par l'annuaire)")
+        self.magasin = QLineEdit(o.get("magasin") or "")
+        self.magasin.setPlaceholderText("où tu l'as acheté (facultatif)")
+        from interface.ecran_liste import ajouter_suggestions
+        from noyau.donnees import annuaire as dan
+        self._completer_marque = ajouter_suggestions(self.marque, lambda: dan.noms_de_marques(
+            dan.R.CATEGORIE_POUR_EQUIPEMENT.get(self.equipement.currentData())))
+        ajouter_suggestions(self.magasin, dan.noms_de_magasins)
         form.addRow("Équipement", self.equipement)
         form.addRow("Nom", self.nom)
+        form.addRow("Marque", self.marque)
+        form.addRow("Acheté chez", self.magasin)
         form.addRow("Quantité", self.quantite)
         form.addRow("Poids (l'unité)", self.poids)
         form.addRow(self.label_carac, self.carac)
@@ -186,6 +197,11 @@ class DialogueEquipement(QDialog):
 
     def _type_change(self):
         code = self.equipement.currentData()
+        if getattr(self, "_completer_marque", None) is not None:
+            from PySide6.QtCore import QStringListModel
+            from noyau.donnees import annuaire as dan
+            self._completer_marque.setModel(QStringListModel(dan.noms_de_marques(
+                dan.R.CATEGORIE_POUR_EQUIPEMENT.get(code)), self._completer_marque))
         e = EQUIPEMENTS.get(code)
         carac = e["carac"] if e else None
         self.label_carac.setVisible(bool(carac))
@@ -221,7 +237,8 @@ class DialogueEquipement(QDialog):
         return {"equipement": code, "nom": self.nom.text().strip(), "quantite": self.quantite.value(),
                 "poids_g": self.poids.value() or None, "caracteristiques": car,
                 "controle_le": self.controle.date().toString("yyyy-MM-dd") if self.avec_controle.isChecked() else None,
-                "statut": self.statut.currentText(), "notes": self.notes.text().strip()}
+                "statut": self.statut.currentText(), "notes": self.notes.text().strip(),
+                "marque": self.marque.text().strip() or None, "magasin": self.magasin.text().strip() or None}
 
     def accept(self):
         if not self.nom.text().strip():
