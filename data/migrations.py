@@ -295,12 +295,44 @@ def _m004_nutrition_course(cur):
         _ajouter_uuid(cur, t)
 
 
+def _m005_materiel_obligatoire(cur):
+    """Matériel obligatoire d'une course comparé à ton équipement (étape 3.4, bloc 13) :
+    caractéristiques de ton matériel et liste du règlement de chaque course."""
+    nouvelles = {"equipement": "TEXT", "poids_g": "REAL", "quantite": "INTEGER DEFAULT 1",
+                 "caracteristiques": "TEXT", "controle_le": "TEXT"}
+    deja = _colonnes(cur, "materiel")
+    for col, typ in nouvelles.items():
+        if col not in deja:
+            cur.execute(f"ALTER TABLE materiel ADD COLUMN {col} {typ}")
+    deja = _colonnes(cur, "courses_calendrier")
+    for col in ("reglement_verifie_le", "reglement_source"):
+        if col not in deja:
+            cur.execute(f"ALTER TABLE courses_calendrier ADD COLUMN {col} TEXT")
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS materiel_obligatoire (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            athlete_id INTEGER NOT NULL REFERENCES athletes(id) ON DELETE CASCADE,
+            course_id INTEGER NOT NULL REFERENCES courses_calendrier(id) ON DELETE CASCADE,
+            ordre INTEGER DEFAULT 0,
+            libelle TEXT NOT NULL,
+            equipement TEXT,
+            niveau TEXT NOT NULL DEFAULT 'obligatoire',
+            quantite INTEGER DEFAULT 1,
+            valeur_min REAL,
+            precision TEXT,
+            dans_le_sac INTEGER DEFAULT 0
+        )""")
+    cur.execute("CREATE INDEX IF NOT EXISTS idx_materiel_obligatoire_course ON materiel_obligatoire(course_id)")
+    _ajouter_uuid(cur, "materiel_obligatoire")
+
+
 # (numéro, description lisible, fonction) — dans l'ordre, sans trou
 MIGRATIONS = [
     (1, "Identifiant universel (UUID) pour chaque donnée", _m001_identifiants_universels),
     (2, "Fiche Personne unique et rôles", _m002_personnes_et_roles),
     (3, "Index de performance (ITRA, UTMB, Betrail)", _m003_index_performance),
     (4, "Nutrition de course : produits, tolérances, recettes fait maison", _m004_nutrition_course),
+    (5, "Matériel obligatoire des courses et caractéristiques de ton équipement", _m005_materiel_obligatoire),
 ]
 VERSION_LOGICIEL = MIGRATIONS[-1][0]
 

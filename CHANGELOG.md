@@ -1,5 +1,33 @@
 # Historique des versions
 
+## Trail Hub Center — étape 3.4 : Matériel obligatoire comparé à ton équipement (bloc 13)
+- « Matériel pour une course » est refait en deux onglets : **Pour une course** et **Mon équipement**.
+- **Liste du règlement** :
+  - tu colles la liste du matériel copiée depuis le règlement ou la page officielle de la course, et elle est **lue automatiquement** : 31 équipements reconnus (téléphone, gobelet, réserve d'eau, couverture de survie, sifflet, frontale et seconde lampe, piles, veste imperméable, collant long, couche chaude, bonnet, gants, réserve alimentaire, bande élastique, trousse de secours…) ;
+  - les exigences chiffrées sont relevées : litres d'eau, centilitres du gobelet, colonne d'eau de la veste en mm, lumens, kcal, grammes de la couche chaude ;
+  - les quantités sont reconnues (« deux lampes frontales » donne une frontale et une seconde lampe), ainsi que les rubriques « conseillé » et « selon la météo » ;
+  - tu corriges chaque ligne si besoin avant d'enregistrer, et la date d'enregistrement est notée ;
+  - sans règlement enregistré, le repère standard (distance, D+, nuit, altitude, saison) est reconnu de la même façon.
+- **Comparaison ligne par ligne** avec ton équipement :
+  - ✅ je l'ai, ⚠️ à vérifier (caractéristique non renseignée, matériel « à surveiller », piles contrôlées il y a plus de 6 mois), ❌ il me manque (absent, pas en nombre suffisant, pas assez d'eau au total, veste pas assez imperméable, sans capuche ou sans coutures étanches) ;
+  - une deuxième frontale compte comme lampe de secours ;
+  - la réserve alimentaire est composée avec tes **produits de course favoris ou validés** (Nutrition) quand ton équipement n'en a pas.
+- **Pour une course**, en plus du tableau :
+  - pourcentage du matériel obligatoire prêt et poids du sac obligatoire ;
+  - cases « dans le sac » pour la veille de la course ;
+  - liste de ce qui manque, copiée dans le presse-papiers ;
+  - checklist PDF à imprimer ;
+  - lien vers la page de la course ;
+  - un double-clic sur une ligne manquante ajoute le matériel à ton équipement.
+- **Mon équipement** :
+  - ton matériel avec quantité, poids, caractéristique contrôlée, coutures étanches, capuche, date de contrôle des batteries et état ;
+  - « Reconnaître d'après les noms » relie en un clic les objets déjà saisis (« Frontale Petzl » devient une lampe frontale) ;
+  - c'est la même table que l'écran Matériel (usure des chaussures), donc rien n'est saisi en double.
+- Roadbook : la checklist du sac reprend la liste du règlement de la course choisie quand elle est enregistrée.
+- Migration n° 5 de la base : caractéristiques de ton matériel et liste du règlement par course. La v108 fonctionne toujours sur la base convertie.
+- Page Claude : la rubrique Matériel affiche le matériel obligatoire de tes prochaines courses comparé à ton équipement, avec le même calcul que le logiciel (vérifié ligne par ligne), et la lecture de Claude en tient compte.
+- Tests : 300.
+
 ## Trail Hub Center — étape 3.3 : Nutrition de course (bloc 12)
 - Alimentation : quatre nouveaux onglets en tête, **Produits de course**, **Fait maison**, **Comparatif** et **Tolérances et besoins**. Le journal des repas et les fiches aliments sont inchangés.
 - **Produits de course** :

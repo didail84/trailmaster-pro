@@ -125,7 +125,7 @@ def _voir_materiel_pour_course(ecran):
     ecran._fenetre_materiel = MaterielCourse(
         athlete_id_initial=athlete_id,
         course_preselectionnee={
-            "nom": nom, "date": date_, "distance_km": distance_km,
+            "id": id_course, "nom": nom, "date": date_, "distance_km": distance_km,
             "denivele_m": denivele_m, "type_terrain": type_terrain,
         },
     )

@@ -343,3 +343,64 @@ def rendre_bracelet_pdf(chemin, nom_course, lignes, depart=""):
                                int(Qt.AlignmentFlag.AlignLeft), f"+{l['suite_dplus']} −{l['suite_dmoins']}")
     p.end()
     return len(pages)
+
+
+def rendre_checklist_materiel_pdf(chemin, nom_course, date_course, comparaison, source=""):
+    """Checklist du sac (A4) : une case par élément, rangés par niveau, avec l'exigence du règlement, ton matériel
+    et son état. Les éléments qui manquent sont en rouge. Retourne le nombre de pages."""
+    from noyau.materiel.comparaison import ICONE_STATUT, LIBELLE_STATUT
+    from noyau.materiel.equipements import NIVEAUX, libelle_valeur
+    w = QPdfWriter(chemin)
+    w.setPageSize(QPageSize(QPageSize.PageSizeId.A4))
+    w.setResolution(RESOLUTION)
+    w.setPageMargins(QMarginsF(14, 14, 14, 14), QPageLayout.Unit.Millimeter)
+    w.setTitle(f"Checklist du sac – {nom_course}")
+    p = QPainter(w)
+    p.setRenderHint(QPainter.RenderHint.Antialiasing)
+    page = _Page(w, p, f"Checklist du sac – {nom_course}")
+    jour = ""
+    if date_course:
+        try:
+            from datetime import date as _d
+            jour = _d.fromisoformat(str(date_course)[:10]).strftime("%d/%m/%Y")
+        except ValueError:
+            jour = str(date_course)[:10]
+    page.texte(f"Checklist du sac – {nom_course}", 16, True)
+    page.texte(" · ".join(x for x in (jour, source, comparaison["resume"]) if x), 9.5, couleur=GRIS)
+    if comparaison.get("poids_g"):
+        page.texte(f"Poids du matériel obligatoire : {_virgule(comparaison['poids_g'] / 1000, 2)} kg"
+                   + (f" (sans {comparaison['poids_incomplet']} objet(s) non pesé(s))"
+                      if comparaison.get("poids_incomplet") else ""), 9.5, couleur=GRIS)
+    page.y += 2 * MM
+    case = 4.2 * MM
+    couleurs = {"ok": VERT, "verifier": ORANGE, "manque": ROUGE, "manuel": GRIS}
+    for niveau, titre in NIVEAUX:
+        lignes = [l for l in comparaison["lignes"] if l["niveau"] == niveau]
+        if not lignes:
+            continue
+        page.saut_si_besoin(14)
+        page.texte(titre, 12, True, marge_bas=2)
+        for l in lignes:
+            exig = libelle_valeur(l.get("equipement"), l.get("valeur_min"))
+            if (l.get("quantite") or 1) > 1:
+                exig = f"× {l['quantite']}" + (f", {exig}" if exig else "")
+            texte = l["libelle"] + (f"  ({exig})" if exig else "")
+            sous = f"{ICONE_STATUT[l['statut']]} {LIBELLE_STATUT[l['statut']]} — " + (
+                (", ".join(o for o in l["objets"] if o) or l["detail"]) if l["statut"] == "ok" else l["detail"])
+            p.setFont(_police(10.5, True))
+            r = p.boundingRect(QRectF(0, 0, page.L - 9 * MM, 1000 * MM),
+                               int(Qt.AlignmentFlag.AlignLeft | Qt.TextFlag.TextWordWrap), texte)
+            page.saut_si_besoin(r.height() / MM + 8)
+            p.setPen(QPen(NOIR, 3))
+            p.setBrush(Qt.BrushStyle.NoBrush)
+            p.drawRect(QRectF(0, page.y + 0.6 * MM, case, case))
+            if l.get("dans_le_sac"):
+                p.drawLine(QPointF(0.8 * MM, page.y + 2.8 * MM), QPointF(1.8 * MM, page.y + 4 * MM))
+                p.drawLine(QPointF(1.8 * MM, page.y + 4 * MM), QPointF(3.6 * MM, page.y + 1.4 * MM))
+            page.texte(texte, 10.5, True, couleur=ROUGE if l["statut"] == "manque" else NOIR, x=7 * MM, marge_bas=0.3)
+            page.texte(sous, 8.5, couleur=couleurs[l["statut"]], x=7 * MM, marge_bas=2.2)
+    page.y += 3 * MM
+    page.texte("Le règlement officiel de la course fait foi : revérifie-le quelques jours avant le départ "
+               "(l'organisation peut imposer le kit froid ou chaud selon la météo).", 8.5, couleur=GRIS)
+    p.end()
+    return page.num

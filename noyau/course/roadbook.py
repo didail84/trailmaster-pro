@@ -321,12 +321,22 @@ def nutrition_par_troncon(passages, temperature_c=15, poids_kg=70, intensite="mo
 # CHECKLIST
 # ----------------------------------------------------------------------
 def construire_checklist(distance_km, denivele_m, nocturne=False, altitude=False, saison=None,
-                         plan=None, existante=None):
+                         plan=None, existante=None, liste_officielle=None):
     """Liste [{texte, section, raison, coche}] : matériel obligatoire / conseillé
-    (data/reference_materiel_course), nutrition à emporter (plan), + éléments perso
-    déjà présents dans `existante`. Les cases déjà cochées le restent."""
-    from noyau.course.reference_materiel_course import calculer_materiel
-    r = calculer_materiel(distance_km, denivele_m, nocturne, altitude, saison)
+    (le règlement de la course enregistré dans « Matériel pour une course » s'il y en a un,
+    sinon le repère de data/reference_materiel_course), nutrition à emporter (plan), + éléments
+    perso déjà présents dans `existante`. Les cases déjà cochées le restent."""
+    if liste_officielle:
+        from noyau.materiel.equipements import libelle_valeur
+        r = {"obligatoire": [], "conseille": []}
+        for l in liste_officielle:
+            exig = libelle_valeur(l.get("equipement"), l.get("valeur_min"))
+            raison = "Règlement de la course" + (f" : {exig} minimum" if exig else "") + (
+                " (selon la météo)" if l["niveau"] == "meteo" else "")
+            r["conseille" if l["niveau"] == "conseille" else "obligatoire"].append((l["libelle"], raison))
+    else:
+        from noyau.course.reference_materiel_course import calculer_materiel
+        r = calculer_materiel(distance_km, denivele_m, nocturne, altitude, saison)
     coche = {(e["section"], e["texte"]): e.get("coche", False) for e in (existante or [])}
     items = []
 

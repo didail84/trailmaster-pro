@@ -855,9 +855,12 @@ class RoadbookCourse(_EcranAthlete):
             self._checklist = [e for e in self._checklist if e["section"] == "Perso"]
             self._afficher_checklist()
             return
+        from noyau.donnees import equipement as deq
+        officielle = deq.liste_de_la_course(self.combo_course.currentData())
         self._checklist = rbk.construire_checklist(
             self._distance, self._deniv, self.case_nuit.isChecked(), self.case_alt.isChecked(),
-            (self.combo_saison.currentText() if self.combo_saison.currentIndex() > 0 else None), self._plan, self._checklist)
+            (self.combo_saison.currentText() if self.combo_saison.currentIndex() > 0 else None), self._plan, self._checklist,
+            officielle)
         self._afficher_checklist()
 
     def _afficher_checklist(self):
