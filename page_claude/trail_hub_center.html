@@ -1434,16 +1434,20 @@ function alertesClub(adh, ch, saison) {
   if (nr) r.push(`${nr} adhérent${s(nr)} de la saison précédente n'${nr > 1 ? "ont" : "a"} pas encore renouvelé.`);
   return r;
 }
-function lireClub() {
+function lireClub(clubId) {
   if (!Base.tablesPresentes.has("adhesions") || !Base.tablesPresentes.has("clubs")) return null;
   try {
-    const club = Base.tous("SELECT * FROM clubs ORDER BY id LIMIT 1")[0];
+    const clubs = Base.tous("SELECT id, nom, ville FROM clubs ORDER BY id");
+    const club = (clubId && Base.tous("SELECT * FROM clubs WHERE id = ?", [clubId])[0]) || Base.tous("SELECT * FROM clubs ORDER BY id LIMIT 1")[0];
     if (!club) return null;
-    const adh = Base.tous(`SELECT a.id, a.personne_id, a.saison, a.type_licence, a.numero_licence, a.statut, a.sante_type, a.autorisation_parentale, a.droit_image, a.tarif, a.cotisation, a.montant_paye, a.paiement_mode,
+    /* plusieurs associations et leurs sections (base en version 13 ou plus) */
+    const avecSections = Base.tablesPresentes.has("sections");
+    const sections = avecSections ? Base.tous("SELECT id, nom FROM sections WHERE club_id = ? AND actif = 1 ORDER BY nom", [club.id]) : [];
+    const adh = Base.tous(`SELECT a.id, a.personne_id, a.saison, ${avecSections ? "a.section_id," : ""} a.type_licence, a.numero_licence, a.statut, a.sante_type, a.autorisation_parentale, a.droit_image, a.tarif, a.cotisation, a.montant_paye, a.paiement_mode,
       p.nom, p.prenom, p.date_naissance, p.sexe, p.ville,
       (SELECT group_concat(g.nom, ', ') FROM groupes_membres m JOIN groupes g ON g.id = m.groupe_id WHERE m.personne_id = p.id AND g.club_id = a.club_id) AS groupes
       FROM adhesions a JOIN personnes p ON p.id = a.personne_id WHERE a.club_id = ? ORDER BY p.nom COLLATE NOCASE, p.prenom COLLATE NOCASE`, [club.id]).map(completerAdhesion);
-    const groupes = Base.tous(`SELECT g.id, g.nom, g.description, g.actif, (SELECT p.prenom || ' ' || p.nom FROM personnes p WHERE p.id = g.entraineur_id) AS entraineur,
+    const groupes = Base.tous(`SELECT g.id, g.nom, g.description, g.actif, ${avecSections ? "g.section_id," : ""} (SELECT p.prenom || ' ' || p.nom FROM personnes p WHERE p.id = g.entraineur_id) AS entraineur,
       (SELECT COUNT(*) FROM groupes_membres m WHERE m.groupe_id = g.id) AS nb FROM groupes g WHERE g.club_id = ? ORDER BY g.nom COLLATE NOCASE`, [club.id]);
     const agenda = Base.tablesPresentes.has("seances_club");
     const seances = agenda ? Base.tous(`SELECT s.id, s.groupe_id, s.titre, s.type, s.date, s.heure_debut, s.heure_fin, s.lieu, s.annulee, s.motif_annulation, s.appel_fait, g.nom AS groupe,
@@ -1455,7 +1459,7 @@ function lireClub() {
       r.classement_general, r.nb_classes, r.classement_categorie, r.categorie, r.source, p.nom, p.prenom
       FROM resultats_licencies r JOIN personnes p ON p.id = r.personne_id
       WHERE r.personne_id IN (SELECT personne_id FROM adhesions WHERE club_id = ?) AND r.date >= ? ORDER BY r.date DESC, r.classement_general`, [club.id, plusJours(isoJour(new Date()), -365)]) : [];
-    return { club, adhesions: adh, groupes, seances, presences, membres, resultats };
+    return { club, clubs, sections, adhesions: adh, groupes, seances, presences, membres, resultats };
   } catch (e) { return null; }
 }
 function clubExemple() {
@@ -1475,16 +1479,18 @@ function clubExemple() {
   gens.forEach(([nom, prenom, an, sexe, typ, groupe], i) => {
     const dn = `${an}-${String(1 + i % 12).padStart(2, "0")}-${String(3 + i).padStart(2, "0")}`;
     const base = { personne_id: i + 1, nom, prenom, date_naissance: dn, sexe, ville: "Carpentras", type_licence: typ, numero_licence: typ === "adherent" ? null : String(1840210 + i * 37),
-      tarif: LIB_LICENCE[typ], groupes: groupe || null, droit_image: 1, autorisation_parentale: 1, paiement_mode: "HelloAsso" };
+      tarif: LIB_LICENCE[typ], groupes: groupe || null, droit_image: 1, autorisation_parentale: 1, paiement_mode: "HelloAsso",
+      section_id: groupe === "Adultes trail" ? 1 : groupe === "École d'athlé" ? 2 : null };
     if (i !== 7) adh.push(completerAdhesion({ ...base, id: 100 + i, saison: p, statut: "validee", sante_type: "questionnaire", cotisation: tarif[typ], montant_paye: tarif[typ] }));
     if (i !== 12) adh.push(completerAdhesion({ ...base, id: 200 + i, saison: s, statut: i < 9 ? "validee" : "en_cours", sante_type: i % 5 === 3 ? null : (i === 1 ? "certificat" : "questionnaire"),
       numero_licence: i === 11 ? null : base.numero_licence, autorisation_parentale: i === 6 ? 0 : 1, droit_image: i === 3 ? null : 1,
       cotisation: tarif[typ] + 5, montant_paye: i === 10 ? 50 : i === 13 ? 0 : tarif[typ] + 5 }));
   });
-  return { club: { nom: "Trail Club des Dentelles (exemple)", ville: "Carpentras", numero_ffa: "000000" }, adhesions: adh,
-    groupes: [{ id: 1, nom: "Adultes trail", entraineur: "Marc Exemple", description: "mardi et jeudi soir", actif: 1, nb: 6 },
-      { id: 2, nom: "Route 10 km", entraineur: "Lise Exemple", description: "mercredi", actif: 1, nb: 4 },
-      { id: 3, nom: "École d'athlé", entraineur: "Marc Exemple", description: "samedi matin", actif: 1, nb: 3 }], _exemple: d0,
+  return { club: { id: 1, nom: "Trail Club des Dentelles (exemple)", ville: "Carpentras", numero_ffa: "000000" }, adhesions: adh,
+    clubs: [{ id: 1, nom: "Trail Club des Dentelles (exemple)" }], sections: [{ id: 1, nom: "Trail" }, { id: 2, nom: "École d'athlé" }],
+    groupes: [{ id: 1, nom: "Adultes trail", entraineur: "Marc Exemple", description: "mardi et jeudi soir", actif: 1, nb: 6, section_id: 1 },
+      { id: 2, nom: "Route 10 km", entraineur: "Lise Exemple", description: "mercredi", actif: 1, nb: 4, section_id: null },
+      { id: 3, nom: "École d'athlé", entraineur: "Marc Exemple", description: "samedi matin", actif: 1, nb: 3, section_id: 2 }], _exemple: d0,
     ...agendaExemple(gens, s), resultats: resultatsExemple(gens) };
 }
 /* résultats imaginaires des licenciés (courses inventées, dates relatives à aujourd'hui) */
@@ -1651,8 +1657,18 @@ function htmlAgendaClub(c, s) {
 const fmtCourt = (t) => { const d = jourIso(t); return `${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth() + 1).padStart(2, "0")}/${d.getFullYear()}`; };
 function saisonsClub(c) { const s = new Set(c.adhesions.map((a) => a.saison)); s.add(saisonDe()); return [...s].sort().reverse(); }
 const COURT_MANQUE = { "pièce de santé (certificat ou questionnaire)": "santé", "numéro de licence FFA": "n° de licence", "montant de la cotisation": "montant" };
-function vueClub() {
+/* la section choisie : ses adhérents, ses groupes, les séances de ses groupes (et celles de toute l'association) */
+function clubVu() {
   const c = etat.club;
+  if (!c || !etat.sectionClub || !(c.sections || []).some((x) => x.id === etat.sectionClub)) return c;
+  const sid = etat.sectionClub, adhesions = c.adhesions.filter((a) => a.section_id === sid), pids = new Set(adhesions.map((a) => a.personne_id));
+  const groupes = c.groupes.filter((g) => g.section_id === sid), gids = new Set(groupes.map((g) => g.id));
+  const seances = (c.seances || []).filter((x) => !x.groupe_id || gids.has(x.groupe_id)), sids = new Set(seances.map((x) => x.id));
+  return { ...c, adhesions, groupes, seances, presences: (c.presences || []).filter((x) => sids.has(x.seance_id) && pids.has(x.personne_id)),
+    membres: (c.membres || []).filter((m) => gids.has(m.groupe_id)), resultats: (c.resultats || []).filter((r) => pids.has(r.personne_id)) };
+}
+function vueClub() {
+  const c = clubVu();
   if (!c) return `<section class="vue"><div class="entete-vue"><h2>Club</h2><p>Les adhérents, licences et cotisations du club.</p></div>
     <div class="carte"><p class="vide">Cette base ne contient pas encore de club. Dans le logiciel, allume le module « Gestion du club » (Réglages, Modules), puis ouvre « Club » dans le menu : importe ton export HelloAsso ou SI-FFA, ou ajoute les adhérents un par un.</p></div></section>`;
   const toutes = saisonsClub(c);
@@ -1669,6 +1685,8 @@ function vueClub() {
   return `<section class="vue">
     <div class="entete-vue"><h2>Club · ${esc(c.club.nom)}</h2><p>La saison du club d'un coup d'œil : effectif, catégories FFA, dossiers à compléter, cotisations, renouvellements, agenda et présences aux entraînements. La saisie, l'import HelloAsso ou SI-FFA, l'appel et les reçus se font dans le logiciel.</p></div>
     ${carteLecture("club")}
+    ${(c.clubs || []).length > 1 ? `<div class="puces" role="group" aria-label="Association">${c.clubs.map((x) => `<button class="puce" data-club-id="${x.id}" aria-pressed="${x.id === c.club.id}">${esc(x.nom)}</button>`).join("")}</div>` : ""}
+    ${(c.sections || []).length ? `<div class="puces" role="group" aria-label="Section"><button class="puce" data-section-club="" aria-pressed="${!etat.sectionClub}">Toute l'association</button>${c.sections.map((x) => `<button class="puce" data-section-club="${x.id}" aria-pressed="${x.id === etat.sectionClub}">Section ${esc(x.nom)}</button>`).join("")}</div>` : ""}
     <div class="puces" role="group" aria-label="Saison">${toutes.map((x) => `<button class="puce" data-saison-club="${x}" aria-pressed="${x === s}">${x}${x === saisonDe() ? " (en cours)" : ""}</button>`).join("")}</div>
     <div class="grille g4">
       ${stat("Adhérents", entier(ch.effectif), `${entier(ch.nouveaux || 0)} nouveau${(ch.nouveaux || 0) > 1 ? "x" : ""} · ${entier(ch.sexes.F || 0)} femmes, ${entier(ch.sexes.H || 0)} hommes`)}
@@ -1707,14 +1725,17 @@ function vueClub() {
 function brancherClub() {
   const re = () => { const y = window.scrollY; rendreTout(); window.scrollTo(0, y); };
   document.querySelectorAll("[data-saison-club]").forEach((b) => b.onclick = () => { etat.saisonClub = b.dataset.saisonClub; re(); });
+  document.querySelectorAll("[data-club-id]").forEach((b) => b.onclick = () => { etat.club = lireClub(+b.dataset.clubId); etat.sectionClub = null; re(); });
+  document.querySelectorAll("[data-section-club]").forEach((b) => b.onclick = () => { etat.sectionClub = b.dataset.sectionClub ? +b.dataset.sectionClub : null; re(); });
   document.querySelectorAll("[data-filtre-club]").forEach((b) => b.onclick = () => { etat.filtreClub = b.dataset.filtreClub; re(); });
 }
 function resumeClubPourClaude() {
-  const c = etat.club; if (!c) return "Pas de club dans la base.";
+  const c = clubVu(); if (!c) return "Pas de club dans la base.";
   const s = etat.saisonClub || saisonDe(), adh = c.adhesions.filter((a) => a.saison === s), prec = c.adhesions.filter((a) => a.saison === saisonPrec(s)), ch = chiffresClub(adh, prec, s);
   const manques = {}; for (const a of adh) if (a.statut !== "annulee") for (const m of a.dossier.manques) { const k = m.startsWith("cotisation") ? "cotisation à solder" : m; manques[k] = (manques[k] || 0) + 1; }
   /* chiffres seulement : aucun nom d'adhérent n'est envoyé à Claude */
-  return [`Club ${c.club.nom}, saison ${s} (début de saison le 1er septembre).`,
+  const sec = (c.sections || []).find((x) => x.id === etat.sectionClub);
+  return [`Club ${c.club.nom}${sec ? `, section ${sec.nom}` : ""}, saison ${s} (début de saison le 1er septembre).`,
     `Effectif ${ch.effectif} (${ch.sexes.F || 0} F, ${ch.sexes.H || 0} H), ${ch.mineurs} mineurs, ${ch.nouveaux ?? "?"} nouveaux, ${ch.annulees} annulées.`,
     `Saison précédente : ${prec.filter((a) => a.statut !== "annulee").length} adhérents ; renouvelés ${ch.renouveles ?? "?"} (${ch.taux_renouvellement ?? "?"} %), pas encore renouvelés ${(ch.non_renouveles || []).length}.`,
     "Par catégorie : " + Object.entries(ch.categories).sort((x, y) => (ORDRE_CAT[x[0]] ?? 99) - (ORDRE_CAT[y[0]] ?? 99)).map(([k, n]) => `${LIB_CAT[k] || "inconnue"} ${n}`).join(", ") + ".",
@@ -2512,7 +2533,7 @@ function brancherLectures() {
     if (!echantillonPret) { zone.innerHTML = `<span class="attente"><span class="rond"></span>Connexion à Claude…</span>`; return; }
     if (!echantillon) { zone.innerHTML = `<p class="discret">${MESSAGES_CLAUDE.absent}</p>`; return; }
     const prompt = `${sujet === "club" || sujet === "organisation" ? CONSIGNE_CLUB : CONSIGNE_LECTURE}\nSUJET : ${SUJETS[sujet]}\n\nDONNÉES (calculées par Trail Hub Center) :\n${donneesRubrique(sujet)}`;
-    const cle = `${etat.nomFichier}|${sujet === "club" ? etat.saisonClub : sujet === "organisation" ? "ev" + etat.evOrga : etat.athleteId}|${sujet}|${cleJour(new Date())}`;
+    const cle = `${etat.nomFichier}|${sujet === "club" ? `${etat.club?.club?.id}-${etat.sectionClub || 0}-${etat.saisonClub}` : sujet === "organisation" ? "ev" + etat.evOrga : etat.athleteId}|${sujet}|${cleJour(new Date())}`;
     demanderClaude(cle, prompt, (e) => {
       if (!carte.isConnected) return;
       if (e.etat === "attente" || (e.etat === "en_cours" && !e.texte)) { zone.innerHTML = `<span class="attente"><span class="rond"></span>Claude lit tes chiffres…</span>`; return; }

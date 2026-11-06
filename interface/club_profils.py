@@ -260,7 +260,7 @@ class LicenciesClub(_EcranClub):
         self._finaliser()
 
     def actualiser(self):
-        self._adh = [a for a in dclub.adhesions(self.club_id, self.saison) if a["statut"] != "annulee"]
+        self._adh = [a for a in self.adhesions() if a["statut"] != "annulee"]
         self._remplir_liste()
         rs = dpro.resultats_du_club(self.club_id, date.today() - timedelta(days=90))
         t = self.table_club
@@ -555,7 +555,7 @@ class SeancesPartageesClub(_EcranClub):
         t.resizeColumnsToContents()
         auj = date.today()
         self._prog = [s for s in dag.seances(self.club_id, auj, auj + timedelta(days=60), avec_annulees=False)
-                      if s["contenu"]]
+                      if s["contenu"] and self.dans_section(s)]
         t = self.table_prog
         t.setRowCount(len(self._prog))
         for i, s in enumerate(self._prog):

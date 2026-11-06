@@ -353,7 +353,7 @@ class AgendaClub(_EcranClub):
         self.f_groupe.blockSignals(True)
         self.f_groupe.clear()
         self.f_groupe.addItem("Tous les groupes", None)
-        for g in dclub.groupes(self.club_id):
+        for g in self.groupes_visibles():
             self.f_groupe.addItem(g["nom"], g["id"])
         self.f_groupe.setCurrentIndex(max(0, self.f_groupe.findData(actuel)))
         self.f_groupe.blockSignals(False)
@@ -366,6 +366,7 @@ class AgendaClub(_EcranClub):
             ss = [s for s in dag.sans_appel(self.club_id) if g is None or s["groupe_id"] == g]
         else:
             ss = dag.seances(self.club_id, d0, d1, g, self.avec_annulees.isChecked())
+        ss = [s for s in ss if self.dans_section(s)]
         self._seances = ss
         auj = date.today().isoformat()
         t = self.table
@@ -652,7 +653,7 @@ class PresencesClub(_EcranClub):
         actuel = self.combo_seance.currentData()
         auj = date.today()
         self._seances = [s for s in dag.seances(self.club_id, auj - timedelta(days=60), auj + timedelta(days=7))
-                         if not s["annulee"]]
+                         if not s["annulee"] and self.dans_section(s)]
         self.combo_seance.blockSignals(True)
         self.combo_seance.clear()
         for s in reversed(self._seances):
@@ -673,7 +674,7 @@ class PresencesClub(_EcranClub):
         self.f_groupe.blockSignals(True)
         self.f_groupe.clear()
         self.f_groupe.addItem("Tous les groupes", None)
-        for x in dclub.groupes(self.club_id):
+        for x in self.groupes_visibles():
             self.f_groupe.addItem(x["nom"], x["id"])
         self.f_groupe.setCurrentIndex(max(0, self.f_groupe.findData(g)))
         self.f_groupe.blockSignals(False)
@@ -764,7 +765,7 @@ class PresencesClub(_EcranClub):
         lay = QVBoxLayout(d)
         combo = QComboBox()
         s = dag.seance(sid)
-        for a in dclub.adhesions(self.club_id, cat.saison_de(s["date"])):
+        for a in self.adhesions(cat.saison_de(s["date"])):
             if a["personne_id"] not in deja and a["statut"] != "annulee":
                 combo.addItem(f"{a['nom']} {a['prenom']}" + (f" · {a['groupes']}" if a["groupes"] else ""), a["personne_id"])
         for p in dper.lister():
@@ -817,13 +818,17 @@ class PresencesClub(_EcranClub):
         d0, d1 = self._bornes()
         g = self.f_groupe.currentData()
         a = dag.assiduite(self.club_id, d0, d1, g)
+        if self.section_id:
+            membres = {x["personne_id"] for x in self.adhesions()}
+            a = {pid: r for pid, r in a.items() if pid in membres}
         noms = {pid: f"{r.get('prenom', '')} {r.get('nom', '')}".strip() for pid, r in a.items()}
-        sans = [s for s in dag.sans_appel(self.club_id) if g is None or s["groupe_id"] == g]
+        sans = [s for s in dag.sans_appel(self.club_id) if (g is None or s["groupe_id"] == g) and self.dans_section(s)]
         al = ag.alertes_presences(a, noms, len(sans))
         self.label_alertes.setText("<ul>" + "".join(f"<li>{x}</li>" for x in al) + "</ul>" if al else
                                    f"<span style='color:{VERT}'>Rien à signaler sur la période.</span>")
         pg = [x for x in dag.par_groupe(self.club_id, d0, d1)
-              if g is None or x["groupe"] == self.f_groupe.currentText()]
+              if (g is None or x["groupe"] == self.f_groupe.currentText())
+              and (not self.section_id or x["groupe"] in {y["nom"] for y in self.groupes_visibles(True)})]
         t = self.table_groupes
         t.setRowCount(len(pg))
         for i, x in enumerate(pg):

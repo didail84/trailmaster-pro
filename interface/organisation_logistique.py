@@ -188,7 +188,9 @@ class DialogueChamps(QDialog):
         if self.enregistrer:
             try:
                 self.resultat = self.enregistrer(c)
-            except (dl.ErreurLogistique, ValueError) as e:
+            except Exception as e:                       # erreurs lisibles du noyau (ErreurClub, ErreurLogistique…)
+                if not (type(e).__name__.startswith("Erreur") or isinstance(e, ValueError)):
+                    raise
                 self.message.setText(str(e))
                 return
         else:

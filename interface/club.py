@@ -136,12 +136,17 @@ class _EcranClub(_EcranAthlete):
             w = self.barre.itemAt(i).widget()
             if w is not None:
                 w.hide()
-        self.label_club = QLabel("")
-        self.label_club.setObjectName("labelChamp")
+        self.combo_club = QComboBox()
+        self.combo_club.setMinimumWidth(220)
+        self.combo_club.setToolTip("Association : chacune a ses adhérents, groupes, tarifs, reçus et agenda")
+        self.combo_section = QComboBox()
+        self.combo_section.setToolTip("Section de l'association (ou toute l'association)")
         self.combo_saison = QComboBox()
-        self.barre.insertWidget(0, self.label_club)
-        self.barre.insertWidget(1, QLabel("Saison :"))
-        self.barre.insertWidget(2, self.combo_saison)
+        self.barre.insertWidget(0, QLabel("🏟️"))
+        self.barre.insertWidget(1, self.combo_club)
+        self.barre.insertWidget(2, self.combo_section)
+        self.barre.insertWidget(3, QLabel("Saison :"))
+        self.barre.insertWidget(4, self.combo_saison)
 
     def _finaliser(self):
         self._ajouter_carte_ia()
@@ -149,11 +154,46 @@ class _EcranClub(_EcranAthlete):
         _style_cases(self)
         self._remplir_saisons()
         self.combo_saison.currentIndexChanged.connect(lambda _i: self.actualiser())
+        self.combo_club.currentIndexChanged.connect(self._club_change)
+        self.combo_section.currentIndexChanged.connect(self._section_change)
         self.actualiser()
 
     @property
     def club_id(self):
         return dclub.club_id_ou_creer()
+
+    @property
+    def section_id(self):
+        return self.combo_section.currentData()
+
+    def adhesions(self, saison=None):
+        """Adhésions de l'association courante, limitées à la section choisie."""
+        return dclub.adhesions(self.club_id, saison or self.saison, section_id=self.section_id)
+
+    def groupes_visibles(self, avec_inactifs=False):
+        return dclub.groupes(self.club_id, avec_inactifs, self.section_id)
+
+    def dans_section(self, seance):
+        """Une séance de l'agenda appartient à la section choisie (séance sans groupe : toute l'association)."""
+        if not self.section_id or not seance.get("groupe_id"):
+            return True
+        return seance["groupe_id"] in {g["id"] for g in self.groupes_visibles(True)}
+
+    def _club_change(self, _i=None):
+        cid = self.combo_club.currentData()
+        if cid and cid != dclub.club_courant_id():
+            dclub.choisir_club(cid)
+        self._tout_rafraichir()
+
+    def _section_change(self, _i=None):
+        dclub.choisir_section(self.club_id, self.section_id)
+        self._tout_rafraichir()
+
+    def _tout_rafraichir(self):
+        f = self._fenetre()
+        for e in (f.ecrans if f else [self]):
+            e._remplir_saisons()
+            e.actualiser()
 
     @property
     def saison(self):
@@ -172,8 +212,22 @@ class _EcranClub(_EcranAthlete):
         i = self.combo_saison.findData(actuelle or cat.saison_de())
         self.combo_saison.setCurrentIndex(max(0, i))
         self.combo_saison.blockSignals(False)
-        c = dclub.club_principal()
-        self.label_club.setText(f"🏟️ {c['nom']}" if c else "")
+        cid = self.club_id
+        self.combo_club.blockSignals(True)
+        self.combo_club.clear()
+        for c in dclub.clubs():
+            self.combo_club.addItem(c["nom"], c["id"])
+        self.combo_club.setCurrentIndex(max(0, self.combo_club.findData(cid)))
+        self.combo_club.blockSignals(False)
+        self.combo_section.blockSignals(True)
+        self.combo_section.clear()
+        secs = dclub.sections(cid)
+        self.combo_section.addItem("Toute l'association", None)
+        for x in secs:
+            self.combo_section.addItem(f"Section {x['nom']}", x["id"])
+        self.combo_section.setCurrentIndex(max(0, self.combo_section.findData(dclub.section_courante(cid))))
+        self.combo_section.setVisible(bool(secs))
+        self.combo_section.blockSignals(False)
 
     def showEvent(self, e):
         super().showEvent(e)
@@ -210,7 +264,7 @@ class DialogueAdherent(QDialog):
             ligne = QHBoxLayout()
             self.combo_existant = QComboBox()
             self.combo_existant.addItem("— nouvelle personne —", None)
-            deja = {x["personne_id"] for x in dclub.adhesions(club_id, saison)}
+            deja = {x["personne_id"] for x in dclub.adhesions(club_id, saison)}           # toute l'association
             for p in dper.lister():
                 if p["id"] not in deja:
                     self.combo_existant.addItem(f"{p['nom']} {p['prenom']}" + (f" ({p['age']} ans)" if p["age"] else "")
@@ -282,7 +336,13 @@ class DialogueAdherent(QDialog):
                                  Qt.CheckState.Checked if di else Qt.CheckState.Unchecked)
         self.tarif = QComboBox()
         self.tarif.addItem("— tarif —", None)
-        self._tarifs = dclub.tarifs_de(club_id, saison)
+        self.section = QComboBox()
+        self.section.addItem("Toute l'association", None)
+        for x in dclub.sections(club_id):
+            self.section.addItem(x["nom"], x["id"])
+        self.section.setCurrentIndex(max(0, self.section.findData(a.get("section_id") if adhesion
+                                                                 else getattr(parent, "section_id", None))))
+        self._tarifs = dclub.tarifs_de(club_id, saison, self.section.currentData())
         for t in self._tarifs:
             self.tarif.addItem(f"{t['libelle']} ({_euros(t['montant'])})", t["libelle"])
         if a.get("tarif") and self.tarif.findData(a["tarif"]) < 0:
@@ -303,6 +363,8 @@ class DialogueAdherent(QDialog):
         ldp.addWidget(self.c_dpay)
         ldp.addWidget(self.date_pay, 1)
         self.notes = QLineEdit(a.get("notes") or "")
+        if self.section.count() > 1:
+            fa.addRow("Section", self.section)
         for lib, w in (("Licence", self.type_lic), ("N° de licence", self.num_lic), ("Prise de licence", ldl),
                        ("Statut", self.statut), ("Santé", self.sante), ("Date de la pièce", lds), ("", self.autorisation),
                        ("", self.image), ("Tarif", self.tarif), ("Cotisation", self.cotisation), ("Déjà payé", self.paye),
@@ -411,7 +473,8 @@ class DialogueAdherent(QDialog):
                 "tarif": self.tarif.currentData(), "cotisation": self.cotisation.value(),
                 "montant_paye": self.paye.value(), "paiement_mode": self.mode.currentData() if self.mode.currentIndex() > 0
                 and self.mode.currentData() else (self.mode.currentText() if self.mode.currentIndex() > 0 else None),
-                "paiement_date": _valeur_date(self.c_dpay, self.date_pay), "notes": self.notes.text().strip()}
+                "paiement_date": _valeur_date(self.c_dpay, self.date_pay), "notes": self.notes.text().strip(),
+                "section_id": self.section.currentData()}
 
     def groupes(self):
         return [self.liste_groupes.item(i).data(Qt.ItemDataRole.UserRole) for i in range(self.liste_groupes.count())
@@ -526,8 +589,8 @@ class TableauDeBordClub(_EcranClub):
 
     def actualiser(self):
         s = self.saison
-        adh = dclub.adhesions(self.club_id, s)
-        prec = dclub.adhesions(self.club_id, cat.saison_precedente(s))
+        adh = self.adhesions(s)
+        prec = self.adhesions(cat.saison_precedente(s))
         ch = regles.chiffres(adh, prec, s)
         c = self.cartes
         c["effectif"].valeur.setText(str(ch["effectif"]))
@@ -550,9 +613,13 @@ class TableauDeBordClub(_EcranClub):
             auj = date.today()
             assid = dag.assiduite(self.club_id, auj - timedelta(days=60), auj)
             noms = {pid: f"{r.get('prenom', '')} {r.get('nom', '')}".strip() for pid, r in assid.items()}
-            al += ag.alertes_presences(assid, noms, len(dag.sans_appel(self.club_id)))
+            if self.section_id:
+                membres = {a["personne_id"] for a in adh}
+                assid = {pid: r for pid, r in assid.items() if pid in membres}
+                noms = {pid: n for pid, n in noms.items() if pid in membres}
+            al += ag.alertes_presences(assid, noms, len([x for x in dag.sans_appel(self.club_id) if self.dans_section(x)]))
         from interface.club_agenda import _date_courte, _horaire
-        proch = dag.prochaines(self.club_id, 6)
+        proch = [x for x in dag.prochaines(self.club_id, 12) if self.dans_section(x)][:6]
         tp = self.table_proch
         tp.setRowCount(len(proch))
         for i, x in enumerate(proch):
@@ -677,11 +744,11 @@ class AdherentsClub(_EcranClub):
         self.f_groupe.blockSignals(True)
         self.f_groupe.clear()
         self.f_groupe.addItem("Tous les groupes", None)
-        for g in dclub.groupes(self.club_id):
+        for g in self.groupes_visibles():
             self.f_groupe.addItem(g["nom"], g["id"])
         self.f_groupe.setCurrentIndex(max(0, self.f_groupe.findData(actuel)))
         self.f_groupe.blockSignals(False)
-        self._adh = dclub.adhesions(self.club_id, self.saison)
+        self._adh = self.adhesions()
         self._remplir()
 
     def _remplir(self):
@@ -869,7 +936,7 @@ class GroupesClub(_EcranClub):
         self._finaliser()
 
     def actualiser(self):
-        self._groupes = dclub.groupes(self.club_id, avec_inactifs=True)
+        self._groupes = self.groupes_visibles(avec_inactifs=True)
         t = self.table
         actuel = t.currentRow()
         t.setRowCount(len(self._groupes))
@@ -892,7 +959,7 @@ class GroupesClub(_EcranClub):
         if not g:
             return
         membres = set(dclub.membres_du_groupe(g["id"]))
-        for a in dclub.adhesions(self.club_id, self.saison):
+        for a in self.adhesions():
             if a["statut"] == "annulee":
                 continue
             c = a["categorie"]
@@ -932,7 +999,14 @@ class GroupesClub(_EcranClub):
         ent.setCurrentIndex(max(0, ent.findData((g or {}).get("entraineur_id"))))
         actif = QCheckBox("Groupe actif")
         actif.setChecked(bool((g or {}).get("actif", 1)))
+        sec = QComboBox()
+        sec.addItem("Toute l'association", None)
+        for x in dclub.sections(self.club_id):
+            sec.addItem(x["nom"], x["id"])
+        sec.setCurrentIndex(max(0, sec.findData((g or {}).get("section_id") if g else self.section_id)))
         f.addRow("Nom", nom)
+        if sec.count() > 1:
+            f.addRow("Section", sec)
         f.addRow("Entraîneur", ent)
         f.addRow("Description", desc)
         f.addRow("", actif)
@@ -943,7 +1017,8 @@ class GroupesClub(_EcranClub):
         if d.exec():
             try:
                 dclub.enregistrer_groupe(self.club_id, {"nom": nom.text(), "description": desc.text(),
-                                                        "entraineur_id": ent.currentData(), "actif": actif.isChecked()},
+                                                        "entraineur_id": ent.currentData(), "actif": actif.isChecked(),
+                                                        "section_id": sec.currentData()},
                                          g["id"] if g else None)
             except dclub.ErreurClub as e:
                 QMessageBox.warning(self, "Groupe", str(e))
@@ -1009,14 +1084,14 @@ class CotisationsClub(_EcranClub):
         self._finaliser()
 
     def actualiser(self):
-        self._tarifs = dclub.tarifs_de(self.club_id, self.saison)
+        self._tarifs = dclub.tarifs_de(self.club_id, self.saison, self.section_id)
         t = self.table_t
         t.setRowCount(len(self._tarifs))
         for i, x in enumerate(self._tarifs):
             for j, v in enumerate((x["libelle"], cat.LIBELLE_LICENCE.get(x["type_licence"], "toutes"), _euros(x["montant"]))):
                 t.setItem(i, j, QTableWidgetItem(v))
         t.resizeColumnsToContents()
-        adh = [a for a in dclub.adhesions(self.club_id, self.saison) if a["statut"] != "annulee"]
+        adh = [a for a in self.adhesions() if a["statut"] != "annulee"]
         self._impayes = [a for a in adh if a["reste"] > 0.005]
         t = self.table_r
         t.setRowCount(len(self._impayes))
@@ -1056,7 +1131,14 @@ class CotisationsClub(_EcranClub):
         lic.setCurrentIndex(max(0, lic.findData((t or {}).get("type_licence"))))
         m = _montant()
         m.setValue((t or {}).get("montant") or 0)
+        sec = QComboBox()
+        sec.addItem("Toute l'association", None)
+        for x in dclub.sections(self.club_id):
+            sec.addItem(x["nom"], x["id"])
+        sec.setCurrentIndex(max(0, sec.findData((t or {}).get("section_id") if t else self.section_id)))
         f.addRow("Nom", lib)
+        if sec.count() > 1:
+            f.addRow("Section", sec)
         f.addRow("Licence", lic)
         f.addRow("Montant", m)
         bb = QDialogButtonBox(QDialogButtonBox.StandardButton.Save | QDialogButtonBox.StandardButton.Cancel)
@@ -1066,7 +1148,7 @@ class CotisationsClub(_EcranClub):
         if d.exec():
             try:
                 dclub.enregistrer_tarif(self.club_id, self.saison, lib.text(), m.value(), lic.currentData(),
-                                        t["id"] if t else None)
+                                        t["id"] if t else None, sec.currentData())
             except dclub.ErreurClub as e:
                 QMessageBox.warning(self, "Tarif", str(e))
             self.actualiser()
@@ -1177,7 +1259,7 @@ class ImportClub(_EcranClub):
     def _importer(self):
         if not self._analyse:
             return
-        r = dclub.importer(self.club_id, self.saison, self._analyse["lignes"], self.source.currentData())
+        r = dclub.importer(self.club_id, self.saison, self._analyse["lignes"], self.source.currentData(), self.section_id)
         txt = (f"{r['adhesions']} adhésion(s) {self.saison} créée(s) · {r['crees']} nouvelle(s) fiche(s) · "
                f"{r['completes']} fiche(s) complétée(s) · {r['deja']} déjà inscrit(s) cette saison.")
         if r["erreurs"]:
@@ -1197,13 +1279,14 @@ class ImportClub(_EcranClub):
 class ReglagesClub(_EcranClub):
 
     def __init__(self, athlete_id_initial=None):
-        super().__init__("⚙️  Le club", "Les informations du club, reprises sur les reçus et, plus tard, sur les "
-                         "documents des courses. La zone de vacances (selon l'académie) sert à l'agenda.",
+        super().__init__("⚙️  Le club", "Les informations de l'association, reprises sur les reçus et les documents "
+                         "des courses ; les autres associations gérées et les sections. La zone de vacances (selon "
+                         "l'académie) sert à l'agenda.",
                          athlete_id_initial)
-        cadre, lc = _cadre("Identité du club")
+        cadre, lc = _cadre("Identité de l'association")
         f = QFormLayout()
         self.champs = {}
-        for cle, lib in (("nom", "Nom du club"), ("sigle", "Sigle"), ("numero_ffa", "N° d'affiliation FFA"),
+        for cle, lib in (("nom", "Nom"), ("sigle", "Sigle"), ("numero_ffa", "N° d'affiliation FFA"),
                          ("ligue", "Ligue"), ("comite", "Comité départemental"), ("president", "Président(e)"),
                          ("adresse", "Adresse"), ("code_postal", "Code postal"), ("ville", "Ville"), ("email", "E-mail"),
                          ("telephone", "Téléphone"), ("site", "Site internet")):
@@ -1215,6 +1298,13 @@ class ReglagesClub(_EcranClub):
         for z in ag.ZONES:
             self.zone.addItem(f"Zone {z} : " + ", ".join(ag.ZONE_PAR_ACADEMIE[z]), z)
         f.addRow("Vacances scolaires", self.zone)
+        self.type_structure = QComboBox()
+        for code, lib in dclub.TYPES_STRUCTURE:
+            self.type_structure.addItem(lib, code)
+        f.insertRow(1, "Type d'association", self.type_structure)
+        self.affiliation = QLineEdit()
+        self.affiliation.setPlaceholderText("ex. FFA, FFRandonnée, FSGT, UFOLEP, aucune")
+        f.insertRow(3, "Affiliation", self.affiliation)
         self.notes = QTextEdit()
         self.notes.setMaximumHeight(80)
         f.addRow("Notes", self.notes)
@@ -1226,7 +1316,46 @@ class ReglagesClub(_EcranClub):
         b.addStretch()
         lc.addLayout(b)
         self.principal.addWidget(cadre)
+        # --- plusieurs associations
+        cadre, lc = _cadre("Associations gérées dans Trail Hub")
+        aide = QLabel("Chaque association a ses adhérents, ses groupes, ses tarifs, ses reçus, son agenda et ses "
+                      "événements. Une personne inscrite dans deux associations garde une seule fiche, avec une "
+                      "adhésion dans chacune. Le choix en haut de chaque écran dit sur quelle association on travaille.")
+        aide.setWordWrap(True)
+        aide.setObjectName("texteSecondaire")
+        lc.addWidget(aide)
+        self.table_clubs = _table(["Association", "Type", "Affiliation", "Ville", "Adhérents (saison)", "Sections"], 150)
+        lc.addWidget(self.table_clubs)
+        b = QHBoxLayout()
+        for t, fn, p in (("➕ Nouvelle association", self._nouvelle_association, False),
+                         ("✔️ Travailler sur celle-ci", self._choisir_association, False),
+                         ("🗑️ Supprimer", self._supprimer_association, False)):
+            w = _bouton(t, p)
+            w.clicked.connect(fn)
+            b.addWidget(w)
+        b.addStretch()
+        lc.addLayout(b)
+        self.principal.addWidget(cadre)
+        # --- sections
+        cadre, lc = _cadre("Sections de cette association")
+        aide = QLabel("Une section (trail, running, marche nordique, école d'athlé…) garde ses adhérents, ses groupes "
+                      "et ses tarifs à part dans la même association : même bureau, même comptabilité.")
+        aide.setWordWrap(True)
+        aide.setObjectName("texteSecondaire")
+        lc.addWidget(aide)
+        self.table_sections = _table(["Section", "Discipline", "Responsable", "Adhérents (saison)", "Groupes", "Active"], 150)
+        lc.addWidget(self.table_sections)
+        b = QHBoxLayout()
+        for t, fn, p in (("➕ Section", self._nouvelle_section, False), ("✏️ Modifier", self._modifier_section, False),
+                         ("🗑️ Supprimer", self._supprimer_section, False)):
+            w = _bouton(t, p)
+            w.clicked.connect(fn)
+            b.addWidget(w)
+        b.addStretch()
+        lc.addLayout(b)
+        self.principal.addWidget(cadre)
         self.principal.addStretch()
+        self._clubs, self._sections = [], []
         self._finaliser()
 
     def actualiser(self):
@@ -1235,21 +1364,113 @@ class ReglagesClub(_EcranClub):
             w.setText(c.get(k) or "")
         self.notes.setPlainText(c.get("notes") or "")
         self.zone.setCurrentIndex(max(0, self.zone.findData(c.get("zone_vacances") or "B")))
+        self.type_structure.setCurrentIndex(max(0, self.type_structure.findData(c.get("type_structure") or "club_ffa")))
+        self.affiliation.setText(c.get("affiliation") or "")
+        self._clubs = dclub.clubs()
+        t = self.table_clubs
+        t.setRowCount(len(self._clubs))
+        for r, x in enumerate(self._clubs):
+            n = len([a for a in dclub.adhesions(x["id"], self.saison) if a["statut"] != "annulee"])
+            for j, v in enumerate(((("▶ " if x["id"] == c.get("id") else "") + x["nom"]),
+                                   dclub.LIBELLE_STRUCTURE.get(x.get("type_structure") or "club_ffa", ""),
+                                   x.get("affiliation") or "", x.get("ville") or "", str(n),
+                                   ", ".join(s["nom"] for s in dclub.sections(x["id"])))):
+                t.setItem(r, j, QTableWidgetItem(v))
+        t.resizeColumnsToContents()
+        self._sections = dclub.sections(self.club_id, avec_inactives=True)
+        t = self.table_sections
+        t.setRowCount(len(self._sections))
+        adh = [a for a in dclub.adhesions(self.club_id, self.saison) if a["statut"] != "annulee"]
+        grp = dclub.groupes(self.club_id, True)
+        for r, x in enumerate(self._sections):
+            for j, v in enumerate((x["nom"], x.get("discipline") or "", x.get("responsable") or "",
+                                   str(sum(1 for a in adh if a["section_id"] == x["id"])),
+                                   ", ".join(g["nom"] for g in grp if g["section_id"] == x["id"]),
+                                   "oui" if x["actif"] else "non")):
+                t.setItem(r, j, QTableWidgetItem(v))
+        t.resizeColumnsToContents()
+
+    def _spec_association(self):
+        return [("texte", "nom", "Nom", None), ("choix", "type_structure", "Type", {"choix": dclub.TYPES_STRUCTURE}),
+                ("texte", "affiliation", "Affiliation", {"aide": "FFA, FFRandonnée, aucune…"}),
+                ("texte", "ville", "Ville", None), ("texte", "president", "Président(e)", None)]
+
+    def _nouvelle_association(self):
+        from interface.organisation_logistique import DialogueChamps
+        d = DialogueChamps(self, "Nouvelle association", self._spec_association(), {"type_structure": "association_trail"},
+                           lambda ch: dclub.enregistrer_club(ch))
+        if d.exec():
+            if QMessageBox.question(self, "Association", "Travailler maintenant sur cette association ?") == \
+                    QMessageBox.StandardButton.Yes:
+                dclub.choisir_club(d.resultat)
+            self._tout_rafraichir()
+
+    def _choisir_association(self):
+        r = self.table_clubs.currentRow()
+        if 0 <= r < len(self._clubs):
+            dclub.choisir_club(self._clubs[r]["id"])
+            self._tout_rafraichir()
+
+    def _supprimer_association(self):
+        r = self.table_clubs.currentRow()
+        if not 0 <= r < len(self._clubs):
+            return
+        x = self._clubs[r]
+        if QMessageBox.question(self, "Association", f"Supprimer « {x['nom']} » ?") != QMessageBox.StandardButton.Yes:
+            return
+        try:
+            dclub.supprimer_club(x["id"])
+        except dclub.ErreurClub as e:
+            QMessageBox.warning(self, "Association", str(e))
+            return
+        self._tout_rafraichir()
+
+    def _spec_section(self):
+        resp = [(None, "—")] + [(a["personne_id"], f"{a['prenom'] or ''} {a['nom']}".strip())
+                                for a in dclub.adhesions(self.club_id, self.saison)]
+        return [("texte", "nom", "Nom de la section", {"aide": "Trail, Running, Marche nordique…"}),
+                ("texte", "discipline", "Discipline", None), ("choix", "responsable_id", "Responsable", {"choix": resp}),
+                ("long", "description", "Description", None), ("case", "actif", "Active", {"texte": "oui"})]
+
+    def _nouvelle_section(self):
+        from interface.organisation_logistique import DialogueChamps
+        d = DialogueChamps(self, "Nouvelle section", self._spec_section(), {"actif": True},
+                           lambda ch: dclub.enregistrer_section(self.club_id, ch))
+        if d.exec():
+            self._tout_rafraichir()
+
+    def _modifier_section(self):
+        from interface.organisation_logistique import DialogueChamps
+        r = self.table_sections.currentRow()
+        if 0 <= r < len(self._sections):
+            x = self._sections[r]
+            d = DialogueChamps(self, "Section", self._spec_section(), x,
+                               lambda ch: dclub.enregistrer_section(self.club_id, ch, x["id"]))
+            if d.exec():
+                self._tout_rafraichir()
+
+    def _supprimer_section(self):
+        r = self.table_sections.currentRow()
+        if 0 <= r < len(self._sections):
+            x = self._sections[r]
+            if QMessageBox.question(self, "Section", f"Supprimer la section « {x['nom']} » ? Ses adhérents, groupes et "
+                                    "tarifs restent dans l'association.") == QMessageBox.StandardButton.Yes:
+                dclub.supprimer_section(x["id"])
+                self._tout_rafraichir()
 
     def _enregistrer(self):
         v = {k: w.text() for k, w in self.champs.items()}
         v["notes"] = self.notes.toPlainText()
         v["zone_vacances"] = self.zone.currentData()
+        v["type_structure"] = self.type_structure.currentData()
+        v["affiliation"] = self.affiliation.text()
         try:
             dclub.enregistrer_club(v, self.club_id)
         except dclub.ErreurClub as e:
             QMessageBox.warning(self, "Club", str(e))
             return
-        f = self._fenetre()
-        if f:
-            for e in f.ecrans:
-                e._remplir_saisons()
-        QMessageBox.information(self, "Club", "Informations du club enregistrées.")
+        self._tout_rafraichir()
+        QMessageBox.information(self, "Club", "Informations de l'association enregistrées.")
 
 
 # ======================================================================

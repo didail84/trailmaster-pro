@@ -3,6 +3,11 @@ Accès aux données de l'Espace Club (étape 4.1) : le club, ses groupes, les
 adhésions de chaque saison et les tarifs. Un adhérent est une fiche
 Personne (noyau/donnees/personnes.py) avec le rôle « licencié » : le club
 ne tient pas un second fichier de membres.
+
+Plusieurs associations (club FFA, association de trail…) et leurs sections
+(étape 5, chantier A) : chaque association a ses adhésions, groupes, tarifs,
+reçus et agenda ; une personne inscrite dans deux associations garde une
+seule fiche. « L'association courante » (Réglages) est celle des écrans.
 """
 
 from datetime import date
@@ -11,10 +16,13 @@ from noyau.donnees import base, personnes as dper
 from noyau.club import categories as cat, adhesions as regles
 
 CHAMPS_CLUB = ("nom", "sigle", "numero_ffa", "ligue", "comite", "adresse", "code_postal", "ville", "email",
-               "telephone", "site", "president", "logo_path", "notes", "zone_vacances")
+               "telephone", "site", "president", "logo_path", "notes", "zone_vacances", "type_structure", "affiliation")
+TYPES_STRUCTURE = (("club_ffa", "Club affilié à la FFA"), ("association_trail", "Association de trail"),
+                   ("association", "Autre association sportive"))
+LIBELLE_STRUCTURE = dict(TYPES_STRUCTURE)
 CHAMPS_ADHESION = ("type_licence", "numero_licence", "date_licence", "statut", "sante_type", "sante_date",
                    "autorisation_parentale", "droit_image", "tarif", "cotisation", "montant_paye", "paiement_mode",
-                   "paiement_date", "recu_numero", "source", "notes")
+                   "paiement_date", "recu_numero", "source", "notes", "section_id")
 
 
 class ErreurClub(Exception):
@@ -25,10 +33,100 @@ class ErreurClub(Exception):
 # Club
 # ------------------------------------------------------------------
 
-def club_principal():
-    """Le club (dict) ou None s'il n'est pas encore créé."""
-    l = base.lire_un(f"SELECT id, {', '.join(CHAMPS_CLUB)} FROM clubs ORDER BY id LIMIT 1")
+def clubs():
+    """Toutes les associations, dans l'ordre de création."""
+    return [dict(zip(("id",) + CHAMPS_CLUB, l)) for l in base.lire_tous(
+        f"SELECT id, {', '.join(CHAMPS_CLUB)} FROM clubs ORDER BY id")]
+
+
+def club(club_id):
+    l = base.lire_un(f"SELECT id, {', '.join(CHAMPS_CLUB)} FROM clubs WHERE id=?", (club_id,))
     return dict(zip(("id",) + CHAMPS_CLUB, l)) if l else None
+
+
+def club_courant_id():
+    """L'association choisie dans les écrans (sinon la première créée), ou None."""
+    from data.database import obtenir_parametre
+    v = obtenir_parametre("club_courant")
+    if v and str(v).isdigit() and base.lire_un("SELECT 1 FROM clubs WHERE id=?", (int(v),)):
+        return int(v)
+    l = base.lire_un("SELECT id FROM clubs ORDER BY id LIMIT 1")
+    return l[0] if l else None
+
+
+def choisir_club(club_id):
+    from data.database import definir_parametre
+    if not base.lire_un("SELECT 1 FROM clubs WHERE id=?", (club_id,)):
+        raise ErreurClub("Association introuvable.")
+    definir_parametre("club_courant", club_id)
+
+
+def club_principal():
+    """L'association courante (dict) ou None s'il n'y en a pas encore."""
+    cid = club_courant_id()
+    return club(cid) if cid else None
+
+
+def supprimer_club(club_id):
+    """Seulement une association sans adhésion ni événement."""
+    if base.lire_un("SELECT 1 FROM adhesions WHERE club_id=?", (club_id,)):
+        raise ErreurClub("Cette association a des adhésions : elle ne peut pas être supprimée.")
+    if base.lire_un("SELECT 1 FROM evenements WHERE club_id=?", (club_id,)):
+        raise ErreurClub("Cette association organise des événements : elle ne peut pas être supprimée.")
+    base.ecrire("DELETE FROM clubs WHERE id=?", (club_id,))
+
+
+# ------------------------------------------------------------------
+# Sections d'une association (section trail d'un club d'athlé…)
+# ------------------------------------------------------------------
+
+def sections(club_id, avec_inactives=False):
+    l = base.lire_tous(
+        "SELECT s.id, s.nom, s.discipline, s.responsable_id, s.description, s.actif, "
+        "(SELECT p.prenom || ' ' || p.nom FROM personnes p WHERE p.id = s.responsable_id) "
+        "FROM sections s WHERE s.club_id=? " + ("" if avec_inactives else "AND s.actif=1 ") +
+        "ORDER BY s.nom COLLATE NOCASE", (club_id,))
+    import unicodedata
+    cle = lambda x: unicodedata.normalize("NFKD", x["nom"].lower()).encode("ascii", "ignore")
+    return sorted((dict(zip(("id", "nom", "discipline", "responsable_id", "description", "actif", "responsable"), x))
+                   for x in l), key=cle)
+
+
+def enregistrer_section(club_id, champs, section_id=None):
+    nom = (champs.get("nom") or "").strip()
+    if not nom:
+        raise ErreurClub("Donne un nom à la section.")
+    deja = base.lire_un("SELECT id FROM sections WHERE club_id=? AND nom=? COLLATE NOCASE", (club_id, nom))
+    if deja and deja[0] != section_id:
+        raise ErreurClub(f"La section « {nom} » existe déjà.")
+    v = {"nom": nom, "discipline": champs.get("discipline"), "responsable_id": champs.get("responsable_id"),
+         "description": champs.get("description"), "actif": 1 if champs.get("actif", True) else 0}
+    if section_id is None:
+        return base.inserer("sections", {"club_id": club_id, **v})
+    base.ecrire(f"UPDATE sections SET {', '.join(k + '=?' for k in v)} WHERE id=?", tuple(v.values()) + (section_id,))
+    return section_id
+
+
+def supprimer_section(section_id):
+    """Les adhésions, groupes et tarifs de la section restent dans l'association."""
+    with base.transaction() as cur:
+        for t in ("adhesions", "groupes", "tarifs_cotisation"):
+            base.ecrire(f"UPDATE {t} SET section_id=NULL WHERE section_id=?", (section_id,), cur)
+        base.ecrire("DELETE FROM sections WHERE id=?", (section_id,), cur)
+
+
+def section_courante(club_id):
+    """La section choisie dans les écrans pour cette association, ou None (toute l'association)."""
+    from data.database import obtenir_parametre
+    v = obtenir_parametre(f"section_courante_{club_id}")
+    if v and str(v).isdigit() and base.lire_un("SELECT 1 FROM sections WHERE id=? AND club_id=?", (int(v), club_id)):
+        return int(v)
+    return None
+
+
+def choisir_section(club_id, section_id):
+    from data.database import definir_parametre
+    definir_parametre(f"section_courante_{club_id}", section_id or "")
 
 
 def enregistrer_club(champs, club_id=None):
@@ -52,14 +150,18 @@ def club_id_ou_creer():
 # Groupes
 # ------------------------------------------------------------------
 
-def groupes(club_id, avec_inactifs=False):
+def groupes(club_id, avec_inactifs=False, section_id=None):
+    """Groupes de l'association ; avec `section_id`, seulement ceux de la section."""
     lignes = base.lire_tous(
         "SELECT g.id, g.nom, g.description, g.couleur, g.entraineur_id, g.actif, "
         "(SELECT p.prenom || ' ' || p.nom FROM personnes p WHERE p.id = g.entraineur_id), "
-        "(SELECT COUNT(*) FROM groupes_membres m WHERE m.groupe_id = g.id) "
+        "(SELECT COUNT(*) FROM groupes_membres m WHERE m.groupe_id = g.id), g.section_id, "
+        "(SELECT s.nom FROM sections s WHERE s.id = g.section_id) "
         "FROM groupes g WHERE g.club_id=? " + ("" if avec_inactifs else "AND g.actif=1 ") +
-        "ORDER BY g.nom COLLATE NOCASE", (club_id,))
-    cles = ("id", "nom", "description", "couleur", "entraineur_id", "actif", "entraineur", "nb_membres")
+        ("AND g.section_id=? " if section_id else "") +
+        "ORDER BY g.nom COLLATE NOCASE", (club_id, section_id) if section_id else (club_id,))
+    cles = ("id", "nom", "description", "couleur", "entraineur_id", "actif", "entraineur", "nb_membres", "section_id",
+            "section")
     return [dict(zip(cles, l)) for l in lignes]
 
 
@@ -72,11 +174,12 @@ def enregistrer_groupe(club_id, champs, groupe_id=None):
         raise ErreurClub(f"Le groupe « {nom} » existe déjà.")
     v = {"nom": nom, "description": champs.get("description") or "", "couleur": champs.get("couleur"),
          "entraineur_id": champs.get("entraineur_id"), "actif": 1 if champs.get("actif", True) else 0}
+    if "section_id" in champs:
+        v["section_id"] = champs.get("section_id")
     if groupe_id is None:
         groupe_id = base.inserer("groupes", {"club_id": club_id, **v})
     else:
-        base.ecrire("UPDATE groupes SET nom=?, description=?, couleur=?, entraineur_id=?, actif=? WHERE id=?",
-                    tuple(v.values()) + (groupe_id,))
+        base.ecrire(f"UPDATE groupes SET {', '.join(k + '=?' for k in v)} WHERE id=?", tuple(v.values()) + (groupe_id,))
     if v["entraineur_id"]:
         dper_roles = dper.roles(v["entraineur_id"])
         if "entraineur" not in dper_roles:
@@ -115,11 +218,12 @@ _COLS = ("a.id", "a.personne_id", "a.saison", "a.type_licence", "a.numero_licenc
          "p.nom", "p.prenom", "p.date_naissance", "p.sexe", "p.email", "p.telephone", "p.ville",
          "p.contact_urgence_nom", "p.contact_urgence_tel",
          "(SELECT group_concat(g.nom, ', ') FROM groupes_membres m JOIN groupes g ON g.id = m.groupe_id "
-         "WHERE m.personne_id = p.id AND g.club_id = a.club_id)")
+         "WHERE m.personne_id = p.id AND g.club_id = a.club_id)", "a.club_id", "a.section_id",
+         "(SELECT s.nom FROM sections s WHERE s.id = a.section_id)")
 _CLES = ("id", "personne_id", "saison", "type_licence", "numero_licence", "date_licence", "statut", "sante_type",
          "sante_date", "autorisation_parentale", "droit_image", "tarif", "cotisation", "montant_paye", "paiement_mode",
          "paiement_date", "recu_numero", "source", "notes", "nom", "prenom", "date_naissance", "sexe", "email",
-         "telephone", "ville", "contact_urgence_nom", "contact_urgence_tel", "groupes")
+         "telephone", "ville", "contact_urgence_nom", "contact_urgence_tel", "groupes", "club_id", "section_id", "section")
 
 
 def _completer(a):
@@ -130,11 +234,15 @@ def _completer(a):
     return a
 
 
-def adhesions(club_id, saison, groupe_id=None):
-    """Adhésions de la saison avec la fiche de la personne, sa catégorie et l'état de son dossier."""
+def adhesions(club_id, saison, groupe_id=None, section_id=None):
+    """Adhésions de la saison avec la fiche de la personne, sa catégorie et l'état de son dossier ; avec
+    `section_id`, seulement celles de la section."""
     sql = (f"SELECT {', '.join(_COLS)} FROM adhesions a JOIN personnes p ON p.id = a.personne_id "
            "WHERE a.club_id=? AND a.saison=?")
     params = [club_id, saison]
+    if section_id:
+        sql += " AND a.section_id=?"
+        params.append(section_id)
     if groupe_id is not None:
         sql += " AND a.personne_id IN (SELECT personne_id FROM groupes_membres WHERE groupe_id=?)"
         params.append(groupe_id)
@@ -191,7 +299,7 @@ def enregistrer_adhesion(club_id, personne_id, saison, champs, adhesion_id=None)
         aid = adhesion_id
     cot, paye, recu = base.lire_un("SELECT cotisation, montant_paye, recu_numero FROM adhesions WHERE id=?", (aid,))
     if cot and (paye or 0) >= cot - 0.005 and not recu:
-        base.ecrire("UPDATE adhesions SET recu_numero=? WHERE id=?", (prochain_recu(saison), aid))
+        base.ecrire("UPDATE adhesions SET recu_numero=? WHERE id=?", (prochain_recu(saison, club_id), aid))
     r = dper.roles(personne_id)
     if "licencie" not in r:
         dper.definir_roles(personne_id, list(r) + ["licencie"])
@@ -230,7 +338,8 @@ def renouveler(club_id, saison_source, saison_cible, personne_ids=None):
                                        "type_licence": a["type_licence"], "numero_licence": a["numero_licence"],
                                        "statut": "en_cours", "tarif": t["libelle"] if t else a["tarif"],
                                        "cotisation": t["montant"] if t else a["cotisation"], "montant_paye": 0,
-                                       "droit_image": a["droit_image"], "source": "renouvellement"}, cur)
+                                       "droit_image": a["droit_image"], "source": "renouvellement",
+                                       "section_id": a["section_id"]}, cur)
             n += 1
     return n
 
@@ -246,17 +355,18 @@ def enregistrer_paiement(adhesion_id, montant, mode=None, jour=None):
     champs = {"montant_paye": paye, "paiement_mode": mode or a["paiement_mode"],
               "paiement_date": jour or date.today().isoformat()}
     if not a["recu_numero"] and a["cotisation"] and paye >= a["cotisation"] - 0.005:
-        champs["recu_numero"] = prochain_recu(a["saison"])
+        champs["recu_numero"] = prochain_recu(a["saison"], a["club_id"])
     base.ecrire(f"UPDATE adhesions SET {', '.join(c + '=?' for c in champs)} WHERE id=?",
                 tuple(champs.values()) + (adhesion_id,))
     return champs.get("recu_numero") or a["recu_numero"]
 
 
-def prochain_recu(saison):
-    """Numéro de reçu suivant pour la saison : « 2026-27-0001 »."""
+def prochain_recu(saison, club_id=None):
+    """Numéro de reçu suivant pour la saison, propre à chaque association : « 2026-27-0001 »."""
     prefixe = f"{saison[:4]}-{saison[-2:]}-"
-    nums = [int(r[0][len(prefixe):]) for r in base.lire_tous(
-        "SELECT recu_numero FROM adhesions WHERE recu_numero LIKE ?", (prefixe + "%",)) if r[0][len(prefixe):].isdigit()]
+    sql = "SELECT recu_numero FROM adhesions WHERE recu_numero LIKE ?" + (" AND club_id=?" if club_id else "")
+    nums = [int(r[0][len(prefixe):]) for r in base.lire_tous(sql, (prefixe + "%", club_id) if club_id else (prefixe + "%",))
+            if r[0][len(prefixe):].isdigit()]
     return f"{prefixe}{(max(nums) + 1 if nums else 1):04d}"
 
 
@@ -264,13 +374,19 @@ def prochain_recu(saison):
 # Tarifs
 # ------------------------------------------------------------------
 
-def tarifs_de(club_id, saison):
-    return [dict(zip(("id", "libelle", "type_licence", "montant"), l)) for l in base.lire_tous(
-        "SELECT id, libelle, type_licence, montant FROM tarifs_cotisation WHERE club_id=? AND saison=? "
-        "ORDER BY montant DESC", (club_id, saison))]
+def tarifs_de(club_id, saison, section_id=None):
+    """Tarifs de la saison ; avec `section_id`, ceux de la section et ceux de toute l'association."""
+    sql = ("SELECT id, libelle, type_licence, montant, section_id, (SELECT s.nom FROM sections s WHERE s.id = t.section_id) "
+           "FROM tarifs_cotisation t WHERE club_id=? AND saison=?")
+    params = (club_id, saison)
+    if section_id:
+        sql += " AND (section_id IS NULL OR section_id=?)"
+        params += (section_id,)
+    return [dict(zip(("id", "libelle", "type_licence", "montant", "section_id", "section"), l))
+            for l in base.lire_tous(sql + " ORDER BY section_id IS NOT NULL DESC, montant DESC", params)]
 
 
-def enregistrer_tarif(club_id, saison, libelle, montant, type_licence=None, tarif_id=None):
+def enregistrer_tarif(club_id, saison, libelle, montant, type_licence=None, tarif_id=None, section_id=None):
     libelle = (libelle or "").strip()
     if not libelle or montant is None or montant < 0:
         raise ErreurClub("Donne un nom et un montant positif au tarif.")
@@ -279,9 +395,10 @@ def enregistrer_tarif(club_id, saison, libelle, montant, type_licence=None, tari
                         (club_id, saison, libelle)):
             raise ErreurClub(f"Le tarif « {libelle} » existe déjà pour {saison}.")
         return base.inserer("tarifs_cotisation", {"club_id": club_id, "saison": saison, "libelle": libelle,
-                                                  "montant": montant, "type_licence": type_licence})
-    base.ecrire("UPDATE tarifs_cotisation SET libelle=?, montant=?, type_licence=? WHERE id=?",
-                (libelle, montant, type_licence, tarif_id))
+                                                  "montant": montant, "type_licence": type_licence,
+                                                  "section_id": section_id})
+    base.ecrire("UPDATE tarifs_cotisation SET libelle=?, montant=?, type_licence=?, section_id=? WHERE id=?",
+                (libelle, montant, type_licence, section_id, tarif_id))
     return tarif_id
 
 
@@ -294,7 +411,8 @@ def copier_tarifs(club_id, saison_source, saison_cible):
     existants = {t["libelle"] for t in tarifs_de(club_id, saison_cible)}
     for t in tarifs_de(club_id, saison_source):
         if t["libelle"] not in existants:
-            enregistrer_tarif(club_id, saison_cible, t["libelle"], t["montant"], t["type_licence"])
+            enregistrer_tarif(club_id, saison_cible, t["libelle"], t["montant"], t["type_licence"],
+                              section_id=t["section_id"])
             n += 1
     return n
 
@@ -315,12 +433,12 @@ def _chercher_personne(p, numero_licence):
     return d[0]["id"] if len(d) == 1 else None
 
 
-def importer(club_id, saison, lignes, source="import"):
+def importer(club_id, saison, lignes, source="import", section_id=None):
     """lignes : celles de noyau/club/imports.analyser. Chaque personne déjà connue (même numéro de licence,
     ou même nom, prénom et date de naissance) est complétée sans écraser ce qui est saisi ; les autres
     sont créées. Renvoie {crees, completes, adhesions, deja, erreurs: [texte]}."""
     rapport = {"crees": 0, "completes": 0, "adhesions": 0, "deja": 0, "erreurs": []}
-    tarifs = tarifs_de(club_id, saison)
+    tarifs = tarifs_de(club_id, saison, section_id)
     for k, l in enumerate(lignes, 1):
         p, a = dict(l["personne"]), dict(l["adhesion"])
         try:
@@ -343,7 +461,7 @@ def importer(club_id, saison, lignes, source="import"):
                 if t:
                     a["cotisation"], a["tarif"] = t["montant"], a.get("tarif") or t["libelle"]
             enregistrer_adhesion(club_id, pid, saison, {**{k2: v for k2, v in a.items() if v is not None},
-                                                         "source": source})
+                                                         "source": source, "section_id": section_id})
             rapport["adhesions"] += 1
         except (dper.ErreurPersonne, ErreurClub) as e:
             rapport["erreurs"].append(f"Ligne {k} ({p.get('prenom', '')} {p.get('nom', '')}) : {e}")

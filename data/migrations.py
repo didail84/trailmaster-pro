@@ -903,6 +903,30 @@ def _m012_logistique(cur):
         _ajouter_uuid(cur, t)
 
 
+def _m013_associations(cur):
+    """Plusieurs associations (club FFA, association de trail…) et leurs sections, sans mélange : adhésions,
+    groupes et tarifs peuvent appartenir à une section."""
+    if "type_structure" not in _colonnes(cur, "clubs"):
+        cur.execute("ALTER TABLE clubs ADD COLUMN type_structure TEXT DEFAULT 'club_ffa'")
+    if "affiliation" not in _colonnes(cur, "clubs"):
+        cur.execute("ALTER TABLE clubs ADD COLUMN affiliation TEXT")
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS sections (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            club_id INTEGER NOT NULL REFERENCES clubs(id) ON DELETE CASCADE,
+            nom TEXT NOT NULL,
+            discipline TEXT,
+            responsable_id INTEGER REFERENCES personnes(id) ON DELETE SET NULL,
+            description TEXT,
+            actif INTEGER DEFAULT 1,
+            UNIQUE (club_id, nom)
+        )""")
+    for t in ("adhesions", "groupes", "tarifs_cotisation"):
+        if "section_id" not in _colonnes(cur, t):
+            cur.execute(f"ALTER TABLE {t} ADD COLUMN section_id INTEGER REFERENCES sections(id) ON DELETE SET NULL")
+    _ajouter_uuid(cur, "sections")
+
+
 MIGRATIONS = [
     (1, "Identifiant universel (UUID) pour chaque donnée", _m001_identifiants_universels),
     (2, "Fiche Personne unique et rôles", _m002_personnes_et_roles),
@@ -918,6 +942,7 @@ MIGRATIONS = [
     (11, "Profils des licenciés, séances partagées, chrono et classements", _m011_profils_chrono),
     (12, "Logistique d'une course : démarches, bénévoles, ravitaillements, matériel, partenaires et budget",
      _m012_logistique),
+    (13, "Plusieurs associations et leurs sections (adhésions, groupes et tarifs sans mélange)", _m013_associations),
 ]
 VERSION_LOGICIEL = MIGRATIONS[-1][0]
 
