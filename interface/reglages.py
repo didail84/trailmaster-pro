@@ -25,6 +25,7 @@ from PySide6.QtWidgets import (
     QTableWidget,
     QTableWidgetItem,
     QCheckBox,
+    QApplication,
 )
 
 from data.database import (
@@ -892,6 +893,8 @@ class Reglages(QMainWindow):
 
         principal.addWidget(cadre_affichage)
 
+        principal.addWidget(self._construire_cadre_relais())
+
         label_version = QLabel(f"Version installée : {obtenir_version_installee()}")
         label_version.setObjectName("texteSecondaire")
         label_version.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -900,6 +903,85 @@ class Reglages(QMainWindow):
         principal.addStretch()
 
         self.setStyleSheet(obtenir_style_ecran())
+
+    # ------------------------------------------------------------
+    # MISES À JOUR PAR RELAIS (étape 8)
+    # ------------------------------------------------------------
+    def _construire_cadre_relais(self):
+        from data.database import obtenir_parametre
+        from noyau.relais import client as RC, manifeste as RM
+        cadre = QFrame()
+        cadre.setObjectName("carteForm")
+        lay = QVBoxLayout(cadre)
+        t = QLabel("🔄 Mises à jour (Relais)")
+        t.setObjectName("titreCarte")
+        lay.addWidget(t)
+        cle = "clé de signature livrée : les mises à jour non signées sont refusées" if RM.cle_publique() else \
+            "pas encore de clé de signature : seules l'empreinte et la connexion chiffrée sont vérifiées"
+        info = QLabel(f"Cet ordinateur : {RC.plateforme()}, installé en « {RC.installation()} ». Le logiciel cherche "
+                      f"d'abord sur le Relais du club (NAS), puis sur GitHub ; {cle}.")
+        info.setObjectName("texteSecondaire")
+        info.setWordWrap(True)
+        lay.addWidget(info)
+        ligne = QHBoxLayout()
+        self.combo_canal = QComboBox()
+        for c, l in RM.CANAUX:
+            self.combo_canal.addItem(l, c)
+        self.combo_canal.setCurrentIndex(max(0, self.combo_canal.findData(obtenir_parametre("relais_canal") or "stable")))
+        self.champ_relais = QLineEdit(obtenir_parametre("relais_url") or "")
+        self.champ_relais.setPlaceholderText("Adresse du Relais du club, ex. https://nas.local:8780 (facultatif)")
+        b_enr = QPushButton("Enregistrer")
+        b_enr.setObjectName("boutonSecondaire")
+        b_enr.clicked.connect(self._enregistrer_relais)
+        b_verif = QPushButton("Vérifier maintenant")
+        b_verif.setObjectName("boutonPrincipal")
+        b_verif.clicked.connect(self._verifier_relais)
+        ligne.addWidget(QLabel("Canal :"))
+        ligne.addWidget(self.combo_canal)
+        ligne.addWidget(self.champ_relais, 1)
+        ligne.addWidget(b_enr)
+        ligne.addWidget(b_verif)
+        lay.addLayout(ligne)
+        if RC.installation() == "appimage":
+            b_ret = QPushButton("Revenir à la version précédente")
+            b_ret.setObjectName("boutonSecondaire")
+            b_ret.clicked.connect(self._retour_relais)
+            lay.addWidget(b_ret)
+        self.label_relais = QLabel("")
+        self.label_relais.setObjectName("texteSecondaire")
+        self.label_relais.setWordWrap(True)
+        lay.addWidget(self.label_relais)
+        return cadre
+
+    def _enregistrer_relais(self):
+        from data.database import definir_parametre
+        u = self.champ_relais.text().strip().rstrip("/")
+        if u and not u.startswith("https://"):
+            QMessageBox.warning(self, "Relais", "L'adresse du Relais doit commencer par https://")
+            return
+        definir_parametre("relais_url", u)
+        definir_parametre("relais_canal", self.combo_canal.currentData())
+        self.label_relais.setText("Réglages des mises à jour enregistrés.")
+
+    def _verifier_relais(self):
+        from interface.verification_maj import verifier_mise_a_jour, proposer_mise_a_jour
+        self._enregistrer_relais()
+        QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
+        try:
+            r = verifier_mise_a_jour()
+        finally:
+            QApplication.restoreOverrideCursor()
+        if not r:
+            self.label_relais.setText("Tu as la dernière version (ou pas de connexion pour vérifier).")
+            return
+        proposer_mise_a_jour(self, r)
+
+    def _retour_relais(self):
+        from noyau.relais import client as RC
+        if RC.revenir_en_arriere():
+            QMessageBox.information(self, "Relais", "Version précédente remise : relance Trail Hub Center.")
+        else:
+            QMessageBox.information(self, "Relais", "Pas de version précédente gardée sur cet ordinateur.")
 
     def _style_bouton_couleur(self, hex_couleur):
         return f"""
@@ -1079,6 +1161,8 @@ class Reglages(QMainWindow):
         try:
             shutil.copy2(CHEMIN_BDD, chemin_destination)
             self.label_resultat_sauvegarde.setText(f"✅ Sauvegarde enregistrée : {chemin_destination}")
+            from data.database import definir_parametre
+            definir_parametre("derniere_sauvegarde", datetime.now().isoformat(timespec="minutes"))   # vu par Mise en service
         except Exception as erreur:
             self.label_resultat_sauvegarde.setText(f"⚠️ Échec de la sauvegarde : {erreur}")
 

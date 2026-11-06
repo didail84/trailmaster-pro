@@ -2122,6 +2122,21 @@ function bilansClubJS(c) {
   }).filter((l) => l.adherents);
 }
 const nomEdition = (n) => String(n || "").replace(/\s*(\(\w+\)|\b(19|20)\d{2}\b)/g, "").trim().toLowerCase();
+/* mise en service (étape 8) : les essais pour de vrai cochés dans le logiciel */
+function recetteBase() {
+  if (etat.source !== "fichier" || !Base.tablesPresentes.has("recette")) return null;
+  try { return Base.tous("SELECT code, etat, note, maj FROM recette"); } catch (e) { return null; }
+}
+function htmlRecette() {
+  const r = recetteBase();
+  if (r === null) return `<div class="carte"><header><h3>Mise en service</h3></header><p class="vide">${etat.source === "fichier" ? "Base d'avant l'étape 8 : mets le logiciel à jour, puis ouvre Mise en service et données." : "Ouvre ta base : tu verras ici où en sont les essais pour de vrai (NAS, téléphones, vraie course…)."}</p></div>`;
+  const faits = r.filter((x) => x.etat === "fait").length, pb = r.filter((x) => x.etat === "probleme"), so = r.filter((x) => x.etat === "sans_objet").length, total = 23 - so;
+  const pc = total ? Math.round(faits / total * 100) : 0;
+  return `<div class="carte"><header><h3>Mise en service</h3><span class="petit discret">${faits} essai(s) réussi(s) sur ${total}</span></header>
+    <div class="jauge" role="img" aria-label="${pc} %"><span style="width:${pc}%;background:var(--vert)"></span></div>
+    ${pb.length ? `<p class="petit"><b>Problèmes notés :</b> ${pb.map((x) => esc(x.note || x.code)).join(" · ")}</p>` : `<p class="petit discret">Aucun problème noté pour l'instant.</p>`}
+    <p class="petit discret">Les essais se cochent dans le logiciel : Mise en service et données.</p></div>`;
+}
 function vueAnalyse() {
   const pr = prevuReelBase(), c = clubVu(), cal = etat.calendrier || (etat.calendrier = lireCalendrier());
   const pct = (v, signe) => v === null || v === undefined ? "—" : `${signe && v > 0 ? "+" : ""}${virgule(v, Math.abs(v) < 10 ? 1 : 0)} %`;
@@ -2135,6 +2150,7 @@ function vueAnalyse() {
   const comp = Object.values(editions).filter((v) => v.length > 1).map((v) => v.sort((a, b) => String(a.date_debut).localeCompare(String(b.date_debut))));
   return `<section class="vue">
     <div class="entete-vue"><h2>Analyse</h2><p>Prévu ou réel de tes courses, bilans du club saison par saison, bilans de tes événements. Vraiment parlant après une saison complète de données ; le détail et les PDF sont dans le logiciel (menu Analyse).</p></div>
+    ${htmlRecette()}
     <div class="carte"><header><h3>Prévu ou réel</h3>${pr ? `<span class="petit discret">calcul du logiciel du ${esc(fmtCourt(pr.calcule_le))}</span>` : ""}</header>
       ${!pr ? `<p class="vide">${etat.source === "fichier" ? "Pas encore de calcul : dans le logiciel, ouvre Analyse, onglet Prévu ou réel (il faut un roadbook enregistré à la date d'une course et son résultat)." : "Ouvre ta base : tes courses avec roadbook et résultat apparaîtront ici, avec l'écart entre le temps prévu et le temps réel."}</p>`
         : `<p>${esc(pr.synthese.texte)}${pr.synthese.applique ? ` Correction appliquée aux temps appris : × ${virgule(pr.synthese.applique, 3)}.` : ""}</p>

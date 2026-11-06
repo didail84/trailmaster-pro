@@ -26,6 +26,9 @@ def main(argv=None):
     p.add_argument("--http", action="store_true", help="sans HTTPS (déconseillé, mots de passe en clair sur le réseau)")
     p.add_argument("--creer-admin", metavar="IDENTIFIANT", help="crée un compte administrateur puis s'arrête")
     p.add_argument("--reinitialiser", metavar="IDENTIFIANT", help="nouveau mot de passe provisoire pour ce compte")
+    p.add_argument("--relais-miroir", metavar="ETIQUETTE", help="copie cette version GitHub (ex. V109) dans le Relais "
+                                                                 "du club, puis s'arrête")
+    p.add_argument("--canal", default="stable", help="canal Relais pour --relais-miroir : stable ou test")
     a = p.parse_args(argv)
 
     import data.database as db
@@ -36,6 +39,16 @@ def main(argv=None):
     from noyau.donnees import comptes as dco
     S.preparer_base()
 
+    if a.relais_miroir:
+        from noyau.relais import client as RC
+        try:
+            l = RC.miroir(a.relais_miroir, db.CHEMIN_BDD.parent / "relais", a.canal)
+        except Exception as e:
+            print(f"Relais : {e}")
+            return 2
+        print(f"Relais : {len(l)} fichier(s) copiés. Dans le logiciel (Réglages, Mises à jour), adresse du Relais : "
+              f"https://<NAS>:{a.port}/relais")
+        return 0
     if a.creer_admin:
         m1 = getpass.getpass("Mot de passe (10 caractères au moins) : ")
         if m1 != getpass.getpass("Encore une fois : "):

@@ -60,7 +60,36 @@ def _numero_depuis_tag(tag):
     return int(chiffres) if chiffres else None
 
 
+def reglages_relais():
+    """(canal, adresse du Relais du club) choisis dans Réglages."""
+    from noyau.relais import client as RC
+    return RC.reglages()
+
+
 def verifier_mise_a_jour():
+    """Étape 8 : d'abord Relais (NAS du club, puis le manifeste signé de GitHub) ; pour les versions publiées avant
+    Relais, l'ancienne comparaison avec la dernière version GitHub. Renvoie None si à jour ou hors ligne."""
+    from noyau.relais import client as RC, manifeste as RM
+    locale = version_locale()
+    if locale <= 0:
+        return None
+    canal, url_nas = reglages_relais()
+    try:
+        r = RC.chercher(locale, canal, url_nas)
+    except RM.ErreurRelais as e:
+        return {"version": None, "nom": "mise à jour refusée", "notes": str(e), "refus": True}
+    except Exception:
+        r = None
+    if r is not None:
+        if r["a_jour"]:
+            return None
+        return {"version": r["version"], "tag": f"V{r['version']}", "nom": f"Version {r['version']}",
+                "notes": r["notes"], "fichier": r["fichier"], "signe": r["signe"], "source": r["source"],
+                "canal": r["canal"], "url_zip": None}
+    return verifier_mise_a_jour_github()
+
+
+def verifier_mise_a_jour_github():
     """Interroge GitHub. Renvoie un dict {version, tag, nom, notes,
     url_zip} si une version plus récente que la version locale est
     disponible, sinon None (y compris en cas d'erreur réseau, de dépôt
@@ -191,6 +220,11 @@ def proposer_mise_a_jour(parent, resultat):
 
     if not resultat:
         return False
+    if resultat.get("refus"):
+        QMessageBox.warning(parent, "Mise à jour", resultat.get("notes") or "Mise à jour refusée.")
+        return False
+    if resultat.get("fichier") or resultat.get("source"):
+        return proposer_mise_a_jour_relais(parent, resultat)
     boite = QMessageBox(parent)
     boite.setWindowTitle("Mise à jour disponible")
     boite.setIcon(QMessageBox.Icon.Information)
@@ -229,4 +263,73 @@ def proposer_mise_a_jour(parent, resultat):
         f"Nouvelle version prête dans :\n{cible}\n\nDouble-clique sur Installer_MacBook.command "
         "pour terminer (tes données ne sont pas touchées).",
     )
+    return True
+
+
+# ---------------------------------------------------------------------
+# Étape 8 — mise à jour par Relais : fichier de CET ordinateur, empreinte
+# vérifiée, installation adaptée (Windows, Mac, Linux), retour arrière.
+# ---------------------------------------------------------------------
+
+def proposer_mise_a_jour_relais(parent, resultat):
+    from PySide6.QtCore import QUrl, Qt, QProcess
+    from PySide6.QtGui import QDesktopServices
+    from PySide6.QtWidgets import QApplication, QMessageBox, QProgressDialog
+    from noyau.relais import client as RC, manifeste as RM
+
+    f = resultat.get("fichier")
+    texte = (f"Une nouvelle version est disponible : {resultat.get('nom')}"
+             f" (canal {resultat.get('canal') or 'stable'}, depuis {resultat.get('source')}"
+             f"{', signée' if resultat.get('signe') else ', non signée'}).")
+    notes = (resultat.get("notes") or "").strip()
+    if notes:
+        texte += f"\n\n{notes[:900]}"
+    if not f:
+        texte += ("\n\nPas de fichier tout prêt pour cet ordinateur (" + RC.plateforme()
+                  + (", lancé depuis les sources" if RC.installation() == "sources" else "")
+                  + ") : télécharge la nouvelle version sur github.com/didail84/trailmaster-pro.")
+        QMessageBox.information(parent, "Mise à jour disponible", texte)
+        return False
+    texte += f"\n\nTéléchargement : {f['nom']} ({(f.get('taille') or 0) / 1048576:.0f} Mo), empreinte vérifiée avant installation."
+    if QMessageBox.question(parent, "Mise à jour disponible", texte + "\n\nMettre à jour maintenant ?") != \
+            QMessageBox.StandardButton.Yes:
+        return False
+    prog = QProgressDialog("Téléchargement de la mise à jour…", "Annuler", 0, 100, parent)
+    prog.setWindowModality(Qt.WindowModality.WindowModal)
+    prog.show()
+
+    def avance(n, total):
+        if total:
+            prog.setValue(int(100 * n / total))
+        QApplication.processEvents()
+        if prog.wasCanceled():
+            raise RM.ErreurRelais("Téléchargement annulé.")
+    try:
+        chemin = RC.telecharger(f, progression=avance)
+    except Exception as e:
+        prog.close()
+        QMessageBox.warning(parent, "Mise à jour", f"Mise à jour non faite : {e}")
+        return False
+    prog.close()
+    action, detail = RC.plan_installation(chemin)
+    if action == "remplacer_appimage":
+        RC.remplacer_appimage(chemin, detail)
+        QMessageBox.information(parent, "Mise à jour", "Nouvelle version installée. Trail Hub Center redémarre ; "
+                                "l'ancienne version est gardée à côté (retour arrière possible dans Réglages).")
+        QProcess.startDetached(detail, [])
+        QApplication.quit()
+    elif action == "lancer":
+        QMessageBox.information(parent, "Mise à jour", "L'installation va se lancer ; Trail Hub Center se ferme "
+                                "puis se rouvre à jour. Tes données ne sont pas touchées.")
+        QProcess.startDetached(detail[0], detail[1:])
+        QApplication.quit()
+    elif action == "ouvrir":
+        QDesktopServices.openUrl(QUrl.fromLocalFile(detail))
+        QMessageBox.information(parent, "Mise à jour", ("Glisse Trail Hub Center dans Applications (remplacer), puis "
+                                                        "rouvre-le." if detail.endswith(".dmg") else
+                                                        "Clique « Installer » dans la logithèque, puis rouvre Trail Hub "
+                                                        "Center.") + " Tes données ne sont pas touchées.")
+    else:
+        QDesktopServices.openUrl(QUrl.fromLocalFile(detail))
+        QMessageBox.information(parent, "Mise à jour", f"Nouvelle version téléchargée : {chemin}")
     return True

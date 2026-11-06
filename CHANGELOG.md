@@ -1,5 +1,30 @@
 # Historique des versions
 
+## Trail Hub Center — étape 8 (mise en service, Linux, volet commercial, mises à jour par Relais)
+- **Mise en service et données** (nouveau menu) :
+  - **contrôles de cet ordinateur** : base à jour, dernière sauvegarde, modules, club, prochaine course (plages de dossards, accords pour l'image), lecture des dossards, trousseau, e-mails, Relais ; avec le réseau : serveur du club et Relais joignables ;
+  - **23 essais pour de vrai**, étape par étape (« fini quand » du Master Plan), à cocher avec une note : Mac, Windows, Linux, NAS, téléphones, vraie course, Kids, photos, RGPD…
+  - **répétition générale** : une course fictive de 40 coureurs (2 épreuves, dossards, points de contrôle, postes) pour s'entraîner au chrono, au PC course et aux téléphones avec les bénévoles, supprimée d'un clic ;
+  - **rapport de mise en service** en PDF.
+- **Données personnelles (RGPD)** :
+  - **registre des traitements** écrit d'après les modules allumés (finalité, personnes, données, base légale, destinataires, durée, sécurité), en PDF ;
+  - **durées de conservation** réglables et **nettoyage** de ce qui les dépasse : positions GPS, photos, coordonnées des inscrits des courses passées (les résultats restent) ; anciens adhérents listés pour être revus ;
+  - **demandes des personnes** : copie complète de leurs données en JSON, effacement (inscriptions rendues anonymes), délai d'un mois suivi ;
+  - **violations de données** : registre, conduite à tenir, rappel des 72 heures pour la CNIL.
+- **Licences** : écran avec la licence MIT et celles des composants ; `THIRD_PARTY_NOTICES.md` complété (Pillow, RapidOCR, ONNX Runtime, OpenCV, NumPy…).
+- **Linux** :
+  - fabrication d'une **AppImage** (toutes distributions), d'un **.deb** (Ubuntu, Debian, Mint, entrée dans le menu) et d'une archive `.tar.gz` ; GitHub les fabrique avec Windows et Mac ;
+  - `Installer_Linux.sh` pour installer depuis les sources (commande `trailhub-center` et entrée de menu) ;
+  - données dans `~/.local/share/TrailMaster Pro` (respecte `XDG_DATA_HOME`), mots de passe dans le trousseau GNOME ou KDE.
+- **Mises à jour par Relais** :
+  - **manifeste** `relais.json` publié avec chaque version : numéro, canal (stable ou test), notes, et pour chaque plateforme le fichier avec son empreinte SHA-256 ; **signé** (Ed25519) dès que la clé est créée ;
+  - le logiciel cherche d'abord sur le **NAS du club**, puis sur GitHub ; il prend le bon fichier pour l'ordinateur (installateur Windows, version portable, .dmg, AppImage, .deb), **vérifie l'empreinte**, puis installe : l'AppImage se remplace toute seule et l'ancienne est gardée (**retour arrière** dans Réglages) ;
+  - réglages dans Réglages > Mises à jour (canal, adresse du Relais, vérifier maintenant) ;
+  - le serveur du club sert aussi de Relais (`/relais/`) : `trailhub_serveur.py --relais-miroir V109` y copie une version de GitHub, et les postes du club se mettent à jour sur le réseau local.
+- **Base de données version 19** : recette, demandes et violations de données.
+- **Page Claude**, rubrique Analyse : carte Mise en service (essais réussis, problèmes notés).
+- **Document « Trail Hub Center — volet commercial »** (Claude Docs) : offre possible, guide d'entretien pour fixer les prix, démarches avant de facturer, données personnelles, options de licence.
+
 ## Trail Hub Center — étape 7 (photos par dossard)
 - **Organisation, nouvel onglet Photos** (13 onglets au total) :
   - **import** d'un dossier, d'un zip ou d'un lien de partage (Dropbox, Google Drive pour un fichier, lien direct) ; une photo importée deux fois n'apparaît qu'une fois ; date de prise de vue et photographe gardés ;

@@ -20,8 +20,9 @@ def _dossier_configuration_locale():
     elif sys.platform == "win32":
         import os
         dossier = Path(os.environ.get("APPDATA", Path.home())) / "TrailMaster Pro"
-    else:
-        dossier = Path.home() / ".local" / "share" / "TrailMaster Pro"
+    else:                                                # Linux : dossier de données de l'utilisateur (XDG)
+        import os
+        dossier = Path(os.environ.get("XDG_DATA_HOME") or Path.home() / ".local" / "share") / "TrailMaster Pro"
 
     dossier.mkdir(parents=True, exist_ok=True)
     return dossier

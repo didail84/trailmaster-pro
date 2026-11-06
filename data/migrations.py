@@ -1235,6 +1235,41 @@ def _m018_photos(cur):
     _ajouter_uuid(cur, "photos_course")
 
 
+def _m019_mise_en_service(cur):
+    """Étape 8 : mise en service et recette (ce qui a été essayé pour de vrai, problèmes trouvés), registre des
+    traitements de données personnelles et demandes des personnes (accès, effacement)."""
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS recette (
+            code TEXT PRIMARY KEY,
+            etat TEXT NOT NULL DEFAULT 'a_faire',
+            note TEXT,
+            par TEXT,
+            maj TEXT
+        )""")
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS rgpd_demandes (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            personne_id INTEGER REFERENCES personnes(id) ON DELETE SET NULL,
+            nom TEXT,
+            type TEXT NOT NULL,
+            recue_le TEXT NOT NULL,
+            traitee_le TEXT,
+            reponse TEXT
+        )""")
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS rgpd_incidents (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            constate_le TEXT NOT NULL,
+            description TEXT NOT NULL,
+            donnees TEXT,
+            personnes INTEGER,
+            mesures TEXT,
+            cnil_le TEXT,
+            informees_le TEXT,
+            clos INTEGER DEFAULT 0
+        )""")
+
+
 MIGRATIONS = [
     (1, "Identifiant universel (UUID) pour chaque donnée", _m001_identifiants_universels),
     (2, "Fiche Personne unique et rôles", _m002_personnes_et_roles),
@@ -1257,6 +1292,7 @@ MIGRATIONS = [
     (16, "Kids : carnet de progression, badges et équipement des enfants", _m016_kids),
     (17, "Actualités du trail : flux RSS, articles, coureurs connus et leur palmarès", _m017_actualites),
     (18, "Photos par dossard : photos d'une course, dossards lus, codes d'accès, droit à l'image", _m018_photos),
+    (19, "Mise en service : recette, demandes et incidents sur les données personnelles", _m019_mise_en_service),
 ]
 VERSION_LOGICIEL = MIGRATIONS[-1][0]
 

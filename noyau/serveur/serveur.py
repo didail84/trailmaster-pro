@@ -218,6 +218,8 @@ class Gestionnaire(BaseHTTPRequestHandler):
                 return self._rediriger("/m/")
             if u.path.startswith("/m"):
                 return self._web(verbe, u.path, q)
+            if u.path.startswith("/relais/") and verbe == "GET":
+                return self._relais(u.path[8:])
             if u.path.startswith("/photos/"):
                 from noyau.serveur import web_photos
                 return web_photos.page_publique(self, u.path[8:], verbe, q)
@@ -235,6 +237,27 @@ class Gestionnaire(BaseHTTPRequestHandler):
             except Exception:
                 pass
             self._envoyer(500, web.erreur(None, "Erreur sur le serveur.", 500))
+
+    # -- Relais du club (étape 8) : manifestes et installateurs servis sur le réseau local
+    def _relais(self, reste):
+        import data.database as db
+        from urllib.parse import unquote
+        racine = (Path(db.CHEMIN_BDD).parent / "relais").resolve()
+        cible = (racine / unquote(reste)).resolve()
+        if racine not in cible.parents or not cible.is_file():
+            return self._envoyer(404, "Introuvable.", "text/plain; charset=utf-8")
+        typ = "application/json" if cible.suffix == ".json" else "application/octet-stream"
+        self.send_response(200)
+        self.send_header("Content-Type", typ)
+        self.send_header("Content-Length", str(cible.stat().st_size))
+        self.send_header("X-Content-Type-Options", "nosniff")
+        self.end_headers()
+        with open(cible, "rb") as f:
+            while True:
+                b = f.read(1 << 20)
+                if not b:
+                    break
+                self.wfile.write(b)
 
     # -- API du logiciel de bureau
     def _compte_api(self):

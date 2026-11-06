@@ -1,6 +1,6 @@
 # TrailMaster Pro
 
-Logiciel gratuit et open source de **suivi d'entraînement trail running** pour Mac et Windows.
+Logiciel gratuit et open source de **suivi d'entraînement trail running** pour Mac, Windows et Linux.
 Tes données restent **sur ton ordinateur** : pas de compte, pas de serveur, pas d'abonnement.
 
 > Interface en français · Python 3 + PySide6 · licence MIT
@@ -26,6 +26,8 @@ Va dans **[Releases](https://github.com/didail84/trailmaster-pro/releases/latest
 | Windows 10 ou 11 | `TrailMasterPro-xx-windows-x64.exe` |
 | Mac Intel (jusqu'à 2020, macOS 12 Monterey ou plus récent) | `TrailMasterPro-xx-mac-x64.dmg` |
 | Mac Apple Silicon (M1, M2, M3, M4…) | `TrailMasterPro-xx-mac-arm64.dmg` |
+| Linux (toutes distributions) | `TrailMasterPro-xx-linux-x64.AppImage` |
+| Linux Ubuntu, Debian, Mint | `TrailMasterPro-xx-linux-amd64.deb` |
 
 Pas besoin d'installer Python.
 
@@ -40,6 +42,12 @@ Pas besoin d'installer Python.
 3. Si macOS dit que l'app est « endommagée » : ouvre le Terminal et tape
    `xattr -cr "/Applications/TrailMaster Pro.app"`, puis relance.
 
+### Linux
+1. **AppImage** (toutes distributions) : rends le fichier exécutable (clic droit → Propriétés → *Autoriser l'exécution*, ou `chmod +x`), puis double-clique dessus.
+2. **.deb** (Ubuntu, Debian, Mint) : double-clic pour l'ouvrir dans la logithèque, ou `sudo apt install ./TrailMasterPro-xx-linux-amd64.deb`. Trail Hub Center apparaît dans le menu des applications.
+3. Depuis les sources : `./Installer_Linux.sh` (environnement Python à part, commande `trailhub-center` et entrée de menu).
+4. Les mots de passe (serveur du club, e-mails) vont dans le trousseau GNOME ou KDE.
+
 ### Depuis le code source (développeurs)
 Python 3.11 ou plus récent :
 
@@ -48,7 +56,7 @@ pip install -r requirements.txt
 python3 main.py
 ```
 
-Les scripts `Installer_MacBook.command` et `Installer_Windows.bat` fabriquent aussi l'application directement sur ton ordinateur.
+Les scripts `Installer_MacBook.command`, `Installer_Windows.bat` et `Installer_Linux.sh` installent ou fabriquent aussi l'application directement sur ton ordinateur.
 
 ## Premiers pas
 
@@ -68,7 +76,7 @@ Dans un seul fichier, `trailmaster.db` :
 
 | Façon de lancer | Emplacement |
 |---|---|
-| Application installée | Mac : `~/Library/Application Support/TrailMaster Pro/` · Windows : `%APPDATA%\TrailMaster Pro\` |
+| Application installée | Mac : `~/Library/Application Support/TrailMaster Pro/` · Windows : `%APPDATA%\TrailMaster Pro\` · Linux : `~/.local/share/TrailMaster Pro/` |
 | `python3 main.py` | `data/trailmaster.db` (ou le dossier ci-dessus si le dossier `data/` n'en contient pas) |
 
 Fais des sauvegardes de ce fichier. **Il contient tes données de santé et tes clés : ne le publie jamais.**
@@ -76,7 +84,9 @@ Si le logiciel s'ouvre vide après une mise à jour, lance `Retrouver_ma_base.co
 
 ## Mises à jour
 
-Au démarrage, le logiciel regarde s'il existe une version plus récente dans les *Releases* de ce dépôt. Un clic sur « Mettre à jour » télécharge le bon installateur pour ton ordinateur et l'ouvre. Ta base n'est pas touchée.
+Au démarrage, le logiciel cherche une version plus récente par **Relais** : d'abord sur le NAS du club (adresse dans Réglages), puis dans les *Releases* de ce dépôt (fichier `relais.json`). Le manifeste est signé et chaque fichier vérifié par son empreinte avant l'installation ; sous Linux, l'AppImage se remplace toute seule et l'ancienne est gardée pour revenir en arrière. Ta base n'est pas touchée.
+
+Canaux : *stable* (versions publiées) ou *test* (pré-versions). Pour signer les versions : `python packaging/relais_manifeste.py --creer-cles` une fois sur ton ordinateur, puis copie la clé privée dans le secret GitHub `RELAIS_CLE_PRIVEE` et publie la clé publique (`noyau/relais/cle_publique.pem`).
 
 ## Pour les développeurs
 
@@ -89,7 +99,7 @@ Au démarrage, le logiciel regarde s'il existe une version plus récente dans le
 
 1. Augmente le nombre dans `VERSION` et ajoute une ligne dans `CHANGELOG.md`.
 2. Sur GitHub : *Releases → Draft a new release*, étiquette `V100` (le même nombre que `VERSION`), puis **Publish release**.
-3. GitHub fabrique tout seul les installateurs Windows et Mac (`.github/workflows/installateurs.yml`, environ 15 minutes) et les ajoute à la release.
+3. GitHub fabrique tout seul les installateurs Windows, Mac et Linux (`.github/workflows/installateurs.yml`, environ 20 minutes), le manifeste Relais `relais.json` (signé si le secret `RELAIS_CLE_PRIVEE` existe), et les ajoute à la release. Une *pre-release* va sur le canal test.
 
 Ne joins jamais ta base (`trailmaster.db`) ni tes exports : le fichier `.gitignore` les exclut déjà.
 

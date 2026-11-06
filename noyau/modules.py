@@ -37,7 +37,8 @@ class Module:
 MODULES = (
     Module("noyau", "Noyau", "Noyau",
            "Personnes, profils coureurs, imports et synchro, réglages, sauvegardes.",
-           ("ouvrir_athletes", "ouvrir_personnes", "ouvrir_reglages", "ouvrir_import_et_synchro"),
+           ("ouvrir_athletes", "ouvrir_personnes", "ouvrir_reglages", "ouvrir_import_et_synchro",
+            "ouvrir_mise_en_service"),
            obligatoire=True, blocs=(1, 2, 3, 7, 9)),
     Module("serveur", "Serveur et comptes", "Noyau",
            "Une seule base pour le bureau, les entraîneurs et les bénévoles (sur le NAS) : comptes et rôles par "

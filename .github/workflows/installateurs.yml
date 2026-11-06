@@ -1,4 +1,4 @@
-# Fabrique les installateurs Windows et Mac de TrailMaster Pro et les ajoute
+# Fabrique les installateurs Windows, Mac et Linux de TrailMaster Pro et les ajoute
 # à la version (release) publiée sur GitHub.
 #  - automatiquement quand une release est publiée (étiquette V99, V100…) ;
 #  - ou à la main : Actions › Installateurs › Run workflow (en indiquant
@@ -33,6 +33,9 @@ jobs:
           - nom: mac-apple-silicon
             os: macos-14
             contraintes: ''
+          - nom: linux-x64
+            os: ubuntu-22.04
+            contraintes: ''
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
@@ -46,6 +49,18 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt pyinstaller pillow ${{ matrix.contraintes }}
+
+      - name: Bibliothèques Qt et appimagetool (Linux)
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y -q libegl1 libgl1 libxkbcommon-x11-0 libxcb-cursor0 libxcb-icccm4 libxcb-image0 \
+            libxcb-keysyms1 libxcb-randr0 libxcb-render-util0 libxcb-xinerama0 libxcb-shape0 libnss3 libasound2 \
+            libfontconfig1 libdbus-1-3 file
+          curl -sSL -o appimagetool https://github.com/AppImage/appimagetool/releases/download/1.9.0/appimagetool-x86_64.AppImage
+          chmod +x appimagetool
+          echo "APPIMAGETOOL=$PWD/appimagetool" >> "$GITHUB_ENV"
 
       - name: Inno Setup (Windows)
         if: runner.os == 'Windows'
@@ -87,6 +102,9 @@ jobs:
             dist/*.exe
             dist/*.dmg
             dist/*-portable.zip
+            dist/*.AppImage
+            dist/*.deb
+            dist/*-linux-*.tar.gz
           if-no-files-found: error
 
   publier:
@@ -98,6 +116,17 @@ jobs:
         with:
           path: installateurs
           merge-multiple: true
+      - uses: actions/checkout@v4
+        with:
+          path: code
+      - name: Manifeste Relais (empreintes, signature si le secret RELAIS_CLE_PRIVEE existe)
+        env:
+          RELAIS_CLE_PRIVEE: ${{ secrets.RELAIS_CLE_PRIVEE }}
+          RELAIS_NOTES: ${{ github.event.release.body }}
+        run: |
+          pip install -q cryptography
+          python code/packaging/relais_manifeste.py installateurs "${{ github.event.release.tag_name || inputs.tag }}" \
+            ${{ github.event.release.prerelease && '--canal test' || '' }}
       - uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.event.release.tag_name || inputs.tag }}

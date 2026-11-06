@@ -182,6 +182,7 @@ class TableauBord(QMainWindow):
                 ("👤  Athlètes", self.ouvrir_athletes, False),
                 ("👥  Personnes", self.ouvrir_personnes, False),
                 ("⚙️  Réglages", self.ouvrir_reglages, False),
+                ("✅  Mise en service && données", self.ouvrir_mise_en_service, False),
             ]),
         ]
 
@@ -1564,6 +1565,10 @@ class TableauBord(QMainWindow):
         from interface.annuaire import AnnuaireFenetre
         self._ouvrir_ou_activer("annuaire", lambda: AnnuaireFenetre(athlete_id_initial=self.athlete_actif_id))
 
+    def ouvrir_mise_en_service(self):
+        from interface.mise_en_service import MiseEnServiceFenetre
+        self._ouvrir_ou_activer("mise_en_service", lambda: MiseEnServiceFenetre(athlete_id_initial=self.athlete_actif_id))
+
     def ouvrir_actualites(self):
         from interface.actualites import ActualitesFenetre
         self._ouvrir_ou_activer("actualites", lambda: ActualitesFenetre(athlete_id_initial=self.athlete_actif_id))
@@ -1803,6 +1808,8 @@ class TableauBord(QMainWindow):
              self.ouvrir_annuaire),
             ("Club", "adherents licencies licence ffa cotisation recu groupes helloasso saison categories",
              self.ouvrir_club),
+            ("Mise en service et données", "recette essais repetition generale rgpd cnil registre donnees personnelles "
+             "effacement licences verification", self.ouvrir_mise_en_service),
             ("Actualités du trail", "news actualites rss coureurs connus palmares utmb kilian d'haene flux",
              self.ouvrir_actualites),
             ("Analyse", "prevu reel ecart estimation correction bilans club saison fidelisation evenements editions",

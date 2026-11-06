@@ -4,6 +4,8 @@ où ce script tourne :
 
   - Windows : dist/TrailMasterPro-<version>-windows-x64.exe (installateur)
   - Mac     : dist/TrailMasterPro-<version>-mac-<x64|arm64>.dmg
+  - Linux   : dist/TrailMasterPro-<version>-linux-<x64|arm64>.AppImage (un seul fichier, toutes distributions),
+              .deb (Ubuntu, Debian, Mint) et .tar.gz (à décompresser n'importe où)
 
 Utilisé par GitHub (.github/workflows/installateurs.yml) pour chaque
 nouvelle version ; on peut aussi le lancer à la main :
@@ -13,7 +15,7 @@ nouvelle version ; on peut aussi le lancer à la main :
 
 Ne met JAMAIS de base de données dans l'application : les données de
 chacun restent dans son dossier personnel (Application Support sur Mac,
-%APPDATA% sous Windows).
+%APPDATA% sous Windows, ~/.local/share sous Linux).
 """
 
 import os
@@ -53,7 +55,8 @@ def pyinstaller():
     for dossier in ("build", "dist"):
         shutil.rmtree(RACINE / dossier, ignore_errors=True)
 
-    keyring = "keyring.backends.Windows" if sys.platform == "win32" else "keyring.backends.macOS"
+    keyring = {"win32": "keyring.backends.Windows", "darwin": "keyring.backends.macOS"}.get(
+        sys.platform, "keyring.backends.SecretService")          # Linux : trousseau GNOME ou KDE
     commande = [
         sys.executable, "-m", "PyInstaller",
         "--windowed", "--noconfirm", "--log-level", "WARN",
@@ -63,6 +66,9 @@ def pyinstaller():
         "--add-data", f"interface/modele_suivi_telephone.html{SEP}interface",
         "--add-data", f"ressources{SEP}ressources",
         "--add-data", f"VERSION{SEP}.",
+        "--add-data", f"LICENSE{SEP}.",
+        "--add-data", f"THIRD_PARTY_NOTICES.md{SEP}.",
+        "--add-data", f"noyau/relais{SEP}noyau/relais",
         "--add-data", f"data/annuaire{SEP}data/annuaire",
         "--add-data", f"data/actualites{SEP}data/actualites",
         "--hidden-import", "PySide6.QtWebEngineWidgets",
@@ -147,9 +153,107 @@ def portable_windows():
     print("Version portable Windows :", sortie)
 
 
+# ------------------------------------------------------------------ Linux
+
+ID_LINUX = "trailhub-center"
+FICHIER_DESKTOP = """[Desktop Entry]
+Type=Application
+Name=Trail Hub Center
+GenericName=Entraînement, club et organisation de trail
+Comment=Entraînement trail, club, organisation de courses
+Exec={exec} %F
+Icon={icone}
+Terminal=false
+Categories=Sports;Utility;Education;
+Keywords=trail;course;club;chrono;entraînement;
+StartupWMClass=TrailMaster Pro
+"""
+
+
+def _dossier_linux():
+    return RACINE / "dist" / NOM
+
+
+def tar_linux():
+    import tarfile
+    sortie = RACINE / "dist" / f"TrailMasterPro-{version()}-linux-{architecture()}.tar.gz"
+    with tarfile.open(sortie, "w:gz") as t:
+        t.add(_dossier_linux(), arcname=f"{ID_LINUX}")
+    print("Archive Linux :", sortie)
+    return sortie
+
+
+def appimage():
+    """AppImage : un seul fichier exécutable. appimagetool est pris dans APPIMAGETOOL ou le PATH ; sans lui, on passe."""
+    outil = os.environ.get("APPIMAGETOOL") or shutil.which("appimagetool")
+    if not outil:
+        print("appimagetool introuvable : pas d'AppImage (l'archive et le .deb suffisent).")
+        return None
+    appdir = RACINE / "build" / "AppDir"
+    shutil.rmtree(appdir, ignore_errors=True)
+    (appdir / "usr").mkdir(parents=True)
+    shutil.copytree(_dossier_linux(), appdir / "usr" / "lib" / ID_LINUX)
+    (appdir / "AppRun").write_text('#!/bin/sh\nICI="$(dirname "$(readlink -f "$0")")"\n'
+                                   f'exec "$ICI/usr/lib/{ID_LINUX}/{NOM}" "$@"\n', encoding="utf-8")
+    os.chmod(appdir / "AppRun", 0o755)
+    (appdir / f"{ID_LINUX}.desktop").write_text(FICHIER_DESKTOP.format(exec="AppRun", icone=ID_LINUX), encoding="utf-8")
+    shutil.copy(RACINE / "packaging" / "icone.png", appdir / f"{ID_LINUX}.png")
+    shutil.copy(RACINE / "packaging" / "icone.png", appdir / ".DirIcon")
+    sortie = RACINE / "dist" / f"TrailMasterPro-{version()}-linux-{architecture()}.AppImage"
+    env = dict(os.environ, ARCH="x86_64" if architecture() == "x64" else "aarch64", APPIMAGE_EXTRACT_AND_RUN="1")
+    print(">", outil, appdir, sortie, flush=True)
+    subprocess.run([outil, "--no-appstream", str(appdir), str(sortie)], check=True, cwd=RACINE, env=env)
+    print("AppImage :", sortie)
+    return sortie
+
+
+def deb():
+    """Paquet .deb (Ubuntu, Debian, Mint) : installé dans /opt, entrée dans le menu des applications."""
+    if not shutil.which("dpkg-deb"):
+        print("dpkg-deb introuvable : pas de .deb.")
+        return None
+    racine = RACINE / "build" / "deb"
+    shutil.rmtree(racine, ignore_errors=True)
+    opt = racine / "opt" / ID_LINUX
+    shutil.copytree(_dossier_linux(), opt)
+    (racine / "usr" / "bin").mkdir(parents=True)
+    (racine / "usr" / "bin" / ID_LINUX).symlink_to(f"/opt/{ID_LINUX}/{NOM}")
+    apps = racine / "usr" / "share" / "applications"
+    apps.mkdir(parents=True)
+    (apps / f"{ID_LINUX}.desktop").write_text(FICHIER_DESKTOP.format(exec=f"/opt/{ID_LINUX}/{NOM.replace(' ', chr(92) + ' ')}",
+                                                                     icone=ID_LINUX), encoding="utf-8")
+    ic = racine / "usr" / "share" / "icons" / "hicolor" / "256x256" / "apps"
+    ic.mkdir(parents=True)
+    from PIL import Image
+    Image.open(RACINE / "packaging" / "icone.png").resize((256, 256)).save(ic / f"{ID_LINUX}.png")
+    (racine / "DEBIAN").mkdir()
+    taille = sum(f.stat().st_size for f in opt.rglob("*") if f.is_file()) // 1024
+    arch = "amd64" if architecture() == "x64" else "arm64"
+    (racine / "DEBIAN" / "control").write_text(
+        f"Package: {ID_LINUX}\nVersion: {version()}\nSection: misc\nPriority: optional\nArchitecture: {arch}\n"
+        f"Installed-Size: {taille}\nMaintainer: Didier Beltran <noreply@github.com>\n"
+        "Depends: libegl1, libxkbcommon-x11-0, libxcb-cursor0, libnss3, libfontconfig1\n"
+        "Recommends: gnome-keyring | kwalletmanager\n"
+        "Homepage: https://github.com/didail84/trailmaster-pro\n"
+        "Description: Trail Hub Center : entraînement trail, club et organisation de courses\n"
+        " Suivi d'entraînement, stratégie de course, gestion du club, organisation et chrono.\n", encoding="utf-8")
+    sortie = RACINE / "dist" / f"TrailMasterPro-{version()}-linux-{arch}.deb"
+    lancer("dpkg-deb", "--root-owner-group", "--build", racine, sortie)
+    print("Paquet .deb :", sortie)
+    return sortie
+
+
+def paquets_linux():
+    tar_linux()
+    deb()
+    appimage()
+
+
 if __name__ == "__main__":
     pyinstaller()
     if sys.platform == "darwin":
         dmg()
     elif sys.platform == "win32":
         installateur_windows()
+    else:
+        paquets_linux()
