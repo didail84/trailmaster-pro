@@ -39,24 +39,27 @@ def _dossards(evenement_id):
     return {i["dossard"]: i for i in dor.inscriptions(evenement_id) if i.get("dossard") and i["statut"] != "annulee"}
 
 
-def ajouter_passage(evenement_id, dossard, heure_iso=None, source="saisie"):
-    """Un passage à l'arrivée. Renvoie {id, heure, inscrit (ou None), avertissement}."""
+def ajouter_passage(evenement_id, dossard, heure_iso=None, source="saisie", point="arrivee"):
+    """Un passage à l'arrivée (ou à un point de contrôle : point « pc12 », étape 6). Renvoie {id, heure, inscrit
+    (ou None), avertissement}."""
     h = heure_iso or datetime.now().isoformat(timespec="milliseconds")
     d = int(dossard) if dossard not in (None, "") else None
-    pid = base.inserer("chrono_passages", {"evenement_id": evenement_id, "dossard": d, "heure": h, "source": source})
+    pid = base.inserer("chrono_passages", {"evenement_id": evenement_id, "dossard": d, "heure": h, "source": source,
+                                           "point": point or "arrivee"})
     ins = _dossards(evenement_id).get(d) if d else None
     avert = None
     if d and not ins:
         avert = f"dossard {d} inconnu"
     elif d:
-        avant = [p for p in passages(evenement_id) if p["dossard"] == d and p["id"] != pid]
+        avant = [p for p in passages(evenement_id) if p["dossard"] == d and p["id"] != pid and p["point"] == (point or "arrivee")]
         if avant:
-            ecart = abs(C.secondes_entre(avant[0]["heure"], h))
+            ecart = abs(C.secondes_entre(avant[-1]["heure"], h))
             if ecart <= C.DOUBLON_SECONDES:
                 base.ecrire("UPDATE chrono_passages SET annule=1 WHERE id=?", (pid,))
                 avert = f"dossard {d} déjà pointé il y a {ecart:.0f} s : double top ignoré"
             else:
-                avert = f"dossard {d} déjà arrivé : passage gardé de côté (doublon)"
+                avert = (f"dossard {d} déjà arrivé : passage gardé de côté (doublon)" if (point or "arrivee") == "arrivee"
+                         else f"dossard {d} déjà pointé ici : passage gardé de côté (doublon)")
     return {"id": pid, "heure": h, "inscrit": ins, "avertissement": avert}
 
 

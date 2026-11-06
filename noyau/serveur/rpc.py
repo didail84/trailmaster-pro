@@ -83,7 +83,9 @@ EVENEMENT = {"epreuve_id": "SELECT evenement_id FROM epreuves WHERE id=?",
              "ravito_id": "SELECT evenement_id FROM ravitaillements WHERE id=?",
              "materiel_id": "SELECT evenement_id FROM orga_materiel WHERE id=?",
              "partenaire_id": "SELECT evenement_id FROM partenaires WHERE id=?",
-             "ligne_id": "SELECT evenement_id FROM budget_lignes WHERE id=?"}
+             "ligne_id": "SELECT evenement_id FROM budget_lignes WHERE id=?",
+             "point_id": "SELECT evenement_id FROM points_controle WHERE id=?",
+             "incident_id": "SELECT evenement_id FROM incidents WHERE id=?"}
 LISTES = {"inscription_ids": "inscription_id", "ids": None, "personne_ids": "personne_id"}
 
 

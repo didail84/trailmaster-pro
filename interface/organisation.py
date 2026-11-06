@@ -1119,17 +1119,18 @@ class OrganisationFenetre(ConteneurOnglets):
         from interface.organisation_chrono import ChronoOrga, ClassementsOrga      # étape 4.5
         from interface.organisation_logistique import (                            # étape 4.6
             DemarchesOrga, BenevolesOrga, RavitosOrga, MaterielOrga, PartenairesOrga)
+        from interface.organisation_commandement import CommandementOrga                # étape 6
         self.evenement_id = None
         super().__init__(titre="Organisation",
                          onglets=[("🏁 Événement", EvenementOrga), ("📋 Démarches", DemarchesOrga),
                                   ("📝 Inscriptions", InscriptionsOrga), ("🙋 Bénévoles", BenevolesOrga),
                                   ("🍌 Ravitaillements", RavitosOrga), ("📦 Matériel", MaterielOrga),
                                   ("🤝 Partenaires et budget", PartenairesOrga), ("🔢 Dossards", DossardsOrga),
-                                  ("⏱️ Chrono", ChronoOrga), ("🏆 Classements", ClassementsOrga),
-                                  ("📊 Tableau de bord", TableauOrga)],
+                                  ("🧭 Jour de course", CommandementOrga), ("⏱️ Chrono", ChronoOrga),
+                                  ("🏆 Classements", ClassementsOrga), ("📊 Tableau de bord", TableauOrga)],
                          athlete_id_initial=athlete_id_initial)
         (self.evenement_ecran, self.demarches, self.inscriptions, self.benevoles, self.ravitaillements, self.materiel,
-         self.partenaires, self.dossards, self.chrono, self.classements, self.tableau) = self.ecrans
+         self.partenaires, self.dossards, self.commandement, self.chrono, self.classements, self.tableau) = self.ecrans
         self.evenement_id = self.evenement_ecran.evenement_id
 
     def choisir(self, evenement_id):

@@ -95,9 +95,11 @@ MODULES = (
            "démarches et rétroplanning (déclarations, autorisations, secours), bénévoles, ravitaillements, matériel, "
            "partenaires et budget, tableau de bord.",
            ("ouvrir_organisation",), etape="4", blocs=(21, 22, 23, 24, 26, 27), actif_par_defaut=False),
-    Module("trail_live", "Trail Live", "Organisation",
-           "Suivi des coureurs en direct sur carte, page publique pour les proches.",
-           disponible=False, etape="6", blocs=(25,), actif_par_defaut=False),
+    Module("trail_live", "Trail Live et jour de course", "Organisation",
+           "Tableau de commandement du PC course, points de contrôle, incidents (aussi sans réseau), bénévoles à "
+           "leur poste, page publique de suivi pour les proches, positions importées d'un traceur. Dans la fenêtre "
+           "Organisation (onglet Jour de course) ; les téléphones passent par le serveur.",
+           (), blocs=(25, 26, 27), actif_par_defaut=True),
     Module("photos_dossard", "Photos par dossard", "Organisation",
            "Photos d'une course retrouvées par numéro de dossard.",
            disponible=False, etape="7", blocs=(28,), actif_par_defaut=False),

@@ -1004,6 +1004,69 @@ def _m014_serveur(cur):
         _ajouter_uuid(cur, t)
 
 
+def _m015_jour_de_course(cur):
+    """Étape 6 : points de contrôle, incidents (saisis aussi sans réseau), positions des coureurs (Trail Live),
+    présence des bénévoles à leur poste, page publique de suivi."""
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS points_controle (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            evenement_id INTEGER NOT NULL REFERENCES evenements(id) ON DELETE CASCADE,
+            nom TEXT NOT NULL,
+            type TEXT DEFAULT 'pointage',
+            km REAL,
+            epreuves_json TEXT,
+            barriere_horaire TEXT,
+            lat REAL,
+            lon REAL,
+            ravitaillement_id INTEGER,
+            poste_id INTEGER,
+            notes TEXT
+        )""")
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS incidents (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            evenement_id INTEGER NOT NULL REFERENCES evenements(id) ON DELETE CASCADE,
+            numero INTEGER,
+            horodatage TEXT NOT NULL,
+            recu_le TEXT,
+            type TEXT DEFAULT 'autre',
+            gravite TEXT DEFAULT 'moyen',
+            dossard INTEGER,
+            point_id INTEGER,
+            km REAL,
+            lat REAL,
+            lon REAL,
+            description TEXT,
+            signale_par TEXT,
+            compte_id INTEGER,
+            statut TEXT DEFAULT 'ouvert',
+            pris_par TEXT,
+            suivi_json TEXT,
+            clos_le TEXT,
+            cle_client TEXT UNIQUE
+        )""")
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS positions_live (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            evenement_id INTEGER NOT NULL REFERENCES evenements(id) ON DELETE CASCADE,
+            dossard INTEGER NOT NULL,
+            horodatage TEXT NOT NULL,
+            lat REAL NOT NULL,
+            lon REAL NOT NULL,
+            source TEXT,
+            UNIQUE (evenement_id, dossard, horodatage)
+        )""")
+    cur.execute("CREATE INDEX IF NOT EXISTS idx_positions_live ON positions_live(evenement_id, dossard, horodatage)")
+    for col, defn in (("present", "INTEGER DEFAULT 0"), ("present_le", "TEXT")):
+        if col not in _colonnes(cur, "orga_affectations"):
+            cur.execute(f"ALTER TABLE orga_affectations ADD COLUMN {col} {defn}")
+    for col, defn in (("live_jeton", "TEXT"), ("live_noms", "INTEGER DEFAULT 1"), ("pc_telephone", "TEXT")):
+        if col not in _colonnes(cur, "evenements"):
+            cur.execute(f"ALTER TABLE evenements ADD COLUMN {col} {defn}")
+    for t in ("points_controle", "incidents"):
+        _ajouter_uuid(cur, t)
+
+
 MIGRATIONS = [
     (1, "Identifiant universel (UUID) pour chaque donnée", _m001_identifiants_universels),
     (2, "Fiche Personne unique et rôles", _m002_personnes_et_roles),
@@ -1021,6 +1084,8 @@ MIGRATIONS = [
      _m012_logistique),
     (13, "Plusieurs associations et leurs sections (adhésions, groupes et tarifs sans mélange)", _m013_associations),
     (14, "Mode serveur : comptes, rôles, sessions, journal des accès, consentements", _m014_serveur),
+    (15, "Jour de course : points de contrôle, incidents, positions en direct, présence des bénévoles",
+     _m015_jour_de_course),
 ]
 VERSION_LOGICIEL = MIGRATIONS[-1][0]
 

@@ -162,6 +162,7 @@ class Gestionnaire(BaseHTTPRequestHandler):
         self.send_header("X-Frame-Options", "DENY")
         self.send_header("Referrer-Policy", "no-referrer")
         self.send_header("Content-Security-Policy", "default-src 'none'; style-src 'unsafe-inline'; img-src 'self' data:; "
+                                                    "script-src 'self'; connect-src 'self'; "
                                                     "form-action 'self'; frame-ancestors 'none'; base-uri 'none'")
         if _etat["https"]:
             self.send_header("Strict-Transport-Security", "max-age=31536000")
@@ -217,6 +218,9 @@ class Gestionnaire(BaseHTTPRequestHandler):
                 return self._rediriger("/m/")
             if u.path.startswith("/m"):
                 return self._web(verbe, u.path, q)
+            if u.path.startswith("/live/"):
+                from noyau.serveur import web_course
+                return web_course.page_publique(self, u.path[6:].strip("/"), q)
             self._envoyer(404, web.erreur(None, "Page introuvable.", 404))
         except ValueError as e:
             self._envoyer(400, web.erreur(None, str(e), 400))
@@ -327,13 +331,14 @@ class Gestionnaire(BaseHTTPRequestHandler):
             return self._envoyer(200, web.accueil(c))
         if chemin in ("/m/chrono", "/m/chrono-annuler"):
             ev = int(q.get("ev") or 0)
+            pc = int(q["pc"]) if str(q.get("pc") or "").isdigit() else None
             if not web.peut_evenement(c, "chrono", ev):
                 return self._refus(c)
             if verbe == "POST":
-                msg, cl = (web.top_chrono(c, ev, f.get("dossard"), self._ip()) if chemin == "/m/chrono"
-                           else web.annuler_dernier_top(c, ev, self._ip()))
-                return self._envoyer(200, web.chrono(c, csrf, ev, msg, cl))
-            return self._envoyer(200, web.chrono(c, csrf, ev))
+                msg, cl = (web.top_chrono(c, ev, f.get("dossard"), self._ip(), pc) if chemin == "/m/chrono"
+                           else web.annuler_dernier_top(c, ev, self._ip(), pc))
+                return self._envoyer(200, web.chrono(c, csrf, ev, msg, cl, pc))
+            return self._envoyer(200, web.chrono(c, csrf, ev, point_id=pc))
         if chemin == "/m/appel":
             s = int(q.get("seance") or 0)
             if not web.peut_seance(c, s):
@@ -344,7 +349,7 @@ class Gestionnaire(BaseHTTPRequestHandler):
             ev = int(q.get("ev") or 0)
             if not web.peut_evenement(c, "poste", ev):
                 return self._refus(c)
-            return self._envoyer(200, web.poste(c, ev))
+            return self._envoyer(200, web.poste(c, ev, csrf))
         if chemin == "/m/resultats":
             if "resultats" not in web.D.pages_autorisees(c["roles"]):
                 return self._refus(c)
@@ -360,6 +365,14 @@ class Gestionnaire(BaseHTTPRequestHandler):
 
 
 PAGES_EN_PLUS = {}          # préfixe -> gestion(handler, compte, csrf, verbe, chemin, q, formulaire)
+
+
+def _brancher_pages():
+    from noyau.serveur import web_course                      # étape 6 : incidents, commandement, présence
+    PAGES_EN_PLUS.update(web_course.PAGES)
+
+
+_brancher_pages()
 
 
 def copie_base():

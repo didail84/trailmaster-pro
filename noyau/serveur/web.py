@@ -142,12 +142,26 @@ def peut_evenement(compte, page_code, evenement_id):
                for r in roles)
 
 
-def chrono(compte, csrf, evenement_id, message=None, classe="ok"):
+def chrono(compte, csrf, evenement_id, message=None, classe="ok", point_id=None):
     from noyau.donnees import organisation as dor, chrono as dch
+    try:
+        from noyau.donnees import commandement as dk
+        pts = dk.points(evenement_id)
+    except Exception:
+        pts = []
     ev = dor.evenement(evenement_id)
+    pt = next((p for p in pts if p["id"] == point_id), None)
+    cle = pt["cle"] if pt else "arrivee"
+    noms_points = {p["cle"]: p["nom"] for p in pts}
+    noms_points["arrivee"] = "Arrivée"
+    choix = ""
+    if pts:
+        choix = "<div class='carte'><span class='petit'>Je pointe à :</span><br>" + " · ".join(
+            (f"<b>{_e(n)}</b>" if k == cle else f"<a href='/m/chrono?ev={evenement_id}" + (f"&pc={k[2:]}" if k != "arrivee" else "")
+             + f"'>{_e(n)}</a>") for k, n in [(p["cle"], p["nom"]) for p in pts] + [("arrivee", "Arrivée")]) + "</div>"
     ins = {i["dossard"]: i for i in dor.inscriptions(evenement_id) if i.get("dossard")}
     eps = {e["id"]: e for e in dor.epreuves(evenement_id)}
-    ps = list(reversed(dch.passages(evenement_id)))[:15]
+    ps = [p for p in reversed(dch.passages(evenement_id)) if p["point"] == cle][:15]
     m = f"<div class='carte {classe}'>{message}</div>" if message else ""
     departs = "".join(f"<tr><td>{_e(e['nom'])}</td><td class='droite'>"
                       f"{datetime.fromisoformat(e['depart_reel']).strftime('%H:%M:%S') if e.get('depart_reel') else '<span class=petit>pas parti</span>'}</td></tr>"
@@ -157,28 +171,33 @@ def chrono(compte, csrf, evenement_id, message=None, classe="ok"):
         i = ins.get(p["dossard"])
         lignes += (f"<tr><td>{datetime.fromisoformat(p['heure']).strftime('%H:%M:%S')}</td><td><b>{_e(p['dossard'])}</b></td>"
                    f"<td>{_e((i['prenom'] or '') + ' ' + i['nom']) if i else '<span class=petit>inconnu</span>'}</td></tr>")
-    return page(f"Chrono · {ev['nom']}", m + f"""<form method='post' action='/m/chrono?ev={evenement_id}' class='carte'>{_champ_csrf(csrf)}
-<label for='d'>Dossard qui passe la ligne</label><input id='d' class='dossard' name='dossard' inputmode='numeric' pattern='[0-9]*' autocomplete='off' autofocus required>
-<button type='submit'>Top arrivée</button></form>
-<form method='post' action='/m/chrono-annuler?ev={evenement_id}'>{_champ_csrf(csrf)}<button class='second' type='submit'>Annuler mon dernier top</button></form>
+    suffixe = f"&pc={point_id}" if pt else ""
+    return page(f"{'Pointage · ' + pt['nom'] if pt else 'Chrono · ' + ev['nom']}", m + choix + f"""<form method='post' action='/m/chrono?ev={evenement_id}{suffixe}' class='carte'>{_champ_csrf(csrf)}
+<label for='d'>{'Dossard qui passe au point' if pt else 'Dossard qui passe la ligne'}</label><input id='d' class='dossard' name='dossard' inputmode='numeric' pattern='[0-9]*' autocomplete='off' autofocus required>
+<button type='submit'>{'Pointer' if pt else 'Top arrivée'}</button></form>
+<form method='post' action='/m/chrono-annuler?ev={evenement_id}{suffixe}'>{_champ_csrf(csrf)}<button class='second' type='submit'>Annuler mon dernier top</button></form>
 <h2>Départs</h2><div class='carte'><table>{departs}</table></div>
 <h2>Derniers passages</h2><div class='carte'><table>{lignes or "<tr><td class='petit'>Aucun passage.</td></tr>"}</table></div>
 <p class='petit'>L'heure est celle du serveur au moment du top. Un double top de moins de 5 secondes est ignoré.</p>""", compte)
 
 
-def top_chrono(compte, evenement_id, dossard, adresse=None):
+def top_chrono(compte, evenement_id, dossard, adresse=None, point_id=None):
     """Renvoie (message HTML, classe)."""
     from noyau.donnees import chrono as dch, organisation as dor
     try:
         n = int(str(dossard).strip())
     except ValueError:
         return "Numéro de dossard illisible.", "err"
-    r = dch.ajouter_passage(evenement_id, n, source=f"web:{compte['identifiant']}")
+    if point_id:
+        from noyau.donnees import commandement as dk
+        r = dk.pointer(evenement_id, point_id, n, source=f"web:{compte['identifiant']}")
+    else:
+        r = dch.ajouter_passage(evenement_id, n, source=f"web:{compte['identifiant']}")
     dco.journaliser(compte["id"], compte["identifiant"], "ecriture", "web.chrono", detail=f"ev {evenement_id} dossard {n}",
                     adresse=adresse)
     i = r["inscrit"]
     temps = ""
-    if i:
+    if i and not point_id:
         e = next((x for x in dor.epreuves(evenement_id) if x["id"] == i["epreuve_id"]), None)
         if e and e.get("depart_reel"):
             s = int((datetime.fromisoformat(r["heure"]) - datetime.fromisoformat(e["depart_reel"])).total_seconds())
@@ -189,10 +208,11 @@ def top_chrono(compte, evenement_id, dossard, adresse=None):
     return f"✅ {texte} à {datetime.fromisoformat(r['heure']).strftime('%H:%M:%S')}", "ok"
 
 
-def annuler_dernier_top(compte, evenement_id, adresse=None):
+def annuler_dernier_top(compte, evenement_id, adresse=None, point_id=None):
     from noyau.donnees import chrono as dch
     src = f"web:{compte['identifiant']}"
-    mien = [p for p in dch.passages(evenement_id) if p["source"] == src]
+    cle = f"pc{point_id}" if point_id else "arrivee"
+    mien = [p for p in dch.passages(evenement_id) if p["source"] == src and p["point"] == cle]
     if not mien:
         return "Aucun top à annuler.", "att"
     dch.annuler_passage(mien[-1]["id"])
@@ -251,7 +271,7 @@ def enregistrer_appel(compte, seance_id, formulaire, adresse=None):
 
 # ------------------------------------------------------------------ mon poste
 
-def poste(compte, evenement_id):
+def poste(compte, evenement_id, csrf=None):
     from noyau.donnees import organisation as dor, logistique as dl
     ev = dor.evenement(evenement_id)
     pid = compte.get("personne_id")
@@ -260,13 +280,24 @@ def poste(compte, evenement_id):
         return page(f"Mon poste · {ev['nom']}", "<div class='carte att'>Ton compte n'est relié à aucun bénévole de cette "
                     "course : demande à l'organisateur.</div>", compte)
     postes = dl.planning_benevole(evenement_id, mien[0]["id"])
+    from noyau.donnees import base as _b
+    presents = {r[0] for r in _b.lire_tous("SELECT poste_id FROM orga_affectations WHERE benevole_id=? AND present=1",
+                                           (mien[0]["id"],))}
+
+    def bouton(p):
+        if not csrf:
+            return ""
+        ici = p["id"] in presents
+        return (f"<form method='post' action='/m/poste-present?ev={evenement_id}'>{_champ_csrf(csrf)}"
+                f"<input type='hidden' name='poste' value='{p['id']}'><input type='hidden' name='present' value='{0 if ici else 1}'>"
+                f"<button type='submit' class='{'second' if ici else ''}'>{'✅ Je suis à mon poste (annuler)' if ici else 'Je suis arrivé à mon poste'}</button></form>")
     blocs = "".join(
         f"<div class='carte'><b>{_e(p['nom'])}</b><br>{jour_fr(p['jour'], True) if p.get('jour') else ''} "
         f"de {_e(p.get('heure_debut') or '?')} à {_e(p.get('heure_fin') or '?')}<br>{_e(p.get('lieu') or '')}"
         f"{(' · km ' + format(p['km'], 'g')) if p.get('km') else ''}"
         + (f"<p>{_e(p['consignes'])}</p>" if p.get("consignes") else "")
         + (f"<p class='petit'>Avec : {_e(', '.join((b.get('prenom') or '') + ' ' + b['nom'] for b in p['benevoles'] if b['id'] != mien[0]['id']))}</p>"
-           if len(p["benevoles"]) > 1 else "") + "</div>" for p in postes)
+           if len(p["benevoles"]) > 1 else "") + bouton(p) + "</div>" for p in postes)
     return page(f"Mon poste · {ev['nom']}", (blocs or "<div class='carte att'>Pas encore de poste.</div>") +
                 (f"<p class='petit'>Contact de l'organisation : {_e(ev.get('contact_email'))}</p>" if ev.get("contact_email") else ""),
                 compte)
