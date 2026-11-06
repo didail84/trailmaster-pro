@@ -546,6 +546,144 @@ def _m009_annuaire(cur):
     _ajouter_uuid(cur, "annuaire")
 
 
+def _m010_calendrier_organisation(cur):
+    """Calendrier des courses (sources .ics, collage, import) et organisation d'un événement (étape 4.4) :
+    épreuves, tarifs, inscriptions contrôlées selon la réglementation FFA, dossards."""
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS calendrier_sources (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            nom TEXT NOT NULL,
+            type TEXT NOT NULL,
+            url TEXT,
+            actif INTEGER DEFAULT 1,
+            derniere_maj TEXT,
+            nb_courses INTEGER DEFAULT 0,
+            erreur TEXT,
+            notes TEXT
+        )""")
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS calendrier_courses (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            cle TEXT,
+            nom TEXT NOT NULL,
+            date_debut TEXT NOT NULL,
+            date_fin TEXT,
+            commune TEXT,
+            code_postal TEXT,
+            departement TEXT,
+            discipline TEXT,
+            niveau TEXT,
+            organisateur TEXT,
+            site TEXT,
+            inscription_url TEXT,
+            statut TEXT DEFAULT 'prevue',
+            source_id INTEGER REFERENCES calendrier_sources(id) ON DELETE SET NULL,
+            source TEXT,
+            ref_externe TEXT,
+            evenement_id INTEGER,
+            notes TEXT,
+            mes_notes TEXT,
+            favori INTEGER DEFAULT 0,
+            masque INTEGER DEFAULT 0,
+            modifie INTEGER DEFAULT 0,
+            vu_le TEXT
+        )""")
+    cur.execute("CREATE INDEX IF NOT EXISTS idx_calendrier_date ON calendrier_courses(date_debut, departement)")
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS calendrier_epreuves (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            course_id INTEGER NOT NULL REFERENCES calendrier_courses(id) ON DELETE CASCADE,
+            nom TEXT,
+            distance_km REAL,
+            denivele_m INTEGER,
+            discipline TEXT,
+            heure_depart TEXT,
+            prix REAL
+        )""")
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS evenements (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            club_id INTEGER REFERENCES clubs(id) ON DELETE SET NULL,
+            nom TEXT NOT NULL,
+            date_debut TEXT NOT NULL,
+            date_fin TEXT,
+            commune TEXT,
+            code_postal TEXT,
+            lieu TEXT,
+            site TEXT,
+            contact_email TEXT,
+            description TEXT,
+            statut TEXT NOT NULL DEFAULT 'brouillon',
+            declaration_ffa TEXT,
+            ouverture_inscriptions TEXT,
+            cloture_inscriptions TEXT,
+            date_tarif_tardif TEXT,
+            pps_validite_mois INTEGER DEFAULT 3,
+            autorisation_parentale INTEGER DEFAULT 1,
+            notes TEXT,
+            date_creation TEXT DEFAULT CURRENT_TIMESTAMP
+        )""")
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS epreuves (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            evenement_id INTEGER NOT NULL REFERENCES evenements(id) ON DELETE CASCADE,
+            nom TEXT NOT NULL,
+            discipline TEXT NOT NULL DEFAULT 'trail',
+            distance_km REAL,
+            denivele_m INTEGER DEFAULT 0,
+            date TEXT,
+            heure_depart TEXT,
+            quota INTEGER,
+            tarif REAL DEFAULT 0,
+            tarif_licencie REAL,
+            tarif_tardif REAL,
+            dossard_debut INTEGER,
+            dossard_fin INTEGER,
+            categorie_min TEXT,
+            competitive INTEGER DEFAULT 1,
+            notes TEXT
+        )""")
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS inscriptions (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            epreuve_id INTEGER NOT NULL REFERENCES epreuves(id) ON DELETE CASCADE,
+            personne_id INTEGER REFERENCES personnes(id) ON DELETE SET NULL,
+            nom TEXT NOT NULL,
+            prenom TEXT,
+            sexe TEXT,
+            date_naissance TEXT,
+            nationalite TEXT,
+            email TEXT,
+            telephone TEXT,
+            club TEXT,
+            justificatif TEXT,
+            numero_licence TEXT,
+            type_licence TEXT,
+            federation TEXT,
+            pps_date TEXT,
+            certificat_date TEXT,
+            questionnaire_mineur INTEGER DEFAULT 0,
+            autorisation_parentale INTEGER DEFAULT 0,
+            justificatif_valide INTEGER DEFAULT 0,
+            contact_urgence_nom TEXT,
+            contact_urgence_tel TEXT,
+            taille_tshirt TEXT,
+            statut TEXT NOT NULL DEFAULT 'en_attente',
+            dossard INTEGER,
+            montant REAL,
+            montant_paye REAL DEFAULT 0,
+            paiement_mode TEXT,
+            date_inscription TEXT,
+            source TEXT,
+            ref_externe TEXT,
+            dossard_retire INTEGER DEFAULT 0,
+            notes TEXT
+        )""")
+    cur.execute("CREATE INDEX IF NOT EXISTS idx_inscriptions_epreuve ON inscriptions(epreuve_id, statut)")
+    for t in ("calendrier_sources", "calendrier_courses", "evenements", "epreuves", "inscriptions"):
+        _ajouter_uuid(cur, t)
+
+
 # (numéro, description lisible, fonction) — dans l'ordre, sans trou
 MIGRATIONS = [
     (1, "Identifiant universel (UUID) pour chaque donnée", _m001_identifiants_universels),
@@ -557,6 +695,8 @@ MIGRATIONS = [
     (7, "Espace Club : club, groupes, adhésions et licences par saison, tarifs", _m007_club),
     (8, "Agenda du club : séries hebdomadaires, séances, appel des présences", _m008_agenda_club),
     (9, "Annuaire trail : clubs, écoles, magasins et marques ; marque et magasin du matériel", _m009_annuaire),
+    (10, "Calendrier des courses et organisation : événements, épreuves, inscriptions, dossards",
+     _m010_calendrier_organisation),
 ]
 VERSION_LOGICIEL = MIGRATIONS[-1][0]
 

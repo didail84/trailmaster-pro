@@ -1,5 +1,31 @@
 # Historique des versions
 
+## Trail Hub Center — étape 4.4 (organisation d'un événement) et Calendrier des courses
+- **Nouveau module « Calendrier des courses »** (espace Coureur, allumé par défaut, menu Analyse). Il couvre les compétitions de stade, hors stade (route), cross, trail (découverte, court, long, ultra), course en montagne, kilomètre vertical, marche nordique et relais, en Provence-Alpes-Côte d'Azur, Occitanie et Auvergne-Rhône-Alpes.
+  - **Courses** : filtres (période, région, département, discipline, niveau, favorites), fiche de la course avec épreuves et km-effort.
+  - **Envois** : vers **« Courses à venir »** (en choisissant l'épreuve) ou vers **l'agenda du club**. Export .ics.
+  - **Sources** :
+    - les **flux .ics** donnés par l'utilisateur (organisateurs, comités, ligues, Google Agenda) sont **relus tout seuls** à l'ouverture, toutes les 12 heures, en tâche de fond ;
+    - les **calendriers en ligne** (FFA, Betrail, Sas Départ, GoTrail, Sport-Nature, Trace de Trail) s'ouvrent dans le navigateur avec la discipline et la saison choisies. On **colle** le tableau des courses et le logiciel reconnaît les colonnes ;
+    - on peut aussi **importer** un fichier .ics ou .csv.
+  - **Fusion sans doublon** : même date, noms proches, même département. Une course corrigée par toi n'est plus modifiée par ses sources.
+  - Le logiciel ne lit pas tout seul les sites qui interdisent la lecture automatique (FFA, Betrail) : il les ouvre dans ton navigateur.
+- **Module « Organisation de courses »** (espace Organisation, à allumer dans Réglages > Modules). Il ouvre la fenêtre **🏁 Organisation**, en quatre onglets :
+  - **Événement et épreuves** : date, lieu, ouverture et clôture des inscriptions, tarif tardif, validité du Pass Prévention Santé, autorisation parentale. Chaque épreuve a sa distance, son D+, son km-effort, son horaire, son quota, ses tarifs (normal, licencié FFA, tardif), sa plage de dossards et un âge minimum. On publie l'événement dans le calendrier des courses.
+  - **Inscriptions** : saisie, **import Njuko, HelloAsso ou CSV** (l'épreuve est reconnue par son nom ou sa distance, les commandes remboursées sont écartées, sans doublon), **inscription des adhérents du club** avec leur licence, liste d'attente quand le quota est atteint, paiements, validation des dossiers complets, export, e-mails des dossiers incomplets.
+  - **Contrôle des dossiers** d'après la réglementation FFA des manifestations running 2025-2026 :
+    - distances maximales par catégorie, sur route et en trail (km-effort, plus de 950 m de D+ réservé aux juniors et plus) ;
+    - licences acceptées (Athlé Compétition, Running, Entreprise) ;
+    - Pass Prévention Santé pour les majeurs, fait au plus 3 mois avant la course ;
+    - mineurs : questionnaire de santé avec attestation parentale, ou certificat de moins de six mois, et autorisation parentale ;
+    - paiement et téléphone à prévenir.
+
+    Chaque contrôle s'affiche en manque ou en avertissement : l'organisateur garde la décision.
+  - **Dossards** : attribution aux inscriptions validées (ordre alphabétique ou d'inscription), contrôle des plages qui se chevauchent, retrait des dossards le jour J, **liste de départ CSV** et **feuille de retrait PDF**.
+  - **Tableau de bord** : inscrits, validés, dossiers incomplets, encaissé et reste, dossards ; par épreuve (places restantes), par catégorie et par club.
+- **Base de données version 10** : sources et courses du calendrier, événements, épreuves, inscriptions.
+- **Page Claude** : rubrique **Calendrier des courses**, avec une lecture de Claude qui propose 2 ou 3 courses adaptées à ta forme et à tes objectifs. Rubrique **Organisation** : remplissage des épreuves, dossiers à traiter, encaissé, dossards.
+
 ## Trail Hub Center — Annuaire trail (nouveau module)
 - **Nouveau module « Annuaire trail »** (espace Coureur, allumé par défaut). Il ouvre la fenêtre **📒 Annuaire trail** (menu Outils), en trois onglets :
   - **Clubs et écoles** : clubs d'athlétisme, de running et de trail, sections trail, écoles de trail, organisateurs de courses ;

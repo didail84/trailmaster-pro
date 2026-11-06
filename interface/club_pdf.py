@@ -142,3 +142,45 @@ def rendre_feuille_appel(chemin, club, seance, lignes):
     pdf.setTitle(f"Feuille d'appel {seance['date']}")
     _imprimer(pdf, html_feuille_appel(club, seance, lignes))
     return chemin
+
+
+# ----------------------------------------------------------------------
+# Feuille de retrait des dossards (étape 4.4) : une ligne par coureur
+# validé, case « remis » et signature.
+# ----------------------------------------------------------------------
+
+def html_retrait_dossards(evenement, inscriptions):
+    ev = evenement or {}
+    j = date.fromisoformat(str(ev.get("date_debut"))[:10]) if ev.get("date_debut") else None
+    bord = "border:1px solid #999;padding:6px 4px"
+    corps = ""
+    for i in sorted(inscriptions, key=lambda x: (x.get("dossard") or 10 ** 9, x["nom"].lower())):
+        d = i.get("dossier") or {}
+        manque = "" if d.get("complet", True) else ", ".join(d.get("manques", []))
+        corps += (f"<tr><td style='{bord}' align='right'><b>{_e(i.get('dossard') or '')}</b></td>"
+                  f"<td style='{bord}'><b>{_e(i['nom'])}</b> {_e(i.get('prenom') or '')}</td>"
+                  f"<td style='{bord}'>{_e(i.get('epreuve') or '')}</td><td style='{bord}'>{_e(i.get('taille_tshirt') or '')}</td>"
+                  f"<td style='{bord};color:#B71C1C'>{_e(manque)}</td>"
+                  f"<td style='{bord}' align='center'>{'✕' if i.get('dossard_retire') else ''}</td>"
+                  f"<td style='{bord}'>&nbsp;</td></tr>")
+    entete = "".join(f"<th width='{w}' style='{bord};background:#eee'>{x}</th>" for x, w in (
+        ("Dossard", "8%"), ("Nom", "28%"), ("Épreuve", "16%"), ("T-shirt", "8%"), ("À régler au retrait", "20%"),
+        ("Remis", "6%"), ("Signature", "14%")))
+    return f"""
+<div style="font-family:Helvetica,Arial,sans-serif;color:#111;font-size:10pt">
+<p><span style="font-size:15pt;font-weight:bold">Retrait des dossards</span><br>
+<b>{_e(ev.get('nom') or '')}</b> · {j.strftime('%d/%m/%Y') if j else ''} · {_e(ev.get('commune') or '')}</p>
+<table cellspacing="0" width="100%" style="border-collapse:collapse"><tr>{entete}</tr>{corps}</table>
+<p style="color:#555;font-size:9pt">Les dossiers incomplets (licence, Pass Prévention Santé, autorisation parentale,
+paiement) se règlent avant de remettre le dossard. Feuille confidentielle.</p>
+</div>"""
+
+
+def rendre_retrait_dossards(chemin, evenement, inscriptions):
+    pdf = QPdfWriter(str(chemin))
+    pdf.setPageLayout(QPageLayout(QPageSize(QPageSize.PageSizeId.A4), QPageLayout.Orientation.Portrait,
+                                  QMarginsF(12, 12, 12, 12), QPageLayout.Unit.Millimeter))
+    pdf.setResolution(300)
+    pdf.setTitle("Retrait des dossards")
+    _imprimer(pdf, html_retrait_dossards(evenement, inscriptions))
+    return chemin

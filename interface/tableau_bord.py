@@ -158,10 +158,14 @@ class TableauBord(QMainWindow):
                 ("📋  Suivi", self.ouvrir_suivi, False),
                 ("🏆  Résultats de courses", self.ouvrir_resultats_courses, False),
                 ("🏁  Courses à venir", self.ouvrir_courses_calendrier, False),
+                ("🗓️  Calendrier des courses", self.ouvrir_calendrier_competitions, False),
                 ("🎒  Matériel pour une course", self.ouvrir_materiel_course, False),
             ]),
             ("CLUB", [
                 ("🏟️  Club", self.ouvrir_club, False),
+            ]),
+            ("ORGANISATION", [
+                ("🏁  Organisation", self.ouvrir_organisation, False),
             ]),
             ("OUTILS", [
                 ("🌦️  Météo", self.ouvrir_meteo, False),
@@ -1542,6 +1546,15 @@ class TableauBord(QMainWindow):
         from interface.fractionne import FractionneFenetre
         self._ouvrir_ou_activer("fractionne", lambda: FractionneFenetre(athlete_id_initial=self.athlete_actif_id))
 
+    def ouvrir_calendrier_competitions(self):
+        from interface.calendrier_competitions import CalendrierFenetre
+        self._ouvrir_ou_activer("calendrier_competitions",
+                                lambda: CalendrierFenetre(athlete_id_initial=self.athlete_actif_id))
+
+    def ouvrir_organisation(self):
+        from interface.organisation import OrganisationFenetre
+        self._ouvrir_ou_activer("organisation", lambda: OrganisationFenetre(athlete_id_initial=self.athlete_actif_id))
+
     def ouvrir_annuaire(self):
         from interface.annuaire import AnnuaireFenetre
         self._ouvrir_ou_activer("annuaire", lambda: AnnuaireFenetre(athlete_id_initial=self.athlete_actif_id))
@@ -1765,6 +1778,10 @@ class TableauBord(QMainWindow):
             ("Planification", "plan calendrier seances", self.ouvrir_planification),
             ("Fractionné", "vma piste cotes intervalles 30/30 400 1000 minuteur bips", self.ouvrir_fractionne),
             ("Renforcement & Mobilité", "muscu", self.ouvrir_renforcement),
+            ("Calendrier des courses", "competitions ffa calendrier trail cross route montagne ultra marathon inscriptions",
+             self.ouvrir_calendrier_competitions),
+            ("Organisation", "evenement epreuves inscriptions dossards njuko organiser une course pps",
+             self.ouvrir_organisation),
             ("Annuaire trail", "clubs ecoles de trail magasins marques boutiques running chaussures adresse",
              self.ouvrir_annuaire),
             ("Club", "adherents licencies licence ffa cotisation recu groupes helloasso saison categories",

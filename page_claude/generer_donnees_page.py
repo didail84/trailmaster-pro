@@ -5,6 +5,7 @@ calculer exactement comme lui :
     départ, produits génériques ;
   - matériel obligatoire : catalogue des équipements et caractéristiques ;
   - fractionné : bibliothèque des séances types ;
+  - calendrier : disciplines FFA, régions, statuts des inscriptions ;
   - annuaire : clubs, écoles, magasins et marques de la base livrée ;
   - club : catégories FFA, types de licence, pièces de santé, statuts, vacances
     scolaires et types de séances de l'agenda.
@@ -29,7 +30,7 @@ from noyau.entrainement import fractionne as efr                                
 from noyau.club import categories as ccat, adhesions as cadh, agenda as cag              # noqa: E402
 
 PAGE = RACINE / "page_claude" / "trail_hub_center.html"
-REPERES = {"NUTRITION": None, "MATERIEL": None, "FRACTIONNE": None, "CLUB": None, "ANNUAIRE": None}
+REPERES = {"NUTRITION": None, "MATERIEL": None, "FRACTIONNE": None, "CLUB": None, "ANNUAIRE": None, "CALENDRIER": None}
 
 
 def donnees():
@@ -80,9 +81,19 @@ def donnees_annuaire():
             "marques": [[x["nom"], x["pays"], x["categories"], x.get("groupe")] for x in ref["marques"]]}
 
 
+def donnees_calendrier():
+    from noyau.calendrier import regles as cr
+    from noyau.organisation import regles as orr
+    return {"disciplines": [list(x) for x in cr.DISCIPLINES], "famille": cr.FAMILLE, "familles": list(cr.FAMILLES),
+            "niveaux": [list(x) for x in cr.NIVEAUX], "regions": {k: list(v) for k, v in cr.REGIONS.items()},
+            "departements": cr.NOMS_DEPARTEMENTS, "statutsInscription": [list(x) for x in orr.STATUTS],
+            "statutsEvenement": [list(x) for x in orr.STATUTS_EVENEMENT]}
+
+
 def bloc(nom):
     contenu = {"NUTRITION": donnees, "MATERIEL": donnees_materiel, "FRACTIONNE": donnees_fractionne,
-               "CLUB": donnees_club, "ANNUAIRE": donnees_annuaire}[nom]()
+               "CLUB": donnees_club, "ANNUAIRE": donnees_annuaire,
+               "CALENDRIER": donnees_calendrier}[nom]()
     return f"/*{nom}_DEBUT*/" + json.dumps(contenu, ensure_ascii=False, separators=(",", ":")) + f"/*{nom}_FIN*/"
 
 

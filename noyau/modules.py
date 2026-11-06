@@ -62,6 +62,11 @@ MODULES = (
            "Produits de course et Nutri-Score, fait maison (barres, gels, boissons), comparatif, tolérances "
            "et besoins par heure, fiches aliments.",
            ("ouvrir_alimentation",), blocs=(12,)),
+    Module("calendrier", "Calendrier des courses", "Coureur",
+           "Compétitions de stade, hors stade, cross, trail, montagne, ultra-trail en PACA, Occitanie et "
+           "Auvergne-Rhône-Alpes : flux .ics relus tout seuls, tableaux collés depuis les calendriers en ligne, "
+           "imports ; une course s'ajoute à tes courses à venir ou à l'agenda du club.",
+           ("ouvrir_calendrier_competitions",)),
     Module("annuaire", "Annuaire trail", "Coureur",
            "Clubs d'athlétisme et de trail, écoles et sections trail, organisateurs, magasins et marques (base "
            "PACA livrée, à compléter) ; marques et magasins proposés dans ton matériel.",
@@ -80,8 +85,10 @@ MODULES = (
            "École d'athlé : groupes par catégorie, carnet de progression, badges, espace parents.",
            disponible=False, etape="7", blocs=(20,), actif_par_defaut=False),
     Module("organisation", "Organisation de courses", "Organisation",
-           "Événement, inscriptions, logistique et bénévoles, chrono, incidents, tableau de commandement.",
-           disponible=False, etape="6", blocs=(21, 22, 23, 24, 26, 27), actif_par_defaut=False),
+           "Ton événement : épreuves, tarifs, inscriptions contrôlées selon la réglementation FFA (âge et distance, "
+           "licence ou Pass Prévention Santé, mineurs), import Njuko ou CSV, dossards et retrait, tableau de bord. "
+           "Viendront : chrono, logistique, bénévoles.",
+           ("ouvrir_organisation",), etape="4", blocs=(21, 22, 23, 24, 26, 27), actif_par_defaut=False),
     Module("trail_live", "Trail Live", "Organisation",
            "Suivi des coureurs en direct sur carte, page publique pour les proches.",
            disponible=False, etape="6", blocs=(25,), actif_par_defaut=False),
