@@ -171,6 +171,7 @@ class TableauBord(QMainWindow):
                 ("📊  Analyse", self.ouvrir_analyse, False),
             ]),
             ("OUTILS", [
+                ("📰  Actualités du trail", self.ouvrir_actualites, False),
                 ("🌦️  Météo", self.ouvrir_meteo, False),
                 ("🍎  Alimentation", self.ouvrir_alimentation, False),
                 ("📒  Annuaire trail", self.ouvrir_annuaire, False),
@@ -1563,6 +1564,10 @@ class TableauBord(QMainWindow):
         from interface.annuaire import AnnuaireFenetre
         self._ouvrir_ou_activer("annuaire", lambda: AnnuaireFenetre(athlete_id_initial=self.athlete_actif_id))
 
+    def ouvrir_actualites(self):
+        from interface.actualites import ActualitesFenetre
+        self._ouvrir_ou_activer("actualites", lambda: ActualitesFenetre(athlete_id_initial=self.athlete_actif_id))
+
     def ouvrir_analyse(self):
         from interface.analyse import AnalyseFenetre
         self._ouvrir_ou_activer("analyse", lambda: AnalyseFenetre(athlete_id_initial=self.athlete_actif_id))
@@ -1798,6 +1803,8 @@ class TableauBord(QMainWindow):
              self.ouvrir_annuaire),
             ("Club", "adherents licencies licence ffa cotisation recu groupes helloasso saison categories",
              self.ouvrir_club),
+            ("Actualités du trail", "news actualites rss coureurs connus palmares utmb kilian d'haene flux",
+             self.ouvrir_actualites),
             ("Analyse", "prevu reel ecart estimation correction bilans club saison fidelisation evenements editions",
              self.ouvrir_analyse),
             ("Serveur et comptes", "nas reseau comptes mots de passe benevoles droits journal consentements connexion",

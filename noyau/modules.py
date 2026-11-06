@@ -103,6 +103,10 @@ MODULES = (
     Module("photos_dossard", "Photos par dossard", "Organisation",
            "Photos d'une course retrouvées par numéro de dossard.",
            disponible=False, etape="7", blocs=(28,), actif_par_defaut=False),
+    Module("actualites", "Actualités du trail", "Coureur",
+           "Les nouvelles du trail en France et dans le monde (flux RSS des sites : titre, date, extrait et lien), "
+           "coureurs connus français et étrangers avec leur palmarès vérifié, coureurs suivis.",
+           ("ouvrir_actualites",), actif_par_defaut=True),
     Module("analyse", "Analyse transversale", "Analyse",
            "Prévu ou réel de tes courses (avec correction des estimations), bilans du club saison par saison, "
            "bilans des événements et comparaison des éditions.",

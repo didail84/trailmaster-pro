@@ -1115,6 +1115,67 @@ def _m016_kids(cur):
         _ajouter_uuid(cur, t)
 
 
+def _m017_actualites(cur):
+    """Actualités du trail : flux RSS (France et monde), articles (titre, date, extrait, lien), coureurs connus
+    et leur palmarès vérifié, lien article ↔ coureur cité."""
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS actualites_sources (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            cle_reference TEXT UNIQUE,
+            nom TEXT NOT NULL,
+            url TEXT NOT NULL,
+            site TEXT,
+            langue TEXT,
+            zone TEXT DEFAULT 'france',
+            actif INTEGER DEFAULT 1,
+            derniere_maj TEXT,
+            nb_articles INTEGER DEFAULT 0,
+            erreur TEXT,
+            modifie INTEGER DEFAULT 0
+        )""")
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS actualites (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            source_id INTEGER REFERENCES actualites_sources(id) ON DELETE CASCADE,
+            guid TEXT NOT NULL,
+            titre TEXT NOT NULL,
+            lien TEXT NOT NULL,
+            date TEXT,
+            extrait TEXT,
+            trail INTEGER DEFAULT 1,
+            lu INTEGER DEFAULT 0,
+            favori INTEGER DEFAULT 0,
+            masque INTEGER DEFAULT 0,
+            recu_le TEXT,
+            UNIQUE (source_id, guid)
+        )""")
+    cur.execute("CREATE INDEX IF NOT EXISTS idx_actualites_date ON actualites(date)")
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS coureurs_connus (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            cle_reference TEXT UNIQUE,
+            prenom TEXT,
+            nom TEXT NOT NULL,
+            pays TEXT,
+            sexe TEXT,
+            palmares_json TEXT,
+            sources_json TEXT,
+            alias_json TEXT,
+            suivi INTEGER DEFAULT 0,
+            mes_notes TEXT,
+            modifie INTEGER DEFAULT 0,
+            verifie_le TEXT
+        )""")
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS actualites_coureurs (
+            actualite_id INTEGER NOT NULL REFERENCES actualites(id) ON DELETE CASCADE,
+            coureur_id INTEGER NOT NULL REFERENCES coureurs_connus(id) ON DELETE CASCADE,
+            PRIMARY KEY (actualite_id, coureur_id)
+        )""")
+    for t in ("actualites_sources", "coureurs_connus"):
+        _ajouter_uuid(cur, t)
+
+
 MIGRATIONS = [
     (1, "Identifiant universel (UUID) pour chaque donnée", _m001_identifiants_universels),
     (2, "Fiche Personne unique et rôles", _m002_personnes_et_roles),
@@ -1135,6 +1196,7 @@ MIGRATIONS = [
     (15, "Jour de course : points de contrôle, incidents, positions en direct, présence des bénévoles",
      _m015_jour_de_course),
     (16, "Kids : carnet de progression, badges et équipement des enfants", _m016_kids),
+    (17, "Actualités du trail : flux RSS, articles, coureurs connus et leur palmarès", _m017_actualites),
 ]
 VERSION_LOGICIEL = MIGRATIONS[-1][0]
 

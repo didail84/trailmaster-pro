@@ -1,0 +1,391 @@
+{
+ "version": "2026-11-06",
+ "verifie_le": "2026-11-06",
+ "avertissement": "Flux RSS publiés par les sites eux-mêmes pour être lus ; Trail Hub n'en garde que le titre, la date, un court extrait et le lien. Palmarès vérifiés le 6 novembre 2026 sur les sources indiquées ; aucune photo.",
+ "sources": [
+  {
+   "cle": "utrail",
+   "nom": "u-Trail",
+   "url": "https://u-trail.com/feed/",
+   "langue": "fr",
+   "zone": "france",
+   "site": "https://u-trail.com/"
+  },
+  {
+   "cle": "distances_plus",
+   "nom": "Distances+",
+   "url": "https://distances.plus/feed/",
+   "langue": "fr",
+   "zone": "france",
+   "site": "https://distances.plus/"
+  },
+  {
+   "cle": "esprit_trail",
+   "nom": "Esprit Trail",
+   "url": "https://www.esprit-trail.com/feed/",
+   "langue": "fr",
+   "zone": "france",
+   "site": "https://www.esprit-trail.com/"
+  },
+  {
+   "cle": "u_run",
+   "nom": "U Run (running et trail)",
+   "url": "https://u-run.fr/feed/",
+   "langue": "fr",
+   "zone": "france",
+   "site": "https://u-run.fr/"
+  },
+  {
+   "cle": "runmotion",
+   "nom": "RunMotion Coach (trail)",
+   "url": "https://en.run-motion.com/category/trail/feed/",
+   "langue": "en",
+   "zone": "monde",
+   "site": "https://en.run-motion.com/"
+  },
+  {
+   "cle": "trailrunmag",
+   "nom": "Trail Run Magazine (Australie)",
+   "url": "https://www.trailrunmag.com/feed/",
+   "langue": "en",
+   "zone": "monde",
+   "site": "https://www.trailrunmag.com/"
+  },
+  {
+   "cle": "canadian_running",
+   "nom": "Canadian Running (trail)",
+   "url": "https://runningmagazine.ca/category/trail-running/feed/",
+   "langue": "en",
+   "zone": "monde",
+   "site": "https://runningmagazine.ca/"
+  },
+  {
+   "cle": "iancorless",
+   "nom": "Ian Corless",
+   "url": "https://iancorless.org/feed/",
+   "langue": "en",
+   "zone": "monde",
+   "site": "https://iancorless.org/"
+  }
+ ],
+ "coureurs": [
+  {
+   "cle": "dhaene",
+   "prenom": "François",
+   "nom": "D'Haene",
+   "pays": "FRA",
+   "sexe": "H",
+   "palmares": [
+    "Vainqueur de l'UTMB en 2012, 2014, 2017 et 2021",
+    "Quatre fois vainqueur de la Diagonale des Fous, record du parcours classique en 22 h 58 (2013)"
+   ],
+   "sources": [
+    "https://en.wikipedia.org/wiki/Ultra-Trail_du_Mont-Blanc",
+    "https://reference-trail.fr/qui-detient-le-record-de-la-diagonale-des-fous-francois-dhaene-reste-imbattable/"
+   ],
+   "alias": [
+    "D'Haene",
+    "D’Haene",
+    "Dhaene"
+   ]
+  },
+  {
+   "cle": "thevenard",
+   "prenom": "Xavier",
+   "nom": "Thévenard",
+   "pays": "FRA",
+   "sexe": "H",
+   "palmares": [
+    "Vainqueur de l'UTMB en 2013, 2015 et 2018"
+   ],
+   "sources": [
+    "https://en.wikipedia.org/wiki/Ultra-Trail_du_Mont-Blanc"
+   ],
+   "alias": [
+    "Thévenard",
+    "Thevenard"
+   ]
+  },
+  {
+   "cle": "pommeret",
+   "prenom": "Ludovic",
+   "nom": "Pommeret",
+   "pays": "FRA",
+   "sexe": "H",
+   "palmares": [
+    "Vainqueur de l'UTMB en 2016"
+   ],
+   "sources": [
+    "https://en.wikipedia.org/wiki/Ultra-Trail_du_Mont-Blanc"
+   ],
+   "alias": [
+    "Pommeret"
+   ]
+  },
+  {
+   "cle": "bouillard",
+   "prenom": "Vincent",
+   "nom": "Bouillard",
+   "pays": "FRA",
+   "sexe": "H",
+   "palmares": [
+    "Vainqueur de l'UTMB en 2024",
+    "Vainqueur de la Western States 100 en 2026, record de l'épreuve en 13 h 46 min 15 s"
+   ],
+   "sources": [
+    "https://en.wikipedia.org/wiki/Ultra-Trail_du_Mont-Blanc",
+    "https://en.wikipedia.org/wiki/Western_States_Endurance_Run"
+   ],
+   "alias": [
+    "Bouillard"
+   ]
+  },
+  {
+   "cle": "blanchard",
+   "prenom": "Mathieu",
+   "nom": "Blanchard",
+   "pays": "FRA",
+   "sexe": "H",
+   "palmares": [
+    "2e de l'UTMB en 2022",
+    "Vainqueur de la Diagonale des Fous en 2024 (175 km, 23 h 25 min 02 s)"
+   ],
+   "sources": [
+    "https://stadion-actu.fr/diagonale-des-fous-2024-mathieu-blanchard-sest-sublime/"
+   ],
+   "alias": []
+  },
+  {
+   "cle": "chassagne",
+   "prenom": "Baptiste",
+   "nom": "Chassagne",
+   "pays": "FRA",
+   "sexe": "H",
+   "palmares": [
+    "2e de l'UTMB en 2026"
+   ],
+   "sources": [
+    "https://reference-trail.fr/utmb-2026-resultats-et-classement-femmes-avec-blandine-lhirondel/"
+   ],
+   "alias": [
+    "Chassagne"
+   ]
+  },
+  {
+   "cle": "dunand_pallaz",
+   "prenom": "Aurélien",
+   "nom": "Dunand-Pallaz",
+   "pays": "FRA",
+   "sexe": "H",
+   "palmares": [
+    "Vainqueur de la Hardrock 100 en 2023",
+    "Vainqueur de la Diagonale des Fous en 2023"
+   ],
+   "sources": [
+    "https://www.dhnet.be/sports/omnisports/running/2023/10/20/le-francais-aurelien-dunand-pallaz-simpose-sur-la-diagonale-des-fous-trois-mois-apres-avoir-gagne-la-hardrock-100-5YYIWLNHIVCDHKOPJS4FIUN4HA/"
+   ],
+   "alias": [
+    "Dunand-Pallaz",
+    "Dunand Pallaz"
+   ]
+  },
+  {
+   "cle": "lhirondel",
+   "prenom": "Blandine",
+   "nom": "L'Hirondel",
+   "pays": "FRA",
+   "sexe": "F",
+   "palmares": [
+    "Vainqueur de l'UTMB en 2026 (21 h 54 min 49 s, parcours adapté à la météo)"
+   ],
+   "sources": [
+    "https://reference-trail.fr/utmb-2026-resultats-et-classement-femmes-avec-blandine-lhirondel/"
+   ],
+   "alias": [
+    "L'Hirondel",
+    "L’Hirondel",
+    "Lhirondel"
+   ]
+  },
+  {
+   "cle": "chaverot",
+   "prenom": "Caroline",
+   "nom": "Chaverot",
+   "pays": "FRA",
+   "sexe": "F",
+   "palmares": [
+    "Vainqueur de l'UTMB en 2016"
+   ],
+   "sources": [
+    "https://en.wikipedia.org/wiki/Ultra-Trail_du_Mont-Blanc"
+   ],
+   "alias": [
+    "Chaverot"
+   ]
+  },
+  {
+   "cle": "mauclair",
+   "prenom": "Nathalie",
+   "nom": "Mauclair",
+   "pays": "FRA",
+   "sexe": "F",
+   "palmares": [
+    "Vainqueur de l'UTMB en 2015"
+   ],
+   "sources": [
+    "https://en.wikipedia.org/wiki/Ultra-Trail_du_Mont-Blanc"
+   ],
+   "alias": [
+    "Mauclair"
+   ]
+  },
+  {
+   "cle": "jornet",
+   "prenom": "Kilian",
+   "nom": "Jornet",
+   "pays": "ESP",
+   "sexe": "H",
+   "palmares": [
+    "Vainqueur de l'UTMB en 2008, 2009, 2011 et 2022"
+   ],
+   "sources": [
+    "https://en.wikipedia.org/wiki/Ultra-Trail_du_Mont-Blanc"
+   ],
+   "alias": [
+    "Jornet"
+   ]
+  },
+  {
+   "cle": "walmsley",
+   "prenom": "Jim",
+   "nom": "Walmsley",
+   "pays": "USA",
+   "sexe": "H",
+   "palmares": [
+    "Vainqueur de l'UTMB en 2023",
+    "Vainqueur de la Western States 100 en 2018, 2019, 2021 et 2024"
+   ],
+   "sources": [
+    "https://en.wikipedia.org/wiki/Ultra-Trail_du_Mont-Blanc",
+    "https://en.wikipedia.org/wiki/Western_States_Endurance_Run"
+   ],
+   "alias": [
+    "Walmsley"
+   ]
+  },
+  {
+   "cle": "evans",
+   "prenom": "Tom",
+   "nom": "Evans",
+   "pays": "GBR",
+   "sexe": "H",
+   "palmares": [
+    "Vainqueur de l'UTMB en 2025",
+    "Vainqueur de la Western States 100 en 2023"
+   ],
+   "sources": [
+    "https://en.wikipedia.org/wiki/Ultra-Trail_du_Mont-Blanc",
+    "https://en.wikipedia.org/wiki/Western_States_Endurance_Run"
+   ],
+   "alias": []
+  },
+  {
+   "cle": "dhiman",
+   "prenom": "Ben",
+   "nom": "Dhiman",
+   "pays": "USA",
+   "sexe": "H",
+   "palmares": [
+    "Vainqueur de l'UTMB en 2026 (18 h 16 min 29 s)"
+   ],
+   "sources": [
+    "https://reference-trail.fr/utmb-2026-resultats-et-classement-femmes-avec-blandine-lhirondel/"
+   ],
+   "alias": [
+    "Dhiman"
+   ]
+  },
+  {
+   "cle": "olson",
+   "prenom": "Caleb",
+   "nom": "Olson",
+   "pays": "USA",
+   "sexe": "H",
+   "palmares": [
+    "Vainqueur de la Western States 100 en 2025",
+    "3e de l'UTMB en 2026"
+   ],
+   "sources": [
+    "https://en.wikipedia.org/wiki/Western_States_Endurance_Run",
+    "https://reference-trail.fr/utmb-2026-resultats-et-classement-femmes-avec-blandine-lhirondel/"
+   ],
+   "alias": []
+  },
+  {
+   "cle": "capell",
+   "prenom": "Pau",
+   "nom": "Capell",
+   "pays": "ESP",
+   "sexe": "H",
+   "palmares": [
+    "Vainqueur de l'UTMB en 2019"
+   ],
+   "sources": [
+    "https://en.wikipedia.org/wiki/Ultra-Trail_du_Mont-Blanc"
+   ],
+   "alias": []
+  },
+  {
+   "cle": "dauwalter",
+   "prenom": "Courtney",
+   "nom": "Dauwalter",
+   "pays": "USA",
+   "sexe": "F",
+   "palmares": [
+    "Vainqueur de l'UTMB en 2019, 2021 et 2023",
+    "Vainqueur de la Western States 100 en 2018 et 2023"
+   ],
+   "sources": [
+    "https://en.wikipedia.org/wiki/Ultra-Trail_du_Mont-Blanc",
+    "https://en.wikipedia.org/wiki/Western_States_Endurance_Run"
+   ],
+   "alias": [
+    "Dauwalter"
+   ]
+  },
+  {
+   "cle": "schide",
+   "prenom": "Katie",
+   "nom": "Schide",
+   "pays": "USA",
+   "sexe": "F",
+   "palmares": [
+    "Vainqueur de l'UTMB en 2022 et 2024",
+    "Vainqueur de la Western States 100 en 2024"
+   ],
+   "sources": [
+    "https://en.wikipedia.org/wiki/Ultra-Trail_du_Mont-Blanc",
+    "https://en.wikipedia.org/wiki/Western_States_Endurance_Run"
+   ],
+   "alias": [
+    "Schide"
+   ]
+  },
+  {
+   "cle": "croft",
+   "prenom": "Ruth",
+   "nom": "Croft",
+   "pays": "NZL",
+   "sexe": "F",
+   "palmares": [
+    "Vainqueur de l'UTMB en 2025",
+    "Vainqueur de la Western States 100 en 2022"
+   ],
+   "sources": [
+    "https://en.wikipedia.org/wiki/Ultra-Trail_du_Mont-Blanc",
+    "https://en.wikipedia.org/wiki/Western_States_Endurance_Run"
+   ],
+   "alias": []
+  }
+ ]
+}

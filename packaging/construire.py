@@ -63,6 +63,8 @@ def pyinstaller():
         "--add-data", f"interface/modele_suivi_telephone.html{SEP}interface",
         "--add-data", f"ressources{SEP}ressources",
         "--add-data", f"VERSION{SEP}.",
+        "--add-data", f"data/annuaire{SEP}data/annuaire",
+        "--add-data", f"data/actualites{SEP}data/actualites",
         "--hidden-import", "PySide6.QtWebEngineWidgets",
         "--hidden-import", "PySide6.QtWebEngineCore",
         "--hidden-import", "PySide6.QtWebChannel",
