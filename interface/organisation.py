@@ -5,7 +5,9 @@ quota, tarifs, plage de dossards), les inscriptions (saisie, import Njuko
 ou CSV, adhérents du club) contrôlées selon la réglementation FFA, les
 dossards et le retrait des dossards, le tableau de bord.
 
-Fenêtre « 🏁 Organisation », quatre onglets. Aucune requête SQL ici : tout
+Fenêtre « 🏁 Organisation » : onze onglets (logistique de l'étape 4.6 dans
+interface/organisation_logistique.py, chrono de l'étape 4.5 dans
+interface/organisation_chrono.py). Aucune requête SQL ici : tout
 passe par noyau/donnees/organisation.py.
 """
 
@@ -1035,10 +1037,42 @@ class TableauOrga(_EcranOrga):
         lc.addWidget(self.table_clubs)
         l2.addWidget(cadre, 1)
         self.principal.addLayout(l2)
+        cadre, lc = _cadre("Logistique")
+        self.logistique = QLabel("")
+        self.logistique.setWordWrap(True)
+        self.logistique.setTextFormat(Qt.TextFormat.RichText)
+        lc.addWidget(self.logistique)
+        self.principal.addWidget(cadre)
         self.principal.addStretch()
         self._finir()
 
+    def _logistique(self):
+        from noyau.donnees import logistique as dl
+        t = dl.tableau(self.evenement_id)
+        d, b, p = t["demarches"], t["budget"], t["partenaires"]
+        retard = "".join(f"<br>&nbsp;&nbsp;⚠️ {html.escape(x['titre'])} ({x['jalon']})" for x in t["en_retard"][:6])
+        prochaines = "".join(f"<br>&nbsp;&nbsp;• {html.escape(x['titre'])} : {date.fromisoformat(x['echeance']).strftime('%d/%m')}"
+                             for x in t["prochaines"][:3])
+        seuil = "—" if b["seuil"] is None else f"{b['seuil']} coureurs"
+        self.logistique.setText(
+            f"<b>Démarches</b> : {d['faites']} faites sur {d['total']}, "
+            f"<span style='color:{ROUGE if d['en_retard'] else VERT}'>{d['en_retard']} en retard</span>, "
+            f"{d['bientot']} dans les 15 jours.{retard}{prochaines}<br>"
+            f"<b>Bénévoles</b> : {t['benevoles']} ; places pourvues {t['pourvus']} sur {t['besoin']}"
+            f"{' ; ' + str(len(t['manques'])) + ' poste(s) à compléter' if t['manques'] else ''}"
+            f"{' ; ' + str(len(t['conflits']) + len(t['alertes'])) + ' point(s) à vérifier' if t['conflits'] or t['alertes'] else ''}.<br>"
+            f"<b>Ravitaillements</b> : {t['ravitaillements']} · <b>Matériel</b> : {t['materiel']['articles']} articles, "
+            f"{t['materiel']['manquants']} où il en manque.<br>"
+            f"<b>Partenaires</b> : {p['accords']} accord(s) sur {p['total']}, {_euros(p['montant'])}"
+            f"{' ; ' + str(p['a_relancer']) + ' à relancer' if p['a_relancer'] else ''}.<br>"
+            f"<b>Budget</b> : solde prévu {_euros(b['solde_prevu'])}, seuil de rentabilité {seuil}.<br>"
+            f"<b>Secours du public</b> : {html.escape(t['dps']['texte'])}")
+
     def rafraichir(self):
+        if self.evenement_id:
+            self._logistique()
+        else:
+            self.logistique.setText("")
         if not self.evenement_id:
             for c in self.cartes.values():
                 c.valeur.setText("—")
@@ -1082,14 +1116,19 @@ class OrganisationFenetre(ConteneurOnglets):
 
     def __init__(self, athlete_id_initial=None):
         from interface.organisation_chrono import ChronoOrga, ClassementsOrga      # étape 4.5
+        from interface.organisation_logistique import (                            # étape 4.6
+            DemarchesOrga, BenevolesOrga, RavitosOrga, MaterielOrga, PartenairesOrga)
         self.evenement_id = None
         super().__init__(titre="Organisation",
-                         onglets=[("🏁 Événement", EvenementOrga), ("📝 Inscriptions", InscriptionsOrga),
-                                  ("🔢 Dossards", DossardsOrga), ("⏱️ Chrono", ChronoOrga),
-                                  ("🏆 Classements", ClassementsOrga), ("📊 Tableau de bord", TableauOrga)],
+                         onglets=[("🏁 Événement", EvenementOrga), ("📋 Démarches", DemarchesOrga),
+                                  ("📝 Inscriptions", InscriptionsOrga), ("🙋 Bénévoles", BenevolesOrga),
+                                  ("🍌 Ravitaillements", RavitosOrga), ("📦 Matériel", MaterielOrga),
+                                  ("🤝 Partenaires et budget", PartenairesOrga), ("🔢 Dossards", DossardsOrga),
+                                  ("⏱️ Chrono", ChronoOrga), ("🏆 Classements", ClassementsOrga),
+                                  ("📊 Tableau de bord", TableauOrga)],
                          athlete_id_initial=athlete_id_initial)
-        (self.evenement_ecran, self.inscriptions, self.dossards, self.chrono, self.classements,
-         self.tableau) = self.ecrans
+        (self.evenement_ecran, self.demarches, self.inscriptions, self.benevoles, self.ravitaillements, self.materiel,
+         self.partenaires, self.dossards, self.chrono, self.classements, self.tableau) = self.ecrans
         self.evenement_id = self.evenement_ecran.evenement_id
 
     def choisir(self, evenement_id):

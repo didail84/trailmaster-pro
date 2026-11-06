@@ -763,6 +763,146 @@ def _m011_profils_chrono(cur):
 
 
 # (numéro, description lisible, fonction) — dans l'ordre, sans trou
+
+
+def _m012_logistique(cur):
+    """Étape 4.6 : démarches et rétroplanning, bénévoles et postes, ravitaillements, matériel, partenaires et budget."""
+    if "contexte_json" not in _colonnes(cur, "evenements"):
+        cur.execute("ALTER TABLE evenements ADD COLUMN contexte_json TEXT")
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS orga_demarches (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            evenement_id INTEGER NOT NULL REFERENCES evenements(id) ON DELETE CASCADE,
+            code TEXT,
+            titre TEXT NOT NULL,
+            categorie TEXT,
+            autorite TEXT,
+            pieces TEXT,
+            echeance TEXT,
+            statut TEXT NOT NULL DEFAULT 'a_faire',
+            date_envoi TEXT,
+            date_reponse TEXT,
+            reference TEXT,
+            notes TEXT,
+            manuelle INTEGER DEFAULT 0,
+            UNIQUE (evenement_id, code)
+        )""")
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS benevoles (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            evenement_id INTEGER NOT NULL REFERENCES evenements(id) ON DELETE CASCADE,
+            personne_id INTEGER REFERENCES personnes(id) ON DELETE SET NULL,
+            nom TEXT NOT NULL,
+            prenom TEXT,
+            telephone TEXT,
+            email TEXT,
+            date_naissance TEXT,
+            permis INTEGER DEFAULT 0,
+            secouriste INTEGER DEFAULT 0,
+            taille_tshirt TEXT,
+            disponibilites TEXT,
+            competences TEXT,
+            source TEXT,
+            statut TEXT DEFAULT 'confirme',
+            notes TEXT
+        )""")
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS orga_postes (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            evenement_id INTEGER NOT NULL REFERENCES evenements(id) ON DELETE CASCADE,
+            nom TEXT NOT NULL,
+            type TEXT,
+            lieu TEXT,
+            km REAL,
+            jour TEXT,
+            heure_debut TEXT,
+            heure_fin TEXT,
+            besoin INTEGER DEFAULT 1,
+            responsable_id INTEGER REFERENCES benevoles(id) ON DELETE SET NULL,
+            ravitaillement_id INTEGER,
+            consignes TEXT
+        )""")
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS orga_affectations (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            poste_id INTEGER NOT NULL REFERENCES orga_postes(id) ON DELETE CASCADE,
+            benevole_id INTEGER NOT NULL REFERENCES benevoles(id) ON DELETE CASCADE,
+            UNIQUE (poste_id, benevole_id)
+        )""")
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS ravitaillements (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            evenement_id INTEGER NOT NULL REFERENCES evenements(id) ON DELETE CASCADE,
+            nom TEXT NOT NULL,
+            km REAL,
+            type TEXT DEFAULT 'complet',
+            epreuves_json TEXT,
+            ouverture TEXT,
+            barriere_horaire TEXT,
+            lieu TEXT,
+            acces TEXT,
+            eau_seule INTEGER DEFAULT 0,
+            notes TEXT
+        )""")
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS orga_materiel (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            evenement_id INTEGER NOT NULL REFERENCES evenements(id) ON DELETE CASCADE,
+            article TEXT NOT NULL,
+            categorie TEXT,
+            quantite INTEGER DEFAULT 1,
+            disponible INTEGER DEFAULT 0,
+            unite TEXT,
+            fournisseur TEXT,
+            cout REAL,
+            lieu TEXT,
+            ravitaillement_id INTEGER,
+            poste_id INTEGER,
+            statut TEXT DEFAULT 'a_trouver',
+            rendu INTEGER DEFAULT 0,
+            notes TEXT
+        )""")
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS partenaires (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            evenement_id INTEGER NOT NULL REFERENCES evenements(id) ON DELETE CASCADE,
+            nom TEXT NOT NULL,
+            type TEXT DEFAULT 'parrainage',
+            particulier INTEGER DEFAULT 0,
+            contact TEXT,
+            email TEXT,
+            telephone TEXT,
+            adresse TEXT,
+            siren TEXT,
+            montant REAL,
+            valeur_nature REAL,
+            description_nature TEXT,
+            contreparties TEXT,
+            statut TEXT DEFAULT 'a_contacter',
+            date_contact TEXT,
+            date_relance TEXT,
+            date_versement TEXT,
+            mode_versement TEXT,
+            recu_numero TEXT,
+            notes TEXT
+        )""")
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS budget_lignes (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            evenement_id INTEGER NOT NULL REFERENCES evenements(id) ON DELETE CASCADE,
+            sens TEXT NOT NULL,
+            categorie TEXT,
+            libelle TEXT NOT NULL,
+            prevu REAL DEFAULT 0,
+            realise REAL,
+            par_coureur INTEGER DEFAULT 0,
+            notes TEXT
+        )""")
+    for t in ("orga_demarches", "benevoles", "orga_postes", "orga_affectations", "ravitaillements", "orga_materiel",
+              "partenaires", "budget_lignes"):
+        _ajouter_uuid(cur, t)
+
+
 MIGRATIONS = [
     (1, "Identifiant universel (UUID) pour chaque donnée", _m001_identifiants_universels),
     (2, "Fiche Personne unique et rôles", _m002_personnes_et_roles),
@@ -776,6 +916,8 @@ MIGRATIONS = [
     (10, "Calendrier des courses et organisation : événements, épreuves, inscriptions, dossards",
      _m010_calendrier_organisation),
     (11, "Profils des licenciés, séances partagées, chrono et classements", _m011_profils_chrono),
+    (12, "Logistique d'une course : démarches, bénévoles, ravitaillements, matériel, partenaires et budget",
+     _m012_logistique),
 ]
 VERSION_LOGICIEL = MIGRATIONS[-1][0]
 

@@ -1,5 +1,40 @@
 # Historique des versions
 
+## Trail Hub Center — étape 4.6 (logistique d'une course : démarches, bénévoles, ravitaillements, matériel, partenaires et budget)
+- **Fenêtre Organisation, cinq nouveaux onglets** (onze au total) :
+  - **Démarches et rétroplanning** :
+    - « Ta course » : voie publique, communes et départements, chronométrage, calendrier FFA, coureurs et public attendus, carrefours, Natura 2000, forêt ONF, terrains privés, Parc naturel régional ou national, site protégé, nuit, buvette, restauration, musique, tombola, prix, subventions, gobelets ;
+    - le logiciel en tire **la liste des démarches avec leur date limite** calculée depuis la date de la course, de J-180 à J+30. On y trouve notamment :
+      - déclaration au maire ou au préfet (Cerfa 15824, 2 mois avant, 3 mois sur plusieurs départements), ou Cerfa 15825 pour une randonnée sans classement ;
+      - avis et calendrier FFA, assurance responsabilité civile, poste de secours et médecin, plan de secours, SDIS et gendarmerie ;
+      - arrêtés de circulation et liste des signaleurs ;
+      - Natura 2000, ONF, propriétaires, Parc, site protégé ;
+      - **Vaucluse et départements du Sud-Est** : accès aux massifs réglementé de juin à septembre (parcours de repli, carte du danger la veille) ; Parcs du Mont-Ventoux et du Luberon nommés ;
+      - buvette (10 autorisations par an pour une association sportive), Sacem, tombola (Cerfa 11823), subventions (Cerfa 12156) ;
+      - jalons des bénévoles, de la logistique et de l'après-course ;
+    - statut de chaque démarche (à faire, en cours, envoyée, accordée, refusée, sans objet), pièces à fournir, conseil, alertes de retard ; si le contexte change, les démarches se mettent à jour sans perdre le suivi ;
+    - **secours du public** dimensionnés avec la grille nationale (RIS, PAPS, DPS) ; les secours des coureurs restent à analyser avec l'association agréée ;
+    - **rétroplanning en PDF**, **échéances en .ics** pour l'agenda, **courriers types** (mairie, propriétaire avec coupon d'accord, ONF, Parc, SDIS, entreprise, collectivité, remerciements) à copier ou mettre en PDF.
+  - **Bénévoles** :
+    - adhérents du club en un clic (ils reçoivent le rôle Bénévole), **import** d'un formulaire HelloAsso, Google Forms ou CSV sans doublon, saisie à la main ;
+    - **postes types créés tout seuls** (retrait des dossards, départ et arrivée, chrono, PC course, ravitaillements, serre-files, balisage la veille, débalisage, signaleurs, parking, buvette) avec horaires et besoins ;
+    - affectations ; le logiciel signale les postes à compléter, les **conflits d'horaires** et les **signaleurs mineurs ou sans permis** ;
+    - **planning PDF**, **convocations PDF** (une page par bénévole), **liste des signaleurs PDF** pour la préfecture (numéro de permis à remplir à la main), e-mails à copier.
+  - **Ravitaillements** : kilomètre, type (eau, complet, chaud, arrivée), épreuves, ouverture, barrière horaire, accès. **Quantités calculées** d'après les coureurs attendus (plus d'eau l'été, 15 % de marge, gobelet personnel par défaut). **Liste de courses** en PDF et en CSV.
+  - **Matériel** : **liste type** avec quantités suggérées (arche, barrières, rubalise, flèches, gilets, talkies, trousses, barnums, jerricans, toilettes, chrono…), qui prête ou loue, où ça va, statut jusqu'au retour, coût, **check-list PDF**.
+  - **Partenaires et budget** :
+    - mécénat (don, en argent ou en nature), parrainage, subventions, partenaires médias ; contacts, relances, contreparties ;
+    - **reçu de don numéroté en PDF**, avec la réduction d'impôt du donateur (60 % pour une entreprise, 66 % pour un particulier) et une alerte si les contreparties dépassent 25 % du don ;
+    - **budget prévisionnel et réalisé** : les inscriptions (coureurs attendus × tarif moyen ; encaissé en réalisé) et les accords des partenaires sont repris tout seuls ; dépenses fixes ou par coureur ;
+    - **seuil de rentabilité** ; budget en PDF.
+- **Tableau de bord** : nouveau cadre Logistique (démarches en retard et prochaines, bénévoles, matériel, partenaires, budget, secours).
+- **Base de données version 12** : contexte de la course, démarches, bénévoles, postes et affectations, ravitaillements, matériel, partenaires, budget.
+- **Page Claude**, rubrique Organisation :
+  - nouvelles cartes : démarches faites et en retard, places de bénévoles pourvues, partenaires, solde prévu ;
+  - **démarches à suivre** et **postes à compléter** ;
+  - une **lecture de Claude** qui donne les 3 actions prioritaires de la semaine. Claude ne reçoit aucun nom de bénévole ni de partenaire.
+- Les règles sont des rappels à jour de novembre 2026 : vérifie toujours auprès de la mairie, de la préfecture et du comité FFA.
+
 ## Trail Hub Center — étapes 4.3 (profils des licenciés, entraîneurs, séances partagées) et 4.5 (chrono et classements)
 - **Club, trois nouveaux onglets** (la fenêtre Club en compte maintenant 11) :
   - **Licenciés** : fiche de chaque licencié avec catégorie, groupes, **bilan de la saison** (courses, km, D+, podiums), **records** sur route (5 km, 10 km, semi, marathon…) et en trail (par km-effort), **index ITRA, UTMB et Betrail** saisis à la main, liste des résultats.

@@ -1762,7 +1762,7 @@ function lireCalendrier() {
         (SELECT COUNT(*) FROM inscriptions i WHERE i.epreuve_id = p.id AND i.dossard_retire = 1) AS remis,
         (SELECT COALESCE(SUM(i.montant_paye), 0) FROM inscriptions i WHERE i.epreuve_id = p.id AND i.statut != 'annulee') AS recette,
         (SELECT COALESCE(SUM(MAX(COALESCE(i.montant, 0) - COALESCE(i.montant_paye, 0), 0)), 0) FROM inscriptions i WHERE i.epreuve_id = p.id AND i.statut != 'annulee') AS reste
-        FROM epreuves p WHERE p.evenement_id = ? ORDER BY p.distance_km DESC`, [e.id]), classements: classementsBase(e.id) })) : [];
+        FROM epreuves p WHERE p.evenement_id = ? ORDER BY p.distance_km DESC`, [e.id]), classements: classementsBase(e.id), logistique: logistiqueBase(e.id) })) : [];
     return { courses, evenements };
   } catch (e) { return { courses: [], evenements: [] }; }
 }
@@ -1781,12 +1781,106 @@ function classementsBase(evId) {
       }).filter((l) => l.temps_s !== null && l.temps_s !== undefined || l.statut_course) })).filter((x) => x.lignes.length);
   } catch (e) { return []; }
 }
+/* logistique de l'étape 4.6 : démarches, postes de bénévoles, partenaires, budget (mêmes règles que noyau/organisation/logistique) */
+function logistiqueBase(evId) {
+  if (!Base.tablesPresentes.has("orga_demarches")) return null;
+  try {
+    const t = (sql, p) => Base.tous(sql, p || [evId]);
+    return {
+      demarches: t("SELECT titre, categorie, autorite, echeance, statut FROM orga_demarches WHERE evenement_id = ? ORDER BY echeance IS NULL, echeance"),
+      postes: t(`SELECT p.nom, p.besoin, (SELECT COUNT(*) FROM orga_affectations a JOIN benevoles b ON b.id = a.benevole_id WHERE a.poste_id = p.id AND b.statut != 'desiste') AS pourvus
+        FROM orga_postes p WHERE p.evenement_id = ? ORDER BY p.jour, p.heure_debut`),
+      benevoles: t("SELECT COUNT(*) AS n FROM benevoles WHERE evenement_id = ? AND statut != 'desiste'")[0].n,
+      ravitos: t("SELECT COUNT(*) AS n FROM ravitaillements WHERE evenement_id = ?")[0].n,
+      materiel: t("SELECT COUNT(*) AS articles, SUM(CASE WHEN quantite > disponible THEN 1 ELSE 0 END) AS manque FROM orga_materiel WHERE evenement_id = ?")[0],
+      partenaires: t("SELECT nom, type, statut, montant, valeur_nature FROM partenaires WHERE evenement_id = ?"),
+      budget: t("SELECT sens, prevu, realise, par_coureur FROM budget_lignes WHERE evenement_id = ?"),
+      tarifMoyen: t(`SELECT AVG(i.montant) AS m FROM inscriptions i JOIN epreuves p ON p.id = i.epreuve_id WHERE p.evenement_id = ? AND i.statut != 'annulee' AND i.montant > 0`)[0].m,
+    };
+  } catch (e) { return null; }
+}
+const FINIS_DEM = ["accorde", "sans_objet"];
+const LIB_STATUT_DEM = { a_faire: "À faire", en_cours: "En cours", envoye: "Envoyé", accorde: "Accordé / fait", refuse: "Refusé", sans_objet: "Sans objet" };
+function etatDemarche(d, auj) {
+  if (FINIS_DEM.includes(d.statut)) return "faite";
+  if (d.statut === "refuse") return "refusée";
+  if (d.statut === "envoye") return "envoyée";
+  if (!d.echeance) return "à venir";
+  if (d.echeance < auj) return "en retard";
+  return d.echeance <= plusJours(auj, 15) ? "bientôt" : "à venir";
+}
+function chiffresLogistique(ev) {
+  const lg = ev.logistique; if (!lg) return null;
+  const auj = isoJour(new Date()), dem = lg.demarches.filter((d) => d.statut !== "sans_objet").map((d) => ({ ...d, etat: etatDemarche(d, auj) }));
+  const attendus = ev.epreuves.reduce((s, e) => s + Math.max(Number(e.inscrits) || 0, Number(e.quota) || 0), 0);
+  let tm = Number(lg.tarifMoyen) || 0;
+  if (!tm) { const q = ev.epreuves.filter((e) => e.tarif); const w = q.reduce((s, e) => s + (Number(e.quota) || 1), 0); tm = w ? q.reduce((s, e) => s + Number(e.tarif) * (Number(e.quota) || 1), 0) / w : 0; }
+  tm = Math.round(tm * 100) / 100;
+  const acc = lg.partenaires.filter((p) => ["accord", "verse"].includes(p.statut)), val = (p) => (Number(p.montant) || 0) + (Number(p.valeur_nature) || 0);
+  const encaisse = ev.epreuves.reduce((s, e) => s + (Number(e.recette) || 0), 0);
+  const recP = lg.budget.filter((l) => l.sens === "recette").reduce((s, l) => s + (Number(l.prevu) || 0), 0) + acc.reduce((s, p) => s + val(p), 0) + attendus * tm;
+  const depP = lg.budget.filter((l) => l.sens === "depense").reduce((s, l) => s + (Number(l.prevu) || 0) * (l.par_coureur ? attendus : 1), 0);
+  const recR = lg.budget.filter((l) => l.sens === "recette").reduce((s, l) => s + (Number(l.realise) || 0), 0) + lg.partenaires.filter((p) => p.statut === "verse").reduce((s, p) => s + val(p), 0) + encaisse;
+  const depR = lg.budget.filter((l) => l.sens === "depense").reduce((s, l) => s + (Number(l.realise) || 0), 0);
+  const besoin = lg.postes.reduce((s, p) => s + (Number(p.besoin) || 0), 0), pourvus = lg.postes.reduce((s, p) => s + Math.min(Number(p.pourvus) || 0, Number(p.besoin) || 0), 0);
+  return { dem, faites: dem.filter((d) => d.etat === "faite").length, retard: dem.filter((d) => d.etat === "en retard"), bientot: dem.filter((d) => d.etat === "bientôt").length,
+    besoin, pourvus, manques: lg.postes.filter((p) => (Number(p.pourvus) || 0) < (Number(p.besoin) || 0)), benevoles: lg.benevoles, ravitos: lg.ravitos, materiel: lg.materiel,
+    partenaires: lg.partenaires.length, accords: acc.length, montant: acc.reduce((s, p) => s + val(p), 0), attendus, tarifMoyen: tm,
+    soldePrevu: recP - depP, soldeRealise: recR - depR, recettesPrevues: recP, depensesPrevues: depP };
+}
+function htmlLogistiqueOrga(ev) {
+  const x = chiffresLogistique(ev);
+  if (!x) return `<div class="carte"><header><h3>Logistique</h3></header><p class="vide">Démarches, bénévoles, ravitaillements, matériel, partenaires et budget se préparent dans le logiciel (onglets de la fenêtre Organisation, base en version 11 ou plus).</p></div>`;
+  const stat = (lib, val, det) => `<div class="carte"><div class="mesure"><span class="etiquette">${lib}</span><span class="valeur">${val}</span><span class="detail">${det}</span></div></div>`;
+  const auj = isoJour(new Date()), quand = (d) => { if (!d.echeance) return ""; const n = Math.round((new Date(ev.date_debut) - new Date(d.echeance)) / 864e5); return n === 0 ? "Jour J" : n > 0 ? `J-${n}` : `J+${-n}`; };
+  const aSuivre = x.dem.filter((d) => d.etat !== "faite").sort((a, b) => (a.etat === "en retard" ? 0 : 1) - (b.etat === "en retard" ? 0 : 1) || String(a.echeance).localeCompare(String(b.echeance))).slice(0, 8);
+  const coul = { "en retard": "rouge", "bientôt": "orange", "envoyée": "bleu", "refusée": "rouge", "à venir": "neutre" };
+  return `<div class="grille g4">${stat("Démarches", `${x.faites}<small> / ${x.dem.length}</small>`, `<span style="color:var(--${x.retard.length ? "rouge" : "vert"})">${x.retard.length} en retard</span> · ${x.bientot} dans les 15 jours`)}
+      ${stat("Bénévoles", `${x.pourvus}<small> / ${x.besoin}</small>`, `places pourvues · ${x.benevoles} bénévole(s), ${x.manques.length} poste(s) à compléter`)}
+      ${stat("Partenaires", `${x.accords}<small> / ${x.partenaires}</small>`, `accords · ${eurosClub(x.montant)} €`)}
+      ${stat("Solde prévu", `${eurosClub(x.soldePrevu)}<small>€</small>`, `${entier(x.attendus)} coureurs attendus · réalisé ${eurosClub(x.soldeRealise)} €`)}</div>
+    <div class="grille g2">
+      <div class="carte"><header><h3>Démarches à suivre</h3><span class="petit discret">rétroplanning</span></header>
+        ${aSuivre.length ? `<div class="tableau-cadre"><table><thead><tr><th>Quand</th><th>Démarche</th></tr></thead><tbody>
+        ${aSuivre.map((d) => `<tr><td style="white-space:nowrap">${quand(d)}<br><span class="petit tres-discret">${d.echeance ? dateCourteClub(d.echeance) : ""}</span></td><td style="white-space:normal">${esc(d.titre)}<br><span class="etat ${coul[d.etat] || "neutre"}">${esc(d.etat === "à venir" ? LIB_STATUT_DEM[d.statut] || "" : d.etat)}</span> <span class="petit discret">${esc(d.autorite || "")}</span></td></tr>`).join("")}
+        </tbody></table></div>` : `<p class="vide">Toutes les démarches sont faites.</p>`}</div>
+      <div class="carte"><header><h3>Postes à compléter</h3><span class="petit discret">${x.ravitos} ravitaillement(s) · matériel : ${entier(x.materiel.manque || 0)} article(s) où il en manque</span></header>
+        ${x.manques.length ? `<ul class="liste-puces">${x.manques.slice(0, 10).map((p) => `<li>${esc(p.nom)} : ${p.pourvus} / ${p.besoin}</li>`).join("")}</ul>` : `<p class="vide">${x.besoin ? "Tous les postes sont pourvus." : "Pas encore de poste : onglet Bénévoles, « Créer les postes types »."}</p>`}</div>
+    </div>`;
+}
+function logistiquePourClaude(ev) {
+  const x = chiffresLogistique(ev); if (!x) return "Pas encore de logistique saisie.";
+  /* chiffres et intitulés des démarches seulement : aucun nom de bénévole ni de partenaire */
+  return [`Événement ${ev.nom} le ${ev.date_debut} à ${ev.commune || "?"} ; épreuves : ${ev.epreuves.map((e) => `${e.nom} ${e.distance_km ?? "?"} km ${e.denivele_m ?? 0} m D+, ${e.inscrits} inscrits sur ${e.quota || "?"}`).join(" ; ")}.`,
+    `Démarches : ${x.faites} faites sur ${x.dem.length} ; en retard : ${x.retard.map((d) => d.titre + " (échéance " + d.echeance + ")").join(" ; ") || "aucune"} ; dans les 15 jours : ${x.bientot}.`,
+    `Prochaines démarches : ${x.dem.filter((d) => d.etat === "bientôt" || d.etat === "à venir").slice(0, 8).map((d) => d.echeance + " " + d.titre).join(" ; ") || "aucune"}.`,
+    `Bénévoles : ${x.benevoles}, places pourvues ${x.pourvus} sur ${x.besoin}, postes à compléter : ${x.manques.map((p) => `${p.nom} ${p.pourvus}/${p.besoin}`).join(", ") || "aucun"}.`,
+    `Ravitaillements ${x.ravitos} ; matériel : ${x.materiel.articles || 0} articles dont ${x.materiel.manque || 0} où il en manque.`,
+    `Partenaires : ${x.accords} accords sur ${x.partenaires} contactés, ${Math.round(x.montant)} €. Budget prévu : recettes ${Math.round(x.recettesPrevues)} €, dépenses ${Math.round(x.depensesPrevues)} €, solde ${Math.round(x.soldePrevu)} € pour ${x.attendus} coureurs attendus au tarif moyen de ${x.tarifMoyen.toFixed(2)} €.`].join("\n");
+}
 function rangerClassement(lignes) {
   const cl = lignes.filter((l) => l.temps_s !== null && l.temps_s !== undefined).sort((a, b) => a.temps_s - b.temps_s);
   const t0 = cl.length ? cl[0].temps_s : 0, parSexe = {};
   cl.forEach((l, k) => { l.rang = k && Math.round(cl[k - 1].temps_s * 10) === Math.round(l.temps_s * 10) ? cl[k - 1].rang : k + 1; l.ecart = l.temps_s - t0;
     const sx = String(l.sexe || "?").slice(0, 1).toUpperCase(); parSexe[sx] = (parSexe[sx] || 0) + 1; l.rangSexe = parSexe[sx]; });
   return { classes: cl, hors: lignes.filter((l) => l.temps_s === null || l.temps_s === undefined) };
+}
+/* logistique imaginaire de l'événement d'exemple (dates relatives à la course) */
+function logistiqueExemple(jourCourse) {
+  const av = (n) => plusJours(jourCourse, -n);
+  const d = (titre, categorie, autorite, n, statut) => ({ titre, categorie, autorite, echeance: av(n), statut: statut || "a_faire" });
+  return { demarches: [d("Dossiers de demande de subvention (Cerfa 12156)", "Administratif", "Commune, département, région", 180, "envoye"), d("Rédiger le règlement de la course", "Administratif", "Organisateur", 150, "accorde"),
+    d("Inscrire la course au calendrier FFA et obtenir l'avis fédéral", "Fédération", "FFA : commission départementale des courses hors stade", 120, "envoye"), d("Convention avec l'ONF (forêt domaniale ou communale)", "Environnement", "ONF, agence territoriale", 120),
+    d("Informer le Parc naturel régional (Mont-Ventoux, Luberon)", "Environnement", "Parc naturel régional", 120), d("Poste de secours : convention avec une association agréée de sécurité civile", "Sécurité", "Croix-Rouge, Protection civile, FFSS", 90),
+    d("Évaluation des incidences Natura 2000", "Environnement", "DDT (service environnement)", 90), d("Autorisations écrites de passage des propriétaires privés", "Environnement", "Propriétaires", 90),
+    d("Assurance responsabilité civile de l'organisateur", "Administratif", "Assureur du club", 75, "accorde"), d("Déclarer la manifestation sportive (Cerfa 15824*03)", "Administratif", "Préfet du département", 60),
+    d("Demander les arrêtés de circulation et de stationnement", "Sécurité", "Mairies ; Département", 60), d("Autorisation de buvette temporaire", "Buvette et animations", "Maire de la commune", 30), d("Briefing des bénévoles et des signaleurs", "Bénévoles", "Organisateur", 2)],
+    postes: [{ nom: "Retrait des dossards", besoin: 4, pourvus: 4 }, { nom: "Signaleurs", besoin: 6, pourvus: 3 }, { nom: "Ravitaillement Col du Cayron", besoin: 4, pourvus: 2 },
+      { nom: "Ravitaillement Dentelles Sarrasines", besoin: 4, pourvus: 4 }, { nom: "Serre-files Trail 25 km", besoin: 2, pourvus: 0 }, { nom: "Balisage (veille)", besoin: 6, pourvus: 5 }],
+    benevoles: 21, ravitos: 3, materiel: { articles: 24, manque: 6 },
+    partenaires: [{ type: "mecenat", statut: "verse", montant: 1500 }, { type: "parrainage", statut: "accord", montant: 800 }, { type: "subvention", statut: "contacte", montant: 1000 }, { type: "nature", statut: "accord", valeur_nature: 300 }],
+    budget: [{ sens: "depense", prevu: 1800 }, { sens: "depense", prevu: 1200 }, { sens: "depense", prevu: 350 }, { sens: "depense", prevu: 1.5, par_coureur: 1 }, { sens: "depense", prevu: 6, par_coureur: 1 }, { sens: "depense", prevu: 500 }, { sens: "recette", prevu: 900 }],
+    tarifMoyen: 22 };
 }
 /* calendrier imaginaire, dates relatives à aujourd'hui (aucune vraie course) */
 function calendrierExemple() {
@@ -1799,7 +1893,7 @@ function calendrierExemple() {
     c(150, "Trail du Vercors", "Villard-de-Lans", "38", "trail_court", "regional", [[30, 1600]])],
     evenements: [{ id: 1, nom: "Trail des Dentelles (exemple)", date_debut: j(156), commune: "Gigondas", statut: "ouvert", epreuves: [
       { nom: "Trail 25 km", distance_km: 25, denivele_m: 1200, quota: 400, tarif: 28, dossard_debut: 1, dossard_fin: 400, inscrits: 212, valides: 180, attente: 32, liste: 0, dossards: 180, remis: 0, recette: 5880, reste: 196 },
-      { nom: "Trail 12 km", distance_km: 12, denivele_m: 450, quota: 300, tarif: 15, dossard_debut: 500, dossard_fin: 799, inscrits: 301, valides: 290, attente: 4, liste: 7, dossards: 290, remis: 0, recette: 4410, reste: 0 }], classements: [] },
+      { nom: "Trail 12 km", distance_km: 12, denivele_m: 450, quota: 300, tarif: 15, dossard_debut: 500, dossard_fin: 799, inscrits: 301, valides: 290, attente: 4, liste: 7, dossards: 290, remis: 0, recette: 4410, reste: 0 }], classements: [], logistique: logistiqueExemple(j(156)) },
       { id: 2, nom: "Corrida du club (exemple)", date_debut: j(-12), commune: "Carpentras", statut: "termine", epreuves: [
         { nom: "Corrida 8 km", distance_km: 8, denivele_m: 40, quota: 150, tarif: 8, dossard_debut: 1, dossard_fin: 150, inscrits: 9, valides: 9, attente: 0, liste: 0, dossards: 9, remis: 9, recette: 72, reste: 0 }],
         classements: [{ epreuve: "Corrida 8 km", distance_km: 8, lignes: [["GIRAUD", "Hugo", "H", "AC Pernes", 1622], ["ARNAUD", "Camille", "F", "Trail Club des Dentelles", 1795], ["MOUTTE", "Léon", "H", "Trail Club des Dentelles", 1688],
@@ -1858,6 +1952,8 @@ function vueOrganisation() {
       <td style="min-width:110px">${pc !== null ? `<div class="jauge" role="img" aria-label="${pc} %"><span style="width:${pc}%;background:var(--${pc >= 100 ? "rouge" : pc >= 85 ? "orange" : "vert"})"></span></div><span class="petit discret">${pc} %</span>` : ""}</td>
       <td class="num">${entier(e.valides)}</td><td class="num">${entier(e.attente)}</td><td class="num">${eurosClub(e.recette)} €</td></tr>`; }).join("")}
     </tbody></table></div></div>
+    ${htmlLogistiqueOrga(ev)}
+    ${ev.logistique ? carteLecture("organisation") : ""}
     ${htmlClassementsOrga(ev)}
   </section>`;
 }
@@ -2350,10 +2446,12 @@ const SUJETS = {
   fractionne: "Fractionné : séances faites (court ou long, à plat ou en côte), % de VMA tenu, régularité, baisse en fin de séance, progression des séances refaites, et ce qu'il faut ajuster (cible, récupération, prochaine séance).",
   calendrier: "Calendrier des courses des 6 prochains mois : lesquelles collent à la forme actuelle, aux objectifs et à l'expérience de l'athlète (distance, dénivelé, délai de préparation, enchaînement avec les courses déjà prévues), lesquelles éviter ; propose 2 ou 3 choix.",
   club: "Saison du club : effectif et renouvellements, répartition par catégorie et licence, dossiers incomplets et ce qui manque le plus, cotisations à encaisser, présences aux entraînements (taux par groupe, décrochages, appels oubliés) ; puis les 3 actions prioritaires du bureau pour les semaines à venir.",
+  organisation: "Organisation de la course : démarches en retard ou proches de leur échéance (déclaration, avis FFA, secours, environnement, arrêtés), postes de bénévoles à compléter, budget et partenaires ; puis les 3 actions prioritaires de la semaine, dans l'ordre. Rappelle de vérifier les délais auprès de la mairie, de la préfecture et du comité FFA.",
   nutrition: "Nutrition de course : produits validés ou à éviter, apport de glucides par heure déjà toléré face à ce que demandent les prochaines courses, et les essais à faire à l'entraînement. Le Nutri-Score D ou E d'un produit d'effort est normal.",
 };
 function donneesRubrique(sujet) {
   if (sujet === "club") return resumeClubPourClaude();
+  if (sujet === "organisation") { const cal = etat.calendrier || (etat.calendrier = lireCalendrier()), ev = cal.evenements.find((e) => e.id === etat.evOrga) || cal.evenements[0]; return ev ? logistiquePourClaude(ev) : "Pas d'événement."; }
   const d = etat.donnees, l = [resumePourClaude()];
   if (sujet === "calendrier") {
     const cal = etat.calendrier || (etat.calendrier = lireCalendrier()), auj = isoJour(new Date()), fin = plusJours(auj, 183);
@@ -2413,8 +2511,8 @@ function brancherLectures() {
     if (etat.source !== "fichier") { zone.innerHTML = `<p class="discret">Ouvre ta base : Claude écrira ici, tout seul, sa lecture de tes chiffres à chaque ouverture de la rubrique.</p>`; return; }
     if (!echantillonPret) { zone.innerHTML = `<span class="attente"><span class="rond"></span>Connexion à Claude…</span>`; return; }
     if (!echantillon) { zone.innerHTML = `<p class="discret">${MESSAGES_CLAUDE.absent}</p>`; return; }
-    const prompt = `${sujet === "club" ? CONSIGNE_CLUB : CONSIGNE_LECTURE}\nSUJET : ${SUJETS[sujet]}\n\nDONNÉES (calculées par Trail Hub Center) :\n${donneesRubrique(sujet)}`;
-    const cle = `${etat.nomFichier}|${sujet === "club" ? etat.saisonClub : etat.athleteId}|${sujet}|${cleJour(new Date())}`;
+    const prompt = `${sujet === "club" || sujet === "organisation" ? CONSIGNE_CLUB : CONSIGNE_LECTURE}\nSUJET : ${SUJETS[sujet]}\n\nDONNÉES (calculées par Trail Hub Center) :\n${donneesRubrique(sujet)}`;
+    const cle = `${etat.nomFichier}|${sujet === "club" ? etat.saisonClub : sujet === "organisation" ? "ev" + etat.evOrga : etat.athleteId}|${sujet}|${cleJour(new Date())}`;
     demanderClaude(cle, prompt, (e) => {
       if (!carte.isConnected) return;
       if (e.etat === "attente" || (e.etat === "en_cours" && !e.texte)) { zone.innerHTML = `<span class="attente"><span class="rond"></span>Claude lit tes chiffres…</span>`; return; }

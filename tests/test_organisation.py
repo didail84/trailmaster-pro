@@ -140,7 +140,7 @@ def test_ecrans(base_vide, tmp_path):
                                       "tarif": 15, "dossard_debut": 1, "dossard_fin": 100})
     from interface.organisation import OrganisationFenetre, DialogueInscription
     f = OrganisationFenetre(1)
-    assert f.tabs.count() == 6 and f.evenement_id == ev
+    assert f.tabs.count() == 11 and f.evenement_id == ev
     fichier = tmp_path / "njuko.csv"
     fichier.write_text("Nom;Prénom;Date de naissance;Épreuve;Montant\nDurand;Emma;05/07/1990;Trail 12 km;15\n",
                        encoding="utf-8")

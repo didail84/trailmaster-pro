@@ -86,8 +86,9 @@ MODULES = (
            disponible=False, etape="7", blocs=(20,), actif_par_defaut=False),
     Module("organisation", "Organisation de courses", "Organisation",
            "Ton événement : épreuves, tarifs, inscriptions contrôlées selon la réglementation FFA (âge et distance, "
-           "licence ou Pass Prévention Santé, mineurs), import Njuko ou CSV, dossards et retrait, tableau de bord. "
-           "Viendront : chrono, logistique, bénévoles.",
+           "licence ou Pass Prévention Santé, mineurs), import Njuko ou CSV, dossards et retrait, chrono et classements, "
+           "démarches et rétroplanning (déclarations, autorisations, secours), bénévoles, ravitaillements, matériel, "
+           "partenaires et budget, tableau de bord.",
            ("ouvrir_organisation",), etape="4", blocs=(21, 22, 23, 24, 26, 27), actif_par_defaut=False),
     Module("trail_live", "Trail Live", "Organisation",
            "Suivi des coureurs en direct sur carte, page publique pour les proches.",
