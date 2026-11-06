@@ -370,6 +370,8 @@ PAGES_EN_PLUS = {}          # préfixe -> gestion(handler, compte, csrf, verbe, 
 def _brancher_pages():
     from noyau.serveur import web_course                      # étape 6 : incidents, commandement, présence
     PAGES_EN_PLUS.update(web_course.PAGES)
+    from noyau.serveur import web_kids                        # chantier D : carnets des enfants
+    PAGES_EN_PLUS.update(web_kids.PAGES)
 
 
 _brancher_pages()

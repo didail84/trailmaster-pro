@@ -1482,15 +1482,16 @@ class ClubFenetre(ConteneurOnglets):
     def __init__(self, athlete_id_initial=None):
         from interface.club_agenda import AgendaClub, PresencesClub                       # étape 4.2
         from interface.club_profils import LicenciesClub, SeancesPartageesClub, EntraineursClub   # étape 4.3
+        from interface.club_kids import KidsClub                                                  # chantier D
         super().__init__(
             titre="Club",
             onglets=[("📊 Tableau de bord", TableauDeBordClub), ("👥 Adhérents", AdherentsClub),
                      ("🏅 Licenciés", LicenciesClub), ("🧑‍🤝‍🧑 Groupes", GroupesClub), ("📅 Agenda", AgendaClub),
                      ("✅ Présences", PresencesClub), ("📚 Séances", SeancesPartageesClub),
-                     ("🧑‍🏫 Entraîneurs", EntraineursClub), ("💶 Cotisations", CotisationsClub), ("📥 Import", ImportClub),
-                     ("⚙️ Le club", ReglagesClub)],
+                     ("🧑‍🏫 Entraîneurs", EntraineursClub), ("🧒 Kids", KidsClub), ("💶 Cotisations", CotisationsClub),
+                     ("📥 Import", ImportClub), ("⚙️ Le club", ReglagesClub)],
             athlete_id_initial=athlete_id_initial,
         )
         (self.tableau, self.adherents, self.licencies, self.groupes, self.agenda, self.presences, self.seances,
-         self.entraineurs, self.cotisations, self.import_, self.reglages) = self.ecrans
+         self.entraineurs, self.kids, self.cotisations, self.import_, self.reglages) = self.ecrans
 

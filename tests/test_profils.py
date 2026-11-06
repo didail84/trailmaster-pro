@@ -136,7 +136,7 @@ def test_ecrans(base_vide):
     from interface.club import ClubFenetre
     from interface.club_profils import DialogueImportClassement
     f = ClubFenetre(1)
-    assert f.tabs.count() == 11
+    assert f.tabs.count() == 12
     l = f.licencies
     l.combo_saison.setCurrentIndex(max(0, l.combo_saison.findData("2026-2027")))
     l.choisir(adh["MARTIN"])

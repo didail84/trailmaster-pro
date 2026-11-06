@@ -1067,6 +1067,54 @@ def _m015_jour_de_course(cur):
         _ajouter_uuid(cur, t)
 
 
+def _m016_kids(cur):
+    """Kids (école d'athlé) : compétences du carnet de progression, validations, badges, équipement des enfants."""
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS kids_competences (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            code TEXT NOT NULL UNIQUE,
+            niveau TEXT NOT NULL,
+            domaine TEXT NOT NULL,
+            libelle TEXT NOT NULL,
+            ordre INTEGER DEFAULT 0,
+            club_id INTEGER REFERENCES clubs(id) ON DELETE CASCADE,
+            actif INTEGER DEFAULT 1
+        )""")
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS kids_validations (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            personne_id INTEGER NOT NULL REFERENCES personnes(id) ON DELETE CASCADE,
+            competence_id INTEGER NOT NULL REFERENCES kids_competences(id) ON DELETE CASCADE,
+            date TEXT NOT NULL,
+            valide_par TEXT,
+            note TEXT,
+            UNIQUE (personne_id, competence_id)
+        )""")
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS kids_badges (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            personne_id INTEGER NOT NULL REFERENCES personnes(id) ON DELETE CASCADE,
+            code TEXT NOT NULL,
+            date TEXT NOT NULL,
+            UNIQUE (personne_id, code)
+        )""")
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS kids_equipement (
+            personne_id INTEGER PRIMARY KEY REFERENCES personnes(id) ON DELETE CASCADE,
+            taille_vetement TEXT,
+            taille_tshirt TEXT,
+            pointure TEXT,
+            sac TEXT,
+            gourde INTEGER DEFAULT 0,
+            frontale INTEGER DEFAULT 0,
+            veste INTEGER DEFAULT 0,
+            notes TEXT,
+            maj TEXT
+        )""")
+    for t in ("kids_validations", "kids_badges"):
+        _ajouter_uuid(cur, t)
+
+
 MIGRATIONS = [
     (1, "Identifiant universel (UUID) pour chaque donnée", _m001_identifiants_universels),
     (2, "Fiche Personne unique et rôles", _m002_personnes_et_roles),
@@ -1086,6 +1134,7 @@ MIGRATIONS = [
     (14, "Mode serveur : comptes, rôles, sessions, journal des accès, consentements", _m014_serveur),
     (15, "Jour de course : points de contrôle, incidents, positions en direct, présence des bénévoles",
      _m015_jour_de_course),
+    (16, "Kids : carnet de progression, badges et équipement des enfants", _m016_kids),
 ]
 VERSION_LOGICIEL = MIGRATIONS[-1][0]
 
