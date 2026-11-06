@@ -638,6 +638,8 @@ class RoadbookCourse(_EcranAthlete):
                               "choisis une autre méthode.")
             msg = (f"Temps appris sur {d['nb_sorties']} de tes sorties (distance + D+"
                    + (", ajusté à la saison" if d["ajustement_saison"] else "") + f") : {rbk.texte_duree(d['secondes'])}.")
+            if d.get("correction", 1) != 1:
+                msg += f" Corrigé × {d['correction']:g} d'après tes courses passées (Analyse).".replace(".", ",", 1)
             if d["extrapolation"]:
                 msg += " ⚠️ Course bien plus longue que tes sorties : estimation à prendre avec prudence."
             return rbk.allure_plat_pour_duree(self._trace, d["secondes"]), msg

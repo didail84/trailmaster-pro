@@ -167,6 +167,9 @@ class TableauBord(QMainWindow):
             ("ORGANISATION", [
                 ("🏁  Organisation", self.ouvrir_organisation, False),
             ]),
+            ("ANALYSE", [
+                ("📊  Analyse", self.ouvrir_analyse, False),
+            ]),
             ("OUTILS", [
                 ("🌦️  Météo", self.ouvrir_meteo, False),
                 ("🍎  Alimentation", self.ouvrir_alimentation, False),
@@ -1560,6 +1563,10 @@ class TableauBord(QMainWindow):
         from interface.annuaire import AnnuaireFenetre
         self._ouvrir_ou_activer("annuaire", lambda: AnnuaireFenetre(athlete_id_initial=self.athlete_actif_id))
 
+    def ouvrir_analyse(self):
+        from interface.analyse import AnalyseFenetre
+        self._ouvrir_ou_activer("analyse", lambda: AnalyseFenetre(athlete_id_initial=self.athlete_actif_id))
+
     def ouvrir_serveur(self):
         from interface.serveur import ServeurFenetre
         self._ouvrir_ou_activer("serveur", lambda: ServeurFenetre(athlete_id_initial=self.athlete_actif_id))
@@ -1791,6 +1798,8 @@ class TableauBord(QMainWindow):
              self.ouvrir_annuaire),
             ("Club", "adherents licencies licence ffa cotisation recu groupes helloasso saison categories",
              self.ouvrir_club),
+            ("Analyse", "prevu reel ecart estimation correction bilans club saison fidelisation evenements editions",
+             self.ouvrir_analyse),
             ("Serveur et comptes", "nas reseau comptes mots de passe benevoles droits journal consentements connexion",
              self.ouvrir_serveur),
             ("Fil d'activité", "strava cartes sorties analyses", self.ouvrir_fil_activite),

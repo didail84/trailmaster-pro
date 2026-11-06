@@ -104,8 +104,9 @@ MODULES = (
            "Photos d'une course retrouvées par numéro de dossard.",
            disponible=False, etape="7", blocs=(28,), actif_par_defaut=False),
     Module("analyse", "Analyse transversale", "Analyse",
-           "Prévu ou réel, rapports du club et des événements.",
-           disponible=False, etape="7", blocs=(29, 30), actif_par_defaut=False),
+           "Prévu ou réel de tes courses (avec correction des estimations), bilans du club saison par saison, "
+           "bilans des événements et comparaison des éditions.",
+           ("ouvrir_analyse",), blocs=(29, 30), actif_par_defaut=True),
 )
 
 PAR_CODE = {m.code: m for m in MODULES}

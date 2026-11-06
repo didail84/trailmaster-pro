@@ -40,10 +40,21 @@ def duree_apprise(athlete_id, distance_km, denivele_m, date_course=None):
     est = estimer_temps_course(athlete_id, distance_km, denivele_m, date_course)
     if not est:
         return None
-    return {"secondes": est["secondes"], "nb_sorties": est["nb_sorties"],
+    correction = facteur_correction(athlete_id)        # chantier E : écart prévu/réel de tes courses passées
+    return {"secondes": est["secondes"] * correction, "correction": correction, "nb_sorties": est["nb_sorties"],
             "extrapolation": est.get("extrapolation", False),
             "ajustement_saison": est.get("ajustement_saison", False),
             "facteurs": facteurs_scenarios(est.get("ratio_bas"), est.get("ratio_haut"))}
+
+
+def facteur_correction(athlete_id):
+    """Multiplicateur appris de l'écart entre tes temps prévus et réels (Analyse > Prévu ou réel), 1 sinon."""
+    try:
+        from data.database import obtenir_parametre
+        v = float(obtenir_parametre(f"correction_prevision_{athlete_id}") or 1)
+        return v if 0.7 <= v <= 1.4 else 1.0
+    except (TypeError, ValueError):
+        return 1.0
 
 
 def facteurs_scenarios(ratio_bas=None, ratio_haut=None):
