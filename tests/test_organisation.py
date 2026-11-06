@@ -123,6 +123,8 @@ def test_base(base_vide, tmp_path):
     assert len(cal["epreuves"]) == 2 and cal["source"] == "Mon organisation"
     with pytest.raises(dor.ErreurOrganisation):
         dor.supprimer_epreuve(e1)
+    from PySide6.QtWidgets import QApplication
+    QApplication.instance() or QApplication([])
     from interface.club_pdf import rendre_retrait_dossards
     pdf = tmp_path / "retrait.pdf"
     rendre_retrait_dossards(pdf, dor.evenement(ev), [i for i in dor.inscriptions(ev) if i["statut"] == "validee"])
@@ -138,7 +140,7 @@ def test_ecrans(base_vide, tmp_path):
                                       "tarif": 15, "dossard_debut": 1, "dossard_fin": 100})
     from interface.organisation import OrganisationFenetre, DialogueInscription
     f = OrganisationFenetre(1)
-    assert f.tabs.count() == 4 and f.evenement_id == ev
+    assert f.tabs.count() == 6 and f.evenement_id == ev
     fichier = tmp_path / "njuko.csv"
     fichier.write_text("Nom;Prénom;Date de naissance;Épreuve;Montant\nDurand;Emma;05/07/1990;Trail 12 km;15\n",
                        encoding="utf-8")

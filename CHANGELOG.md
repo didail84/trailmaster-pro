@@ -1,5 +1,19 @@
 # Historique des versions
 
+## Trail Hub Center — étapes 4.3 (profils des licenciés, entraîneurs, séances partagées) et 4.5 (chrono et classements)
+- **Club, trois nouveaux onglets** (la fenêtre Club en compte maintenant 11) :
+  - **Licenciés** : fiche de chaque licencié avec catégorie, groupes, **bilan de la saison** (courses, km, D+, podiums), **records** sur route (5 km, 10 km, semi, marathon…) et en trail (par km-effort), **index ITRA, UTMB et Betrail** saisis à la main, liste des résultats.
+    - On ajoute un résultat à la main, ou on **importe le classement d'une course** (colonnes reconnues : clt, nom, prénom, temps, catégorie, clt cat., club). Les adhérents sont retrouvés par nom et prénom (et année de naissance si deux personnes portent le même nom) ; ceux qui ne sont pas reconnus sont listés.
+    - **Pas de doublon** : une même course du même licencié est mise à jour, jamais ajoutée deux fois. Si le licencié a un profil coureur, le résultat va aussi dans ses « Résultats de courses ».
+    - Résultats du club des 90 derniers jours.
+  - **Séances partagées** : bibliothèque de séances du club (contenu, objectif, public, durée, fractionné de la bibliothèque), **programmée** dans l'agenda d'un groupe (ou ajoutée à une séance déjà prévue), puis **envoyée aux coureurs** qui ont un profil : elle arrive dans leurs séances structurées avec les allures calculées sur **leur** VMA, une seule fois.
+  - **Entraîneurs** : désigner un entraîneur, ses **diplômes** (date de validité, alerte 90 jours avant l'échéance), ses groupes et ses prochaines séances.
+- **Organisation, deux nouveaux onglets** (6 au total) :
+  - **Chrono** : top départ de chaque épreuve (ou heure saisie), arrivées au **dossard + Entrée** avec l'heure de l'ordinateur ou une heure saisie, horloge, retour immédiat (nom, épreuve, temps). Un **double top** de moins de 5 secondes est ignoré tout seul, un second passage est gardé de côté ; dossards inconnus et passages sans dossard signalés. Correction et annulation d'un passage, **import du fichier du chronométreur** (heures de passage ou temps de course, sans doublon).
+  - **Classements** : scratch, par sexe, par catégorie FFA (M1H, SEF…), écart, vitesse, allure ; ex æquo au même rang ; abandons, disqualifiés et non-partants à la fin. Statuts et temps corrigés, **export CSV**, **PDF**, podiums à copier, et **publication sur les profils des licenciés** sans doublon (publier à nouveau met à jour).
+- **Base de données version 11** : résultats des licenciés, diplômes, séances modèles, passages du chrono ; départ réel des épreuves, statut et temps corrigé des inscriptions.
+- **Page Claude** : rubrique Club, carte **Résultats récents des licenciés** (12 mois) ; rubrique Organisation, **classement et podiums** de chaque épreuve, calculés comme dans le logiciel. Claude ne reçoit que des chiffres, aucun nom.
+
 ## Trail Hub Center — étape 4.4 (organisation d'un événement) et Calendrier des courses
 - **Nouveau module « Calendrier des courses »** (espace Coureur, allumé par défaut, menu Analyse). Il couvre les compétitions de stade, hors stade (route), cross, trail (découverte, court, long, ultra), course en montagne, kilomètre vertical, marche nordique et relais, en Provence-Alpes-Côte d'Azur, Occitanie et Auvergne-Rhône-Alpes.
   - **Courses** : filtres (période, région, département, discipline, niveau, favorites), fiche de la course avec épreuves et km-effort.

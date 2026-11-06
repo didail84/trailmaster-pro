@@ -174,7 +174,7 @@ def test_ecrans(base_vide, tmp_path):
                                 "date_fin": (auj + timedelta(days=35)).isoformat(), "sauf_feries": False})
     from interface.club import ClubFenetre
     f = ClubFenetre(1)
-    assert f.tabs.count() == 8
+    assert f.tabs.count() == 11
     a, p = f.agenda, f.presences
     a.periode.setCurrentIndex(4)                                  # toute la saison
     assert a.table.rowCount() >= 8 and a.table_series.rowCount() == 1

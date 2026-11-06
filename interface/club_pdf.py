@@ -184,3 +184,40 @@ def rendre_retrait_dossards(chemin, evenement, inscriptions):
     pdf.setTitle("Retrait des dossards")
     _imprimer(pdf, html_retrait_dossards(evenement, inscriptions))
     return chemin
+
+
+# ----------------------------------------------------------------------
+# Classement d'une épreuve (étape 4.5)
+# ----------------------------------------------------------------------
+
+def html_classement(evenement, epreuve, lignes):
+    ev = evenement or {}
+    j = date.fromisoformat(str(ev.get("date_debut"))[:10]) if ev.get("date_debut") else None
+    bord = "border:1px solid #bbb;padding:4px 3px"
+    corps = ""
+    for l in lignes:
+        corps += "<tr>" + "".join(f"<td style='{bord}'{a}>{_e(v)}</td>" for v, a in (
+            (l.get("rang") or "", " align='right'"), (l.get("dossard") or "", " align='right'"),
+            (f"{l['nom']} {l.get('prenom') or ''}", ""), (l["categorie"], ""), (l.get("rang_categorie") or "", " align='right'"),
+            (l.get("club") or "", ""), (l["temps"], " align='right'"), (l.get("ecart") or "", " align='right'"),
+            ((f"{l['vitesse']:.2f}".replace(".", ",") if l.get("vitesse") else ""), " align='right'"))) + "</tr>"
+    entete = "".join(f"<th style='{bord};background:#eee'>{x}</th>" for x in (
+        "Clt", "Dos.", "Nom", "Cat.", "Clt cat.", "Club", "Temps", "Écart", "km/h"))
+    n = sum(1 for l in lignes if l.get("statut") == "classe")
+    return f"""
+<div style="font-family:Helvetica,Arial,sans-serif;color:#111;font-size:9pt">
+<p><span style="font-size:15pt;font-weight:bold">{_e(ev.get('nom') or '')}</span><br>
+<b>Classement {_e(epreuve)}</b> · {j.strftime('%d/%m/%Y') if j else ''} · {_e(ev.get('commune') or '')} · {n} classé(s)</p>
+<table cellspacing="0" width="100%" style="border-collapse:collapse"><tr>{entete}</tr>{corps}</table>
+<p style="color:#777;font-size:8pt">Résultats établis avec Trail Hub Center. ABD : abandon · DSQ : disqualifié · NP : non partant.</p>
+</div>"""
+
+
+def rendre_classement(chemin, evenement, epreuve, lignes):
+    pdf = QPdfWriter(str(chemin))
+    pdf.setPageLayout(QPageLayout(QPageSize(QPageSize.PageSizeId.A4), QPageLayout.Orientation.Portrait,
+                                  QMarginsF(10, 10, 10, 10), QPageLayout.Unit.Millimeter))
+    pdf.setResolution(300)
+    pdf.setTitle(f"Classement {epreuve}")
+    _imprimer(pdf, html_classement(evenement, epreuve, lignes))
+    return chemin

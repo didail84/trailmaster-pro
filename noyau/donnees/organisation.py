@@ -24,7 +24,8 @@ CHAMPS_EVENEMENT = ("club_id", "nom", "date_debut", "date_fin", "commune", "code
                     "description", "statut", "declaration_ffa", "ouverture_inscriptions", "cloture_inscriptions",
                     "date_tarif_tardif", "pps_validite_mois", "autorisation_parentale", "notes")
 CHAMPS_EPREUVE = ("nom", "discipline", "distance_km", "denivele_m", "date", "heure_depart", "quota", "tarif",
-                  "tarif_licencie", "tarif_tardif", "dossard_debut", "dossard_fin", "categorie_min", "competitive", "notes")
+                  "tarif_licencie", "tarif_tardif", "dossard_debut", "dossard_fin", "categorie_min", "competitive", "notes",
+                  "depart_reel")
 CHAMPS_INSCRIPTION = ("epreuve_id", "personne_id", "nom", "prenom", "sexe", "date_naissance", "nationalite", "email",
                       "telephone", "club", "justificatif", "numero_licence", "type_licence", "federation", "pps_date",
                       "certificat_date", "questionnaire_mineur", "autorisation_parentale", "justificatif_valide",

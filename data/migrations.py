@@ -684,6 +684,84 @@ def _m010_calendrier_organisation(cur):
         _ajouter_uuid(cur, t)
 
 
+def _m011_profils_chrono(cur):
+    """Profils des licenciés et séances partagées (étape 4.3) ; chrono et classements (étape 4.5).
+    Les résultats d'une course chronométrée par le club vont sur le profil du licencié une seule fois
+    (clé unique) ; ceux d'une course extérieure s'importent ou se saisissent."""
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS resultats_licencies (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            personne_id INTEGER NOT NULL REFERENCES personnes(id) ON DELETE CASCADE,
+            cle TEXT UNIQUE,
+            date TEXT NOT NULL,
+            course TEXT NOT NULL,
+            epreuve TEXT,
+            commune TEXT,
+            discipline TEXT,
+            distance_km REAL,
+            denivele_m INTEGER,
+            temps_s REAL,
+            statut TEXT NOT NULL DEFAULT 'classe',
+            classement_general INTEGER,
+            nb_classes INTEGER,
+            classement_sexe INTEGER,
+            classement_categorie INTEGER,
+            categorie TEXT,
+            source TEXT,
+            evenement_id INTEGER,
+            inscription_id INTEGER,
+            resultat_course_id INTEGER,
+            notes TEXT
+        )""")
+    cur.execute("CREATE INDEX IF NOT EXISTS idx_resultats_licencies ON resultats_licencies(personne_id, date)")
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS diplomes (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            personne_id INTEGER NOT NULL REFERENCES personnes(id) ON DELETE CASCADE,
+            intitule TEXT NOT NULL,
+            organisme TEXT,
+            date_obtention TEXT,
+            date_validite TEXT,
+            notes TEXT
+        )""")
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS seances_modeles (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            club_id INTEGER REFERENCES clubs(id) ON DELETE CASCADE,
+            titre TEXT NOT NULL,
+            type TEXT DEFAULT 'entrainement',
+            objectif TEXT,
+            public TEXT,
+            duree_min INTEGER,
+            contenu TEXT,
+            fractionne_code TEXT,
+            auteur_id INTEGER REFERENCES personnes(id) ON DELETE SET NULL,
+            date_creation TEXT DEFAULT CURRENT_TIMESTAMP
+        )""")
+    if "modele_id" not in _colonnes(cur, "seances_club"):
+        cur.execute("ALTER TABLE seances_club ADD COLUMN modele_id INTEGER")
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS chrono_passages (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            evenement_id INTEGER NOT NULL REFERENCES evenements(id) ON DELETE CASCADE,
+            dossard INTEGER,
+            heure TEXT NOT NULL,
+            point TEXT NOT NULL DEFAULT 'arrivee',
+            source TEXT,
+            annule INTEGER DEFAULT 0,
+            cree_le TEXT DEFAULT CURRENT_TIMESTAMP
+        )""")
+    cur.execute("CREATE INDEX IF NOT EXISTS idx_chrono_passages ON chrono_passages(evenement_id, dossard)")
+    if "depart_reel" not in _colonnes(cur, "epreuves"):
+        cur.execute("ALTER TABLE epreuves ADD COLUMN depart_reel TEXT")
+    deja = _colonnes(cur, "inscriptions")
+    for col, typ in (("statut_course", "TEXT"), ("temps_corrige_s", "REAL")):
+        if col not in deja:
+            cur.execute(f"ALTER TABLE inscriptions ADD COLUMN {col} {typ}")
+    for t in ("resultats_licencies", "diplomes", "seances_modeles", "chrono_passages"):
+        _ajouter_uuid(cur, t)
+
+
 # (numéro, description lisible, fonction) — dans l'ordre, sans trou
 MIGRATIONS = [
     (1, "Identifiant universel (UUID) pour chaque donnée", _m001_identifiants_universels),
@@ -697,6 +775,7 @@ MIGRATIONS = [
     (9, "Annuaire trail : clubs, écoles, magasins et marques ; marque et magasin du matériel", _m009_annuaire),
     (10, "Calendrier des courses et organisation : événements, épreuves, inscriptions, dossards",
      _m010_calendrier_organisation),
+    (11, "Profils des licenciés, séances partagées, chrono et classements", _m011_profils_chrono),
 ]
 VERSION_LOGICIEL = MIGRATIONS[-1][0]
 

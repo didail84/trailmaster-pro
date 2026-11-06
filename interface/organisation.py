@@ -1081,12 +1081,15 @@ class TableauOrga(_EcranOrga):
 class OrganisationFenetre(ConteneurOnglets):
 
     def __init__(self, athlete_id_initial=None):
+        from interface.organisation_chrono import ChronoOrga, ClassementsOrga      # étape 4.5
         self.evenement_id = None
         super().__init__(titre="Organisation",
                          onglets=[("🏁 Événement", EvenementOrga), ("📝 Inscriptions", InscriptionsOrga),
-                                  ("🔢 Dossards", DossardsOrga), ("📊 Tableau de bord", TableauOrga)],
+                                  ("🔢 Dossards", DossardsOrga), ("⏱️ Chrono", ChronoOrga),
+                                  ("🏆 Classements", ClassementsOrga), ("📊 Tableau de bord", TableauOrga)],
                          athlete_id_initial=athlete_id_initial)
-        self.evenement_ecran, self.inscriptions, self.dossards, self.tableau = self.ecrans
+        (self.evenement_ecran, self.inscriptions, self.dossards, self.chrono, self.classements,
+         self.tableau) = self.ecrans
         self.evenement_id = self.evenement_ecran.evenement_id
 
     def choisir(self, evenement_id):
@@ -1094,3 +1097,4 @@ class OrganisationFenetre(ConteneurOnglets):
         for e in self.ecrans:
             e._remplir_evenements(evenement_id)
             e.rafraichir()
+

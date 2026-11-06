@@ -1451,7 +1451,11 @@ function lireClub() {
       FROM seances_club s LEFT JOIN groupes g ON g.id = s.groupe_id WHERE s.club_id = ? ORDER BY s.date, s.heure_debut, s.titre`, [club.id]) : [];
     const presences = agenda ? Base.tous("SELECT x.seance_id, x.personne_id, x.statut FROM presences_club x JOIN seances_club s ON s.id = x.seance_id WHERE s.club_id = ?", [club.id]) : [];
     const membres = Base.tous("SELECT m.groupe_id, m.personne_id FROM groupes_membres m JOIN groupes g ON g.id = m.groupe_id WHERE g.club_id = ?", [club.id]);
-    return { club, adhesions: adh, groupes, seances, presences, membres };
+    const resultats = Base.tablesPresentes.has("resultats_licencies") ? Base.tous(`SELECT r.personne_id, r.date, r.course, r.epreuve, r.distance_km, r.denivele_m, r.temps_s, r.statut,
+      r.classement_general, r.nb_classes, r.classement_categorie, r.categorie, r.source, p.nom, p.prenom
+      FROM resultats_licencies r JOIN personnes p ON p.id = r.personne_id
+      WHERE r.personne_id IN (SELECT personne_id FROM adhesions WHERE club_id = ?) AND r.date >= ? ORDER BY r.date DESC, r.classement_general`, [club.id, plusJours(isoJour(new Date()), -365)]) : [];
+    return { club, adhesions: adh, groupes, seances, presences, membres, resultats };
   } catch (e) { return null; }
 }
 function clubExemple() {
@@ -1481,7 +1485,31 @@ function clubExemple() {
     groupes: [{ id: 1, nom: "Adultes trail", entraineur: "Marc Exemple", description: "mardi et jeudi soir", actif: 1, nb: 6 },
       { id: 2, nom: "Route 10 km", entraineur: "Lise Exemple", description: "mercredi", actif: 1, nb: 4 },
       { id: 3, nom: "École d'athlé", entraineur: "Marc Exemple", description: "samedi matin", actif: 1, nb: 3 }], _exemple: d0,
-    ...agendaExemple(gens, s) };
+    ...agendaExemple(gens, s), resultats: resultatsExemple(gens) };
+}
+/* résultats imaginaires des licenciés (courses inventées, dates relatives à aujourd'hui) */
+function resultatsExemple(gens) {
+  const j = (n) => isoJour(new Date(Date.now() - n * 864e5));
+  return [[0, 12, "Trail des Collines (exemple)", "25 km", 25, 900, 9875, "classe", 14, 182, 2, "M0F"], [7, 12, "Trail des Collines (exemple)", "25 km", 25, 900, 8710, "classe", 5, 182, 3, "SEH"],
+    [11, 12, "Trail des Collines (exemple)", "12 km", 12, 400, 3930, "classe", 2, 240, 1, "SEH"], [4, 26, "10 km de Carpentras (exemple)", "10 km", 10, 0, 2512, "classe", 38, 410, 4, "SEF"],
+    [9, 26, "10 km de Carpentras (exemple)", "10 km", 10, 0, 3190, "classe", 251, 410, 1, "M6H"], [1, 47, "Ultra des Monts (exemple)", "80 km", 80, 3900, null, "abandon", null, null, null, "M2H"],
+    [12, 47, "Semi de la Durance (exemple)", "Semi-marathon", 21.1, 0, 5402, "classe", 61, 530, 5, "M1F"]]
+    .map(([i, n, course, epreuve, distance_km, denivele_m, temps_s, statut, classement_general, nb_classes, classement_categorie, categorie]) => ({
+      personne_id: i + 1, nom: gens[i][0], prenom: gens[i][1], date: j(n), course, epreuve, distance_km, denivele_m, temps_s, statut, classement_general, nb_classes, classement_categorie, categorie, source: "Exemple" }));
+}
+const tempsChrono = (s) => { if (s === null || s === undefined || s === "") return "—"; s = Math.round(Number(s)); const h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60), x = s % 60; return (h ? `${h}:${String(m).padStart(2, "0")}` : `${m}`) + `:${String(x).padStart(2, "0")}`; };
+const LIB_STATUT_COURSE = { abandon: "ABD", disqualifie: "DSQ", non_partant: "NP" };
+function htmlResultatsClub(c) {
+  const rs = c.resultats || [];
+  const podiums = rs.filter((r) => r.statut === "classe" && r.classement_categorie && r.classement_categorie <= 3).length;
+  return `<div class="carte"><header><h3>Résultats récents des licenciés</h3><span class="petit discret">12 derniers mois · ${rs.length} résultat(s) · ${podiums} podium(s) de catégorie</span></header>
+    ${rs.length ? `<div class="tableau-cadre"><table><thead><tr><th>Date</th><th>Licencié</th><th>Course</th><th class="num">Km</th><th class="num">Temps</th><th class="num">Clt</th><th class="num">Clt cat.</th></tr></thead><tbody>
+    ${rs.slice(0, 25).map((r) => `<tr><td>${dateCourteClub(r.date)}</td><td>${esc(r.nom)} ${esc(r.prenom || "")}</td><td>${esc(r.course)}${r.epreuve ? ` <span class="petit discret">${esc(r.epreuve)}</span>` : ""}</td>
+      <td class="num">${r.distance_km ? virgule(r.distance_km, r.distance_km % 1 ? 1 : 0) : ""}${r.denivele_m ? `<br><span class="petit tres-discret">${entier(r.denivele_m)} D+</span>` : ""}</td>
+      <td class="num">${r.statut === "classe" ? tempsChrono(r.temps_s) : `<span class="etat neutre">${LIB_STATUT_COURSE[r.statut] || esc(r.statut)}</span>`}</td>
+      <td class="num">${r.classement_general ? `${r.classement_general}${r.nb_classes ? `<span class="tres-discret">/${r.nb_classes}</span>` : ""}` : ""}</td>
+      <td class="num">${r.classement_categorie ? `${r.classement_categorie <= 3 ? "🏅 " : ""}${r.classement_categorie} <span class="petit tres-discret">${esc(r.categorie || "")}</span>` : ""}</td></tr>`).join("")}
+    </tbody></table></div>` : `<p class="vide">Pas encore de résultat. Dans le logiciel, Club > Licenciés : ajoute un résultat ou importe le classement d'une course ; le chrono d'une course du club les publie aussi.</p>`}</div>`;
 }
 /* agenda imaginaire : trois séries de la saison, appels faits jusqu'à hier (sauf un oubli) */
 function agendaExemple(gens, saison) {
@@ -1662,6 +1690,7 @@ function vueClub() {
         <p class="petit discret">Licences : ${Object.entries(ch.licences).sort((x, y) => y[1] - x[1]).map(([k, n]) => `${esc(LIB_LICENCE[k] || "non renseignée")} ${n}`).join(" · ") || "—"}</p></div>
     </div>
     ${s === saisonDe() ? htmlAgendaClub(c, s) : ""}
+    ${htmlResultatsClub(c)}
     <div class="carte"><header><h3>Adhérents ${s}</h3><span class="petit discret">${vues.length} affiché(s)</span></header>
       <div class="puces">${[["tous", "Tous"], ["incomplets", "Dossiers incomplets"], ["impayes", "Cotisation à payer"], ["mineurs", "Moins de 18 ans"], ["annulees", "Toutes, annulées comprises"]].map(([k, l]) => `<button class="puce" data-filtre-club="${k}" aria-pressed="${k === f}">${l}</button>`).join("")}</div>
       ${vues.length ? `<div class="tableau-cadre"><table><thead><tr><th>Nom</th><th>Cat.</th><th>Licence</th><th>Groupes</th><th>Santé</th><th class="num">Cotisation</th><th>Dossier</th></tr></thead><tbody>
@@ -1693,7 +1722,12 @@ function resumeClubPourClaude() {
     `Cotisations : ${ch.cotisations_payees} € encaissés sur ${ch.cotisations_dues} €, reste ${ch.reste} €.`,
     `Dossiers incomplets : ${ch.incomplets}. Manques : ` + (Object.entries(manques).map(([k, n]) => `${k} ${n}`).join(", ") || "aucun") + ".",
     "Groupes : " + (c.groupes.map((g) => `${g.nom} ${g.nb} membres`).join(", ") || "aucun") + ".",
-    ...presencesPourClaude(c)].join("\n");
+    ...presencesPourClaude(c), resultatsPourClaude(c)].join("\n");
+}
+function resultatsPourClaude(c) {
+  const rs = c.resultats || [], cl = rs.filter((r) => r.statut === "classe");
+  /* chiffres seulement, sans nom */
+  return `Résultats des licenciés sur 12 mois : ${rs.length} (${cl.length} classés, ${rs.length - cl.length} abandon(s) ou hors course), ${cl.filter((r) => r.classement_categorie && r.classement_categorie <= 3).length} podiums de catégorie, ${new Set(rs.map((r) => r.personne_id)).size} licenciés ont couru.`;
 }
 function presencesPourClaude(c) {
   if (!(c.seances || []).length) return ["Agenda : aucune séance."];
@@ -1728,9 +1762,31 @@ function lireCalendrier() {
         (SELECT COUNT(*) FROM inscriptions i WHERE i.epreuve_id = p.id AND i.dossard_retire = 1) AS remis,
         (SELECT COALESCE(SUM(i.montant_paye), 0) FROM inscriptions i WHERE i.epreuve_id = p.id AND i.statut != 'annulee') AS recette,
         (SELECT COALESCE(SUM(MAX(COALESCE(i.montant, 0) - COALESCE(i.montant_paye, 0), 0)), 0) FROM inscriptions i WHERE i.epreuve_id = p.id AND i.statut != 'annulee') AS reste
-        FROM epreuves p WHERE p.evenement_id = ? ORDER BY p.distance_km DESC`, [e.id]) })) : [];
+        FROM epreuves p WHERE p.evenement_id = ? ORDER BY p.distance_km DESC`, [e.id]), classements: classementsBase(e.id) })) : [];
     return { courses, evenements };
   } catch (e) { return { courses: [], evenements: [] }; }
+}
+/* classements calculés comme noyau/organisation/chrono : premier passage retenu, temps corrigé prioritaire, ex æquo au même rang */
+function classementsBase(evId) {
+  if (!Base.tablesPresentes.has("chrono_passages")) return [];
+  try {
+    const eps = Base.tous("SELECT id, nom, distance_km, depart_reel FROM epreuves WHERE evenement_id = ? ORDER BY distance_km DESC", [evId]);
+    const prem = {};
+    for (const p of Base.tous("SELECT dossard, heure FROM chrono_passages WHERE evenement_id = ? AND annule = 0 AND point = 'arrivee' AND dossard IS NOT NULL ORDER BY heure, id", [evId])) if (!(p.dossard in prem)) prem[p.dossard] = p.heure;
+    return eps.map((e) => ({ epreuve: e.nom, distance_km: e.distance_km, lignes: Base.tous(`SELECT dossard, nom, prenom, sexe, club, statut_course, temps_corrige_s FROM inscriptions
+      WHERE epreuve_id = ? AND statut NOT IN ('annulee', 'liste_attente') AND dossard IS NOT NULL`, [e.id]).map((i) => {
+        let t = i.temps_corrige_s;
+        if ((t === null || t === undefined) && prem[i.dossard] && e.depart_reel) { t = (new Date(prem[i.dossard]) - new Date(e.depart_reel)) / 1000; if (!(t > 0)) t = null; }
+        return { ...i, temps_s: ["abandon", "disqualifie", "non_partant"].includes(i.statut_course) ? null : t };
+      }).filter((l) => l.temps_s !== null && l.temps_s !== undefined || l.statut_course) })).filter((x) => x.lignes.length);
+  } catch (e) { return []; }
+}
+function rangerClassement(lignes) {
+  const cl = lignes.filter((l) => l.temps_s !== null && l.temps_s !== undefined).sort((a, b) => a.temps_s - b.temps_s);
+  const t0 = cl.length ? cl[0].temps_s : 0, parSexe = {};
+  cl.forEach((l, k) => { l.rang = k && Math.round(cl[k - 1].temps_s * 10) === Math.round(l.temps_s * 10) ? cl[k - 1].rang : k + 1; l.ecart = l.temps_s - t0;
+    const sx = String(l.sexe || "?").slice(0, 1).toUpperCase(); parSexe[sx] = (parSexe[sx] || 0) + 1; l.rangSexe = parSexe[sx]; });
+  return { classes: cl, hors: lignes.filter((l) => l.temps_s === null || l.temps_s === undefined) };
 }
 /* calendrier imaginaire, dates relatives à aujourd'hui (aucune vraie course) */
 function calendrierExemple() {
@@ -1743,7 +1799,13 @@ function calendrierExemple() {
     c(150, "Trail du Vercors", "Villard-de-Lans", "38", "trail_court", "regional", [[30, 1600]])],
     evenements: [{ id: 1, nom: "Trail des Dentelles (exemple)", date_debut: j(156), commune: "Gigondas", statut: "ouvert", epreuves: [
       { nom: "Trail 25 km", distance_km: 25, denivele_m: 1200, quota: 400, tarif: 28, dossard_debut: 1, dossard_fin: 400, inscrits: 212, valides: 180, attente: 32, liste: 0, dossards: 180, remis: 0, recette: 5880, reste: 196 },
-      { nom: "Trail 12 km", distance_km: 12, denivele_m: 450, quota: 300, tarif: 15, dossard_debut: 500, dossard_fin: 799, inscrits: 301, valides: 290, attente: 4, liste: 7, dossards: 290, remis: 0, recette: 4410, reste: 0 }] }] };
+      { nom: "Trail 12 km", distance_km: 12, denivele_m: 450, quota: 300, tarif: 15, dossard_debut: 500, dossard_fin: 799, inscrits: 301, valides: 290, attente: 4, liste: 7, dossards: 290, remis: 0, recette: 4410, reste: 0 }], classements: [] },
+      { id: 2, nom: "Corrida du club (exemple)", date_debut: j(-12), commune: "Carpentras", statut: "termine", epreuves: [
+        { nom: "Corrida 8 km", distance_km: 8, denivele_m: 40, quota: 150, tarif: 8, dossard_debut: 1, dossard_fin: 150, inscrits: 9, valides: 9, attente: 0, liste: 0, dossards: 9, remis: 9, recette: 72, reste: 0 }],
+        classements: [{ epreuve: "Corrida 8 km", distance_km: 8, lignes: [["GIRAUD", "Hugo", "H", "AC Pernes", 1622], ["ARNAUD", "Camille", "F", "Trail Club des Dentelles", 1795], ["MOUTTE", "Léon", "H", "Trail Club des Dentelles", 1688],
+          ["BLANC", "Théo", "H", "", 1688], ["ESTÈVE", "Margaux", "F", "Trail Club des Dentelles", 1902], ["ROUX", "Chloé", "F", "", 2030], ["FABRE", "Thomas", "H", "Trail Club des Dentelles", 2115],
+          ["MARTIN", "Lucas", "H", "", null, "abandon"], ["NICOLAS", "Anaïs", "F", "Trail Club des Dentelles", null, "non_partant"]]
+          .map(([nom, prenom, sexe, club, temps_s, statut_course], k) => ({ dossard: k + 1, nom, prenom, sexe, club, temps_s, statut_course: statut_course || null })) }] }] };
 }
 const famDe = (c) => CAL.famille[c.discipline] || "Autre";
 const txtEpreuves = (c) => (c.epreuves || []).filter((e) => e.distance_km).map((e) => `${virgule(e.distance_km, e.distance_km % 1 ? 1 : 0)} km${e.denivele_m ? ` ${entier(e.denivele_m)} D+` : ""}`).join(" · ");
@@ -1796,7 +1858,25 @@ function vueOrganisation() {
       <td style="min-width:110px">${pc !== null ? `<div class="jauge" role="img" aria-label="${pc} %"><span style="width:${pc}%;background:var(--${pc >= 100 ? "rouge" : pc >= 85 ? "orange" : "vert"})"></span></div><span class="petit discret">${pc} %</span>` : ""}</td>
       <td class="num">${entier(e.valides)}</td><td class="num">${entier(e.attente)}</td><td class="num">${eurosClub(e.recette)} €</td></tr>`; }).join("")}
     </tbody></table></div></div>
+    ${htmlClassementsOrga(ev)}
   </section>`;
+}
+function htmlClassementsOrga(ev) {
+  const cls = ev.classements || [];
+  if (!cls.length) return `<div class="carte"><header><h3>Classements</h3></header><p class="vide">Pas encore d'arrivée. Le jour de la course, dans le logiciel : onglet Chrono (top départ, dossard + Entrée à chaque arrivée, ou import du fichier du chronométreur), puis Classements pour publier les résultats sur les profils des licenciés.</p></div>`;
+  return cls.map((c) => {
+    const { classes, hors } = rangerClassement(c.lignes.map((l) => ({ ...l })));
+    const pod = (sx) => classes.filter((l) => String(l.sexe || "").toUpperCase().startsWith(sx)).slice(0, 3);
+    const ligne = (l) => `<tr><td class="num">${l.rang}</td><td class="num tres-discret">${l.dossard ?? ""}</td><td>${esc(l.nom)} ${esc(l.prenom || "")}</td><td>${esc(String(l.sexe || "").slice(0, 1))}${l.rangSexe ? `<span class="tres-discret petit"> ${l.rangSexe}</span>` : ""}</td>
+      <td class="petit">${esc(l.club || "")}</td><td class="num">${tempsChrono(l.temps_s)}</td><td class="num petit discret">${l.ecart ? "+" + tempsChrono(l.ecart) : ""}</td>
+      <td class="num petit">${c.distance_km && l.temps_s ? virgule(c.distance_km / l.temps_s * 3600, 1) : ""}</td></tr>`;
+    return `<div class="carte"><header><h3>Classement · ${esc(c.epreuve)}</h3><span class="petit discret">${classes.length} classé(s)${hors.length ? ` · ${hors.length} hors course` : ""}</span></header>
+      <div class="grille g2">${[["F", "Podium femmes"], ["H", "Podium hommes"]].map(([sx, t]) => `<div><p class="petit discret" style="margin:0 0 4px">${t}</p>${pod(sx).length ? `<ol class="liste-puces" style="margin:0">${pod(sx).map((l) => `<li>${esc(l.prenom || "")} ${esc(l.nom)} · ${tempsChrono(l.temps_s)}</li>`).join("")}</ol>` : `<p class="petit tres-discret">—</p>`}</div>`).join("")}</div>
+      <div class="tableau-cadre"><table><thead><tr><th class="num">Clt</th><th class="num">Dos.</th><th>Nom</th><th>Sexe</th><th>Club</th><th class="num">Temps</th><th class="num">Écart</th><th class="num">km/h</th></tr></thead><tbody>
+      ${classes.slice(0, 50).map(ligne).join("")}
+      ${hors.map((l) => `<tr style="opacity:.6"><td class="num">${LIB_STATUT_COURSE[l.statut_course] || ""}</td><td class="num tres-discret">${l.dossard ?? ""}</td><td>${esc(l.nom)} ${esc(l.prenom || "")}</td><td>${esc(String(l.sexe || "").slice(0, 1))}</td><td class="petit">${esc(l.club || "")}</td><td colspan="3"></td></tr>`).join("")}
+      </tbody></table></div>${classes.length > 50 ? `<p class="petit discret">50 premiers affichés ; le classement complet (CSV, PDF) se sort du logiciel.</p>` : ""}</div>`;
+  }).join("");
 }
 function brancherOrganisation() {
   document.querySelectorAll("[data-ev-orga]").forEach((b) => b.onclick = () => { etat.evOrga = +b.dataset.evOrga; const y = window.scrollY; rendreTout(); window.scrollTo(0, y); });

@@ -1259,15 +1259,17 @@ class ReglagesClub(_EcranClub):
 class ClubFenetre(ConteneurOnglets):
 
     def __init__(self, athlete_id_initial=None):
+        from interface.club_agenda import AgendaClub, PresencesClub                       # étape 4.2
+        from interface.club_profils import LicenciesClub, SeancesPartageesClub, EntraineursClub   # étape 4.3
         super().__init__(
             titre="Club",
             onglets=[("📊 Tableau de bord", TableauDeBordClub), ("👥 Adhérents", AdherentsClub),
-                     ("🧑‍🤝‍🧑 Groupes", GroupesClub), ("📅 Agenda", AgendaClub), ("✅ Présences", PresencesClub),
-                     ("💶 Cotisations", CotisationsClub), ("📥 Import", ImportClub), ("⚙️ Le club", ReglagesClub)],
+                     ("🏅 Licenciés", LicenciesClub), ("🧑‍🤝‍🧑 Groupes", GroupesClub), ("📅 Agenda", AgendaClub),
+                     ("✅ Présences", PresencesClub), ("📚 Séances", SeancesPartageesClub),
+                     ("🧑‍🏫 Entraîneurs", EntraineursClub), ("💶 Cotisations", CotisationsClub), ("📥 Import", ImportClub),
+                     ("⚙️ Le club", ReglagesClub)],
             athlete_id_initial=athlete_id_initial,
         )
-        (self.tableau, self.adherents, self.groupes, self.agenda, self.presences, self.cotisations, self.import_,
-         self.reglages) = self.ecrans
+        (self.tableau, self.adherents, self.licencies, self.groupes, self.agenda, self.presences, self.seances,
+         self.entraineurs, self.cotisations, self.import_, self.reglages) = self.ecrans
 
-
-from interface.club_agenda import AgendaClub, PresencesClub   # noqa: E402  (les onglets de l'étape 4.2)
