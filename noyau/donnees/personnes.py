@@ -31,7 +31,7 @@ LIBELLE_ROLE = dict(ROLES)
 CODES_ROLES = tuple(c for c, _ in ROLES)
 
 CHAMPS = ("nom", "prenom", "date_naissance", "sexe", "email", "telephone",
-          "adresse", "code_postal", "ville", "photo_path", "notes")
+          "adresse", "code_postal", "ville", "photo_path", "notes", "contact_urgence_nom", "contact_urgence_tel")
 
 _EMAIL = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 

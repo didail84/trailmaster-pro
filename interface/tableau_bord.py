@@ -160,6 +160,9 @@ class TableauBord(QMainWindow):
                 ("🏁  Courses à venir", self.ouvrir_courses_calendrier, False),
                 ("🎒  Matériel pour une course", self.ouvrir_materiel_course, False),
             ]),
+            ("CLUB", [
+                ("🏟️  Club", self.ouvrir_club, False),
+            ]),
             ("OUTILS", [
                 ("🌦️  Météo", self.ouvrir_meteo, False),
                 ("🍎  Alimentation", self.ouvrir_alimentation, False),
@@ -1538,6 +1541,10 @@ class TableauBord(QMainWindow):
         from interface.fractionne import FractionneFenetre
         self._ouvrir_ou_activer("fractionne", lambda: FractionneFenetre(athlete_id_initial=self.athlete_actif_id))
 
+    def ouvrir_club(self):
+        from interface.club import ClubFenetre
+        self._ouvrir_ou_activer("club", lambda: ClubFenetre(athlete_id_initial=self.athlete_actif_id))
+
     def ouvrir_historique_activites(self):
         self._ouvrir_ou_activer(
             "historique",
@@ -1753,6 +1760,8 @@ class TableauBord(QMainWindow):
             ("Planification", "plan calendrier seances", self.ouvrir_planification),
             ("Fractionné", "vma piste cotes intervalles 30/30 400 1000 minuteur bips", self.ouvrir_fractionne),
             ("Renforcement & Mobilité", "muscu", self.ouvrir_renforcement),
+            ("Club", "adherents licencies licence ffa cotisation recu groupes helloasso saison categories",
+             self.ouvrir_club),
             ("Fil d'activité", "strava cartes sorties analyses", self.ouvrir_fil_activite),
             ("Analyses & Forme", "fatigue charge vma sommeil hrv", self.ouvrir_analyses_et_forme),
             ("Performance trail", "montees vam allure pente fatigue efficacite terrain meteo", self.ouvrir_performance_trail),

@@ -591,7 +591,7 @@ function preparer(d) {
 function utiliserExemple() {
   const ex = donneesExemple();
   etat.source = "exemple"; etat.athletes = ex.athletes; etat.athleteId = ex.athleteId; etat.donnees = preparer(ex.tables);
-  etat.nomFichier = ""; etat.versionBase = null; etat.sortieChoisie = null; etat.modules = {};
+  etat.nomFichier = ""; etat.versionBase = null; etat.sortieChoisie = null; etat.modules = {}; etat.club = clubExemple();
 }
 function choisirAthlete(id) {
   etat.athleteId = id; etat.sortieChoisie = null; etat.fil = [];
@@ -616,6 +616,7 @@ async function ouvrirFichier(f) {
     /* modules allumés ou éteints dans Réglages > Modules (absents = valeur par défaut : allumés) */
     etat.modules = {};
     if (Base.tablesPresentes.has("parametres_app")) for (const l of Base.tous("SELECT cle, valeur FROM parametres_app WHERE cle LIKE 'module_%'")) etat.modules[l.cle.slice(7)] = l.valeur === "1";
+    etat.club = lireClub();
     const memo = Number(lireStockage("thc-athlete"));
     const parDefaut = aths.find((a) => a.id === memo) || aths.slice().sort((x, y) => y.nb - x.nb)[0];
     choisirAthlete(parDefaut.id);
@@ -771,16 +772,18 @@ const ICONES = {
   materiel: '<path d="M2 11.5c2.5 0 3.5-1 4.5-3l1-2 2 1.5c1 .8 2.5 1.3 4.5 1.5v2.5H2z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/>',
   fractionne: '<circle cx="8" cy="9" r="5.2" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M8 9V6.2M6.5 1.8h3M12.2 4.4l1-1" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>',
   nutrition: '<path d="M6 2.5h4M6.5 2.5v2.2L4.6 7.4A3 3 0 0 0 4 9.2V12a1.5 1.5 0 0 0 1.5 1.5h5A1.5 1.5 0 0 0 12 12V9.2a3 3 0 0 0-.6-1.8L9.5 4.7V2.5" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round"/><path d="M4.3 9.5h7.4" stroke="currentColor" stroke-width="1.3"/>',
+  club: '<path d="M2 13.5h12M3.5 13.5V7l4.5-3.5L12.5 7v6.5" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="M6.5 13.5v-3h3v3" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="M8 3.5V1.5h2.5" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>',
   coach: '<path d="M2.5 3.5h11v7h-6l-3 2.5v-2.5h-2z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="M5.5 6.5h5M5.5 8.5h3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>',
 };
 const RUBRIQUES = [
   ["aujourdhui", "Aujourd'hui", "Aujourd'hui"], ["fil", "Fil d'activité", "Fil"], ["sorties", "Sorties", "Sorties"], ["forme", "Forme et charge", "Forme"],
   ["sante", "Poids et sommeil", "Santé"], ["courses", "Courses et objectifs", "Courses"], ["blessures", "Blessures et soins", "Blessures"],
-  ["fractionne", "Fractionné", "Fractionné"], ["materiel", "Matériel", "Matériel"], ["nutrition", "Nutrition de course", "Nutrition"], ["coach", "Demander à Claude", "Claude"],
+  ["fractionne", "Fractionné", "Fractionné"], ["materiel", "Matériel", "Matériel"], ["nutrition", "Nutrition de course", "Nutrition"], ["club", "Club", "Club"], ["coach", "Demander à Claude", "Claude"],
 ];
 const icone = (k) => `<svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">${ICONES[k]}</svg>`;
-const MODULE_DE_RUBRIQUE = { sante: "suivi", blessures: "suivi", materiel: "suivi", courses: "courses", nutrition: "nutrition" };
-function rubriqueVisible(k) { const m = MODULE_DE_RUBRIQUE[k]; return !m || etat.modules[m] !== false; }
+const MODULE_DE_RUBRIQUE = { sante: "suivi", blessures: "suivi", materiel: "suivi", courses: "courses", nutrition: "nutrition", fractionne: "fractionne", club: "club" };
+/* le club est éteint par défaut : visible sur l'exemple, ou si le module est allumé dans le logiciel */
+function rubriqueVisible(k) { const m = MODULE_DE_RUBRIQUE[k]; if (m === "club") return etat.source === "exemple" || etat.modules.club === true; return !m || etat.modules[m] !== false; }
 function rubriqueCourante() { const h = location.hash.replace("#", ""); return RUBRIQUES.some((r) => r[0] === h) && rubriqueVisible(h) ? h : (h === "ouvrir" ? "ouvrir" : "aujourdhui"); }
 
 function rendreNav() {
@@ -1343,6 +1346,206 @@ function fractionnesDeLaSortie(a) {
   return `<div><span class="etiquette">Fractionnés de cette séance</span>${fs.map((r) => { const x = bilanFrac(r); return `<p class="petit" style="margin:4px 0"><b>${esc(r.nom)}</b> — ${x.nb}/${repsFrac(r.structure).length} répétitions${x.nb ? `, ${fr1(x.pct_vma_moyen)} % de VMA` : ""} <span class="etat ${CLASSE_VERDICT[x.verdict] || "neutre"}">${esc(x.verdict)}</span></p>`; }).join("")}</div>`;
 }
 
+/* ---------- Club (mêmes règles que noyau/club/categories.py et noyau/club/adhesions.py) ---------- */
+const CLUB = /*CLUB_DEBUT*/{"categories":[[0,"BB","Baby athlé","U7"],[7,"EA","Éveil athlétique","U10"],[10,"PO","Poussins","U12"],[12,"BE","Benjamins","U14"],[14,"MI","Minimes","U16"],[16,"CA","Cadets","U18"],[18,"JU","Juniors","U20"],[20,"ES","Espoirs","U23"],[23,"SE","Seniors","SE"],[35,"M0","Masters 0","MA"],[40,"M1","Masters 1","MA"],[45,"M2","Masters 2","MA"],[50,"M3","Masters 3","MA"],[55,"M4","Masters 4","MA"],[60,"M5","Masters 5","MA"],[65,"M6","Masters 6","MA"],[70,"M7","Masters 7","MA"],[75,"M8","Masters 8","MA"],[80,"M9","Masters 9","MA"],[85,"M10","Masters 10","MA"]],"moisDebut":9,"licences":[["decouverte","Athlé Découverte",["U7","U10","U12"]],["competition","Athlé Compétition",["U14","U16","U18","U20","U23","SE","MA"]],["running","Athlé Running",["U18","U20","U23","SE","MA"]],["sante","Athlé Santé",["U18","U20","U23","SE","MA"]],["entreprise","Athlé Entreprise",["U18","U20","U23","SE","MA"]],["encadrement","Athlé Encadrement",["U16","U18","U20","U23","SE","MA"]],["adherent","Adhérent sans licence",null]],"sante":[["questionnaire","Questionnaire de santé"],["certificat","Certificat médical"],["pps","Pass Prévention Santé"]],"statuts":[["en_cours","En cours"],["validee","Validée"],["annulee","Annulée"]]}/*CLUB_FIN*/;
+const LIB_LICENCE = Object.fromEntries(CLUB.licences.map((l) => [l[0], l[1]]));
+const U_LICENCE = Object.fromEntries(CLUB.licences.map((l) => [l[0], l[2]]));
+const LIB_SANTE = Object.fromEntries(CLUB.sante);
+const LIB_CAT = Object.fromEntries(CLUB.categories.map((c) => [c[1], c[2]]));
+const ORDRE_CAT = Object.fromEntries(CLUB.categories.map((c, i) => [c[1], i]));
+function saisonDe(j = new Date()) { const d = j.getMonth() + 1 >= CLUB.moisDebut ? j.getFullYear() : j.getFullYear() - 1; return `${d}-${d + 1}`; }
+const saisonPrec = (s) => { const d = +String(s).slice(0, 4); return `${d - 1}-${d}`; };
+const finSaison = (s) => +String(s).slice(0, 4) + 1;
+function categorieClub(dn, saison) {
+  const an = dn ? parseInt(String(dn).slice(0, 4), 10) : NaN;
+  if (!an) return null;
+  const age = finSaison(saison) - an; let ch = CLUB.categories[0];
+  for (const c of CLUB.categories) if (age >= c[0]) ch = c;
+  return { code: ch[1], libelle: ch[2], u: ch[3], age };
+}
+function anneesCategorie(code, saison) {
+  const fin = finSaison(saison), i = ORDRE_CAT[code], min = CLUB.categories[i][0], max = i + 1 < CLUB.categories.length ? CLUB.categories[i + 1][0] - 1 : null;
+  return [max !== null ? fin - max : null, min ? fin - min : null];
+}
+function licencePossible(type, dn, saison) {
+  const u = U_LICENCE[type]; if (!u) return null;
+  const c = categorieClub(dn, saison);
+  return !c || u.includes(c.u) ? null : `${LIB_LICENCE[type]} n'est pas prévue pour la catégorie ${c.libelle}.`;
+}
+function ageRevolu(dn, au = new Date()) {
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(String(dn || "")); if (!m) return null;
+  const [y, mo, d] = [+m[1], +m[2], +m[3]];
+  return au.getFullYear() - y - ((au.getMonth() + 1 < mo || (au.getMonth() + 1 === mo && au.getDate() < d)) ? 1 : 0);
+}
+const estMineur = (dn) => { const a = ageRevolu(dn); return a !== null && a < 18; };
+function eurosClub(v) {
+  const t = (Math.round((Number(v) || 0) * 100) / 100).toFixed(2), [e, c] = t.split(".");
+  const ent = e.replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+  return c === "00" ? ent : `${ent},${c}`;
+}
+const resteAPayer = (a) => Math.max(0, (nb(a.cotisation) || 0) - (nb(a.montant_paye) || 0));
+function dossierClub(a, saison) {
+  const manques = [], avert = [];
+  if (a.statut === "annulee") return { complet: true, manques, avertissements: ["Adhésion annulée."] };
+  const typ = a.type_licence;
+  if (!typ) manques.push("type de licence");
+  else if (typ !== "adherent" && !String(a.numero_licence || "").trim()) manques.push("numéro de licence FFA");
+  if (!a.sante_type) manques.push("pièce de santé (certificat ou questionnaire)");
+  if (a.mineur && !a.autorisation_parentale) manques.push("autorisation parentale");
+  const reste = resteAPayer(a);
+  if ((nb(a.cotisation) || 0) <= 0) manques.push("montant de la cotisation");
+  else if (reste > 0.005) manques.push(`cotisation : reste ${eurosClub(reste)} €`);
+  if (!a.date_naissance) avert.push("date de naissance inconnue : pas de catégorie");
+  else if (typ) { const m = licencePossible(typ, a.date_naissance, saison || a.saison); if (m) avert.push(m); }
+  if (a.mineur && (a.droit_image === null || a.droit_image === undefined)) avert.push("droit à l'image non renseigné");
+  return { complet: !manques.length, manques, avertissements: avert };
+}
+function completerAdhesion(a) {
+  a.mineur = estMineur(a.date_naissance); a.categorie = categorieClub(a.date_naissance, a.saison);
+  a.dossier = dossierClub(a, a.saison); a.reste = resteAPayer(a); return a;
+}
+function chiffresClub(adh, prec, saison) {
+  const act = adh.filter((a) => a.statut !== "annulee"), compte = (f) => act.reduce((o, a) => { const k = f(a); o[k] = (o[k] || 0) + 1; return o; }, {});
+  /* totaux en centimes entiers : même résultat que le logiciel, sans erreur d'arrondi */
+  const du = act.reduce((s, a) => s + Math.round((nb(a.cotisation) || 0) * 100), 0);
+  const paye = act.reduce((s, a) => s + Math.round(Math.min(nb(a.montant_paye) || 0, nb(a.cotisation) || nb(a.montant_paye) || 0) * 100), 0);
+  const r = { effectif: act.length, categories: compte((a) => categorieClub(a.date_naissance, saison)?.code || "?"), sexes: compte((a) => String(a.sexe || "?").toUpperCase().slice(0, 1) || "?"),
+    licences: compte((a) => a.type_licence || "?"), incomplets: act.filter((a) => !dossierClub(a, saison).complet).length, cotisations_dues: du / 100, cotisations_payees: paye / 100,
+    reste: Math.max(0, du - paye) / 100, mineurs: act.filter((a) => a.mineur).length, annulees: adh.length - act.length };
+  if (prec) {
+    const avant = new Set(prec.filter((a) => a.statut !== "annulee").map((a) => a.personne_id)), main = new Set(act.map((a) => a.personne_id));
+    r.renouveles = [...avant].filter((x) => main.has(x)).length; r.nouveaux = [...main].filter((x) => !avant.has(x)).length;
+    r.non_renouveles = [...avant].filter((x) => !main.has(x)).sort((x, y) => x - y);
+    r.taux_renouvellement = avant.size ? pyRound(100 * r.renouveles / avant.size, 0) : null;
+  }
+  return r;
+}
+function alertesClub(adh, ch, saison) {
+  const r = [], s = (n) => (n > 1 ? "s" : "");
+  const inc = adh.filter((a) => a.statut !== "annulee" && !dossierClub(a, saison).complet).length;
+  if (inc) r.push(`${inc} dossier${s(inc)} incomplet${s(inc)} pour ${saison}.`);
+  const ap = adh.filter((a) => a.mineur && !a.autorisation_parentale && a.statut !== "annulee").length;
+  if (ap) r.push(`${ap} mineur${s(ap)} sans autorisation parentale.`);
+  if (ch.reste) r.push(`${eurosClub(ch.reste)} € de cotisations restent à encaisser.`);
+  const nr = (ch.non_renouveles || []).length;
+  if (nr) r.push(`${nr} adhérent${s(nr)} de la saison précédente n'${nr > 1 ? "ont" : "a"} pas encore renouvelé.`);
+  return r;
+}
+function lireClub() {
+  if (!Base.tablesPresentes.has("adhesions") || !Base.tablesPresentes.has("clubs")) return null;
+  try {
+    const club = Base.tous("SELECT * FROM clubs ORDER BY id LIMIT 1")[0];
+    if (!club) return null;
+    const adh = Base.tous(`SELECT a.id, a.personne_id, a.saison, a.type_licence, a.numero_licence, a.statut, a.sante_type, a.autorisation_parentale, a.droit_image, a.tarif, a.cotisation, a.montant_paye, a.paiement_mode,
+      p.nom, p.prenom, p.date_naissance, p.sexe, p.ville,
+      (SELECT group_concat(g.nom, ', ') FROM groupes_membres m JOIN groupes g ON g.id = m.groupe_id WHERE m.personne_id = p.id AND g.club_id = a.club_id) AS groupes
+      FROM adhesions a JOIN personnes p ON p.id = a.personne_id WHERE a.club_id = ? ORDER BY p.nom COLLATE NOCASE, p.prenom COLLATE NOCASE`, [club.id]).map(completerAdhesion);
+    const groupes = Base.tous(`SELECT g.id, g.nom, g.description, g.actif, (SELECT p.prenom || ' ' || p.nom FROM personnes p WHERE p.id = g.entraineur_id) AS entraineur,
+      (SELECT COUNT(*) FROM groupes_membres m WHERE m.groupe_id = g.id) AS nb FROM groupes g WHERE g.club_id = ? ORDER BY g.nom COLLATE NOCASE`, [club.id]);
+    return { club, adhesions: adh, groupes };
+  } catch (e) { return null; }
+}
+function clubExemple() {
+  const s = saisonDe(), p = saisonPrec(s), fin = finSaison(s), d0 = +s.slice(0, 4);
+  /* club et adhérents imaginaires, pour voir la rubrique sans base */
+  const gens = [
+    ["ARNAUD", "Camille", 1986, "F", "competition", "Adultes trail"], ["BERTRAND", "Julien", 1979, "H", "running", "Adultes trail"],
+    ["CHABERT", "Inès", fin - 11, "F", "decouverte", "École d'athlé"], ["DELORME", "Noé", fin - 9, "H", "decouverte", "École d'athlé"],
+    ["ESTÈVE", "Margaux", 1995, "F", "competition", "Route 10 km"], ["FABRE", "Thomas", 1968, "H", "running", "Adultes trail"],
+    ["GARCIN", "Lou", fin - 13, "F", "competition", "École d'athlé"], ["HUGUES", "Martin", 1990, "H", "competition", "Adultes trail"],
+    ["ISNARD", "Sophie", 1974, "F", "sante", "Route 10 km"], ["JOUVE", "Paul", 1958, "H", "running", "Route 10 km"],
+    ["LAUGIER", "Emma", fin - 16, "F", "competition", "Adultes trail"], ["MOUTTE", "Léon", 2001, "H", "competition", "Adultes trail"],
+    ["NICOLAS", "Anaïs", 1983, "F", "running", "Route 10 km"], ["OLIVIER", "Hugo", 1999, "H", "adherent", ""],
+  ];
+  const tarif = { competition: 95, running: 75, decouverte: 70, sante: 60, adherent: 30 };
+  const adh = [];
+  gens.forEach(([nom, prenom, an, sexe, typ, groupe], i) => {
+    const dn = `${an}-${String(1 + i % 12).padStart(2, "0")}-${String(3 + i).padStart(2, "0")}`;
+    const base = { personne_id: i + 1, nom, prenom, date_naissance: dn, sexe, ville: "Carpentras", type_licence: typ, numero_licence: typ === "adherent" ? null : String(1840210 + i * 37),
+      tarif: LIB_LICENCE[typ], groupes: groupe || null, droit_image: 1, autorisation_parentale: 1, paiement_mode: "HelloAsso" };
+    if (i !== 7) adh.push(completerAdhesion({ ...base, id: 100 + i, saison: p, statut: "validee", sante_type: "questionnaire", cotisation: tarif[typ], montant_paye: tarif[typ] }));
+    if (i !== 12) adh.push(completerAdhesion({ ...base, id: 200 + i, saison: s, statut: i < 9 ? "validee" : "en_cours", sante_type: i % 5 === 3 ? null : (i === 1 ? "certificat" : "questionnaire"),
+      numero_licence: i === 11 ? null : base.numero_licence, autorisation_parentale: i === 6 ? 0 : 1, droit_image: i === 3 ? null : 1,
+      cotisation: tarif[typ] + 5, montant_paye: i === 10 ? 50 : i === 13 ? 0 : tarif[typ] + 5 }));
+  });
+  return { club: { nom: "Trail Club des Dentelles (exemple)", ville: "Carpentras", numero_ffa: "000000" }, adhesions: adh,
+    groupes: [{ id: 1, nom: "Adultes trail", entraineur: "Marc Exemple", description: "mardi et jeudi soir", actif: 1, nb: 6 },
+      { id: 2, nom: "Route 10 km", entraineur: "Lise Exemple", description: "mercredi", actif: 1, nb: 4 },
+      { id: 3, nom: "École d'athlé", entraineur: "Marc Exemple", description: "samedi matin", actif: 1, nb: 3 }], _exemple: d0 };
+}
+function saisonsClub(c) { const s = new Set(c.adhesions.map((a) => a.saison)); s.add(saisonDe()); return [...s].sort().reverse(); }
+const COURT_MANQUE = { "pièce de santé (certificat ou questionnaire)": "santé", "numéro de licence FFA": "n° de licence", "montant de la cotisation": "montant" };
+function vueClub() {
+  const c = etat.club;
+  if (!c) return `<section class="vue"><div class="entete-vue"><h2>Club</h2><p>Les adhérents, licences et cotisations du club.</p></div>
+    <div class="carte"><p class="vide">Cette base ne contient pas encore de club. Dans le logiciel, allume le module « Gestion du club » (Réglages, Modules), puis ouvre « Club » dans le menu : importe ton export HelloAsso ou SI-FFA, ou ajoute les adhérents un par un.</p></div></section>`;
+  const toutes = saisonsClub(c);
+  if (!toutes.includes(etat.saisonClub)) etat.saisonClub = saisonDe();
+  const s = etat.saisonClub, adh = c.adhesions.filter((a) => a.saison === s), prec = c.adhesions.filter((a) => a.saison === saisonPrec(s));
+  const ch = chiffresClub(adh, prec, s), al = alertesClub(adh, ch, s), f = etat.filtreClub || "tous";
+  const vues = adh.filter((a) => f === "tous" ? a.statut !== "annulee" : f === "incomplets" ? a.statut !== "annulee" && !a.dossier.complet : f === "impayes" ? a.statut !== "annulee" && a.reste > 0.005 : f === "mineurs" ? a.statut !== "annulee" && a.mineur : true);
+  const cats = {};
+  for (const a of adh.filter((x) => x.statut !== "annulee")) { const k = a.categorie?.code || "?", g = ["F", "H"].includes(String(a.sexe || "").slice(0, 1)) ? a.sexe.slice(0, 1) : "?"; cats[k] = cats[k] || { F: 0, H: 0, "?": 0 }; cats[k][g]++; }
+  const codes = Object.keys(cats).sort((x, y) => (ORDRE_CAT[x] ?? 99) - (ORDRE_CAT[y] ?? 99));
+  const nesTxt = (k) => { if (!LIB_CAT[k]) return "date inconnue"; const [a, b] = anneesCategorie(k, s); return a && b ? `${a}–${b}` : b ? `${b} et avant` : `${a} et après`; };
+  const nr = new Set(ch.non_renouveles || []), nonRen = prec.filter((a) => nr.has(a.personne_id));
+  const stat = (lib, val, det) => `<div class="carte"><div class="mesure"><span class="etiquette">${lib}</span><span class="valeur">${val}</span><span class="detail">${det}</span></div></div>`;
+  return `<section class="vue">
+    <div class="entete-vue"><h2>Club · ${esc(c.club.nom)}</h2><p>La saison du club d'un coup d'œil : effectif, catégories FFA, dossiers à compléter, cotisations et renouvellements. La saisie, l'import HelloAsso ou SI-FFA et les reçus se font dans le logiciel.</p></div>
+    ${carteLecture("club")}
+    <div class="puces" role="group" aria-label="Saison">${toutes.map((x) => `<button class="puce" data-saison-club="${x}" aria-pressed="${x === s}">${x}${x === saisonDe() ? " (en cours)" : ""}</button>`).join("")}</div>
+    <div class="grille g4">
+      ${stat("Adhérents", entier(ch.effectif), `${entier(ch.nouveaux || 0)} nouveau${(ch.nouveaux || 0) > 1 ? "x" : ""} · ${entier(ch.sexes.F || 0)} femmes, ${entier(ch.sexes.H || 0)} hommes`)}
+      ${stat("Renouvellements", ch.taux_renouvellement !== null && ch.taux_renouvellement !== undefined ? `${ch.taux_renouvellement}<small>%</small>` : "—", prec.length ? `${ch.renouveles} sur ${entier(prec.filter((a) => a.statut !== "annulee").length)} de ${saisonPrec(s)}` : "pas d'adhérents la saison précédente")}
+      ${stat("Dossiers incomplets", entier(ch.incomplets), "licence, santé, autorisation ou paiement")}
+      ${stat("Cotisations encaissées", `${eurosClub(ch.cotisations_payees)}<small>€</small>`, `sur ${eurosClub(ch.cotisations_dues)} € · reste ${eurosClub(ch.reste)} €`)}
+      ${stat("Jeunes", entier(ch.mineurs), "moins de 18 ans : autorisation parentale")}
+    </div>
+    <div class="carte"><header><h3>À faire</h3></header>${al.length ? `<ul class="liste-puces">${al.map((x) => `<li>${esc(x)}</li>`).join("")}</ul>` : `<p class="vide">Rien à signaler pour ${s}.</p>`}</div>
+    <div class="grille g2">
+      <div class="carte"><header><h3>Par catégorie FFA</h3><span class="petit discret">saison ${s}</span></header>
+        <div class="tableau-cadre"><table><thead><tr><th>Catégorie</th><th>Nés</th><th class="num">Femmes</th><th class="num">Hommes</th><th class="num">Total</th></tr></thead><tbody>
+        ${codes.map((k) => `<tr><td>${esc(LIB_CAT[k] || "Inconnue")} <span class="tres-discret petit">${k}</span></td><td>${nesTxt(k)}</td><td class="num">${cats[k].F}</td><td class="num">${cats[k].H}</td><td class="num">${cats[k].F + cats[k].H + cats[k]["?"]}</td></tr>`).join("") || `<tr><td colspan="5" class="vide">Aucun adhérent cette saison.</td></tr>`}
+        </tbody></table></div></div>
+      <div class="carte"><header><h3>Groupes</h3><span class="petit discret">${c.groupes.length} groupe(s)</span></header>
+        ${c.groupes.length ? `<div class="tableau-cadre"><table><thead><tr><th>Groupe</th><th>Entraîneur</th><th class="num">Membres</th></tr></thead><tbody>
+        ${c.groupes.map((g) => `<tr><td>${esc(g.nom)}${g.actif ? "" : ' <span class="tres-discret">(inactif)</span>'}${g.description ? `<br><span class="petit tres-discret">${esc(g.description)}</span>` : ""}</td><td>${esc(g.entraineur || "—")}</td><td class="num">${entier(g.nb)}</td></tr>`).join("")}
+        </tbody></table></div>` : `<p class="vide">Pas encore de groupe.</p>`}
+        <p class="petit discret">Licences : ${Object.entries(ch.licences).sort((x, y) => y[1] - x[1]).map(([k, n]) => `${esc(LIB_LICENCE[k] || "non renseignée")} ${n}`).join(" · ") || "—"}</p></div>
+    </div>
+    <div class="carte"><header><h3>Adhérents ${s}</h3><span class="petit discret">${vues.length} affiché(s)</span></header>
+      <div class="puces">${[["tous", "Tous"], ["incomplets", "Dossiers incomplets"], ["impayes", "Cotisation à payer"], ["mineurs", "Moins de 18 ans"], ["annulees", "Toutes, annulées comprises"]].map(([k, l]) => `<button class="puce" data-filtre-club="${k}" aria-pressed="${k === f}">${l}</button>`).join("")}</div>
+      ${vues.length ? `<div class="tableau-cadre"><table><thead><tr><th>Nom</th><th>Cat.</th><th>Licence</th><th>Groupes</th><th>Santé</th><th class="num">Cotisation</th><th>Dossier</th></tr></thead><tbody>
+      ${vues.map((a) => `<tr><td>${esc(a.nom)} ${esc(a.prenom)}</td><td>${a.categorie ? a.categorie.code : "?"}</td><td>${esc(LIB_LICENCE[a.type_licence] || "—")}</td><td class="petit">${esc(a.groupes || "")}</td><td>${esc(LIB_SANTE[a.sante_type] || "à fournir")}</td>
+        <td class="num"${a.reste > 0.005 ? ' style="color:var(--rouge)"' : ""}>${a.cotisation ? `${eurosClub(a.montant_paye)} / ${eurosClub(a.cotisation)} €` : "—"}</td>
+        <td>${a.statut === "annulee" ? '<span class="etat neutre">annulée</span>' : a.dossier.complet ? '<span class="etat vert">complet</span>' : `<span class="etat orange">à compléter</span> <span class="petit discret">${esc(a.dossier.manques.map((m) => COURT_MANQUE[m] || m).join(", "))}</span>`}${a.dossier.avertissements.length && a.statut !== "annulee" ? `<br><span class="petit tres-discret">${esc(a.dossier.avertissements.join(" · "))}</span>` : ""}</td></tr>`).join("")}
+      </tbody></table></div>` : `<p class="vide">Personne dans cette liste.</p>`}</div>
+    ${nonRen.length ? `<div class="carte"><header><h3>Pas encore renouvelés</h3><span class="petit discret">adhérents de ${saisonPrec(s)}</span></header>
+      <div class="tableau-cadre"><table><thead><tr><th>Nom</th><th>Catégorie ${s}</th><th>Licence</th><th>Groupes</th></tr></thead><tbody>
+      ${nonRen.map((a) => { const k = categorieClub(a.date_naissance, s); return `<tr><td>${esc(a.nom)} ${esc(a.prenom)}</td><td>${k ? esc(k.libelle) : "?"}</td><td>${esc(LIB_LICENCE[a.type_licence] || "—")}</td><td class="petit">${esc(a.groupes || "")}</td></tr>`; }).join("")}
+      </tbody></table></div><p class="petit discret">Dans le logiciel, « Renouveler » crée leur adhésion ${s} avec la même licence et le tarif de la saison.</p></div>` : ""}
+  </section>`;
+}
+function brancherClub() {
+  const re = () => { const y = window.scrollY; rendreTout(); window.scrollTo(0, y); };
+  document.querySelectorAll("[data-saison-club]").forEach((b) => b.onclick = () => { etat.saisonClub = b.dataset.saisonClub; re(); });
+  document.querySelectorAll("[data-filtre-club]").forEach((b) => b.onclick = () => { etat.filtreClub = b.dataset.filtreClub; re(); });
+}
+function resumeClubPourClaude() {
+  const c = etat.club; if (!c) return "Pas de club dans la base.";
+  const s = etat.saisonClub || saisonDe(), adh = c.adhesions.filter((a) => a.saison === s), prec = c.adhesions.filter((a) => a.saison === saisonPrec(s)), ch = chiffresClub(adh, prec, s);
+  const manques = {}; for (const a of adh) if (a.statut !== "annulee") for (const m of a.dossier.manques) { const k = m.startsWith("cotisation") ? "cotisation à solder" : m; manques[k] = (manques[k] || 0) + 1; }
+  /* chiffres seulement : aucun nom d'adhérent n'est envoyé à Claude */
+  return [`Club ${c.club.nom}, saison ${s} (début de saison le 1er septembre).`,
+    `Effectif ${ch.effectif} (${ch.sexes.F || 0} F, ${ch.sexes.H || 0} H), ${ch.mineurs} mineurs, ${ch.nouveaux ?? "?"} nouveaux, ${ch.annulees} annulées.`,
+    `Saison précédente : ${prec.filter((a) => a.statut !== "annulee").length} adhérents ; renouvelés ${ch.renouveles ?? "?"} (${ch.taux_renouvellement ?? "?"} %), pas encore renouvelés ${(ch.non_renouveles || []).length}.`,
+    "Par catégorie : " + Object.entries(ch.categories).sort((x, y) => (ORDRE_CAT[x[0]] ?? 99) - (ORDRE_CAT[y[0]] ?? 99)).map(([k, n]) => `${LIB_CAT[k] || "inconnue"} ${n}`).join(", ") + ".",
+    "Par licence : " + Object.entries(ch.licences).map(([k, n]) => `${LIB_LICENCE[k] || "non renseignée"} ${n}`).join(", ") + ".",
+    `Cotisations : ${ch.cotisations_payees} € encaissés sur ${ch.cotisations_dues} €, reste ${ch.reste} €.`,
+    `Dossiers incomplets : ${ch.incomplets}. Manques : ` + (Object.entries(manques).map(([k, n]) => `${k} ${n}`).join(", ") || "aucun") + ".",
+    "Groupes : " + (c.groupes.map((g) => `${g.nom} ${g.nb} membres`).join(", ") || "aucun") + "."].join("\n");
+}
+
 /* ---------- Matériel obligatoire (mêmes règles que noyau/materiel/comparaison.py) ---------- */
 const MAT = /*MATERIEL_DEBUT*/{"equipements":{"telephone":{"nom":"Téléphone portable","famille":"Sécurité","carac":null},"batterie_externe":{"nom":"Batterie externe","famille":"Lumière","carac":null},"gobelet":{"nom":"Gobelet personnel","famille":"Hydratation","carac":"volume_cl"},"reserve_eau":{"nom":"Réserve d'eau","famille":"Hydratation","carac":"volume_l"},"couverture_survie":{"nom":"Couverture de survie","famille":"Sécurité","carac":null},"sifflet":{"nom":"Sifflet","famille":"Sécurité","carac":null},"frontale":{"nom":"Lampe frontale","famille":"Lumière","carac":"lumens"},"frontale_secours":{"nom":"Seconde lampe","famille":"Lumière","carac":null},"piles":{"nom":"Piles ou batterie de rechange","famille":"Lumière","carac":null},"veste_impermeable":{"nom":"Veste imperméable à capuche","famille":"Vêtements","carac":"colonne_eau_mm"},"coupe_vent":{"nom":"Coupe-vent","famille":"Vêtements","carac":null},"surpantalon":{"nom":"Surpantalon imperméable","famille":"Vêtements","carac":null},"pantalon_long":{"nom":"Pantalon ou collant long","famille":"Vêtements","carac":null},"couche_chaude":{"nom":"Couche chaude à manches longues","famille":"Vêtements","carac":"poids_couche_g"},"bonnet":{"nom":"Bonnet ou tour de cou","famille":"Vêtements","carac":null},"casquette":{"nom":"Casquette ou bandana","famille":"Vêtements","carac":null},"gants":{"nom":"Gants","famille":"Vêtements","carac":null},"gants_impermeables":{"nom":"Surgants imperméables","famille":"Vêtements","carac":null},"lunettes":{"nom":"Lunettes de soleil","famille":"Vêtements","carac":null},"creme_solaire":{"nom":"Crème solaire","famille":"Soins","carac":null},"reserve_alimentaire":{"nom":"Réserve alimentaire","famille":"Nutrition","carac":"kcal"},"bande_elastique":{"nom":"Bande élastique adhésive","famille":"Soins","carac":null},"trousse_secours":{"nom":"Trousse de premiers secours","famille":"Soins","carac":null},"piece_identite":{"nom":"Pièce d'identité","famille":"Divers","carac":null},"argent":{"nom":"Argent ou carte bancaire","famille":"Divers","carac":null},"batons":{"nom":"Bâtons","famille":"Divers","carac":null},"crampons":{"nom":"Chaînes ou crampons légers","famille":"Divers","carac":null},"reflechissant":{"nom":"Élément réfléchissant","famille":"Sécurité","carac":null},"sac":{"nom":"Sac ou ceinture de trail","famille":"Divers","carac":null},"gps_trace":{"nom":"Montre ou téléphone avec la trace","famille":"Divers","carac":null},"dossard":{"nom":"Dossard et porte-dossard","famille":"Divers","carac":null}},"caracteristiques":{"volume_l":["Contenance","L",true],"volume_cl":["Contenance","cl",false],"colonne_eau_mm":["Colonne d'eau","mm",false],"lumens":["Puissance","lumens",false],"kcal":["Énergie","kcal",true],"poids_couche_g":["Poids du vêtement","g",false]},"niveaux":[["obligatoire","Obligatoire"],["meteo","Selon la météo"],["conseille","Conseillé"]],"aControler":["batterie_externe","frontale","frontale_secours","piles","telephone"],"controleJours":180}/*MATERIEL_FIN*/;
 const LIB_STATUT_MAT = { ok: "Je l'ai", verifier: "À vérifier", manque: "Il me manque", manuel: "À cocher toi-même" };
@@ -1751,9 +1954,11 @@ const SUJETS = {
   blessures: "Blessures et soins : points de vigilance pour l'entraînement, prudence sur la reprise. Aucun diagnostic médical ; conseille un professionnel si la douleur dure.",
   materiel: "Usure du matériel : ce qu'il faut remplacer, quand, et ce qu'il faut surveiller ; matériel obligatoire des prochaines courses : ce qui manque ou reste à vérifier, et ce qu'il faut acheter ou contrôler en priorité.",
   fractionne: "Fractionné : séances faites (court ou long, à plat ou en côte), % de VMA tenu, régularité, baisse en fin de séance, progression des séances refaites, et ce qu'il faut ajuster (cible, récupération, prochaine séance).",
+  club: "Saison du club : effectif et renouvellements, répartition par catégorie et licence, dossiers incomplets et ce qui manque le plus, cotisations à encaisser ; puis les 3 actions prioritaires du bureau pour les semaines à venir.",
   nutrition: "Nutrition de course : produits validés ou à éviter, apport de glucides par heure déjà toléré face à ce que demandent les prochaines courses, et les essais à faire à l'entraînement. Le Nutri-Score D ou E d'un produit d'effort est normal.",
 };
 function donneesRubrique(sujet) {
+  if (sujet === "club") return resumeClubPourClaude();
   const d = etat.donnees, l = [resumePourClaude()];
   if (sujet === "sante") {
     const mz = moyennePoids7j(d)?.moy, ri = mz && resumeImc(mz, d.athlete.taille);
@@ -1798,6 +2003,7 @@ function donneesRubrique(sujet) {
 }
 const CONSIGNE_LECTURE = "Tu es l'entraîneur de trail intégré à Trail Hub Center. Écris en français, en Markdown, 120 mots au plus, avec ces titres exacts : « ### Lecture », « ### À faire ». Appuie-toi uniquement sur les données fournies et cite les chiffres ; si une donnée manque, dis-le. Distingue ce qui est mesuré de ce que tu estimes. Tutoie l'athlète. Aucun diagnostic médical.";
 
+const CONSIGNE_CLUB = "Tu aides le bureau d'un club d'athlétisme et de trail (affilié FFA) intégré à Trail Hub Center. Écris en français, en Markdown, 120 mots au plus, avec ces titres exacts : « ### Lecture », « ### À faire ». Appuie-toi uniquement sur les chiffres fournis et cite-les ; si une donnée manque, dis-le. Ne donne aucun conseil juridique ou médical : renvoie à la FFA ou à la ligue pour les règles de licence.";
 function carteLecture(sujet) {
   return `<div class="carte analyse lecture" data-lecture="${sujet}"><header><span class="badge-analyse claude">Lecture de Claude</span><span class="petit tres-discret" data-etat></span></header><div class="md" data-texte></div></div>`;
 }
@@ -1807,8 +2013,8 @@ function brancherLectures() {
     if (etat.source !== "fichier") { zone.innerHTML = `<p class="discret">Ouvre ta base : Claude écrira ici, tout seul, sa lecture de tes chiffres à chaque ouverture de la rubrique.</p>`; return; }
     if (!echantillonPret) { zone.innerHTML = `<span class="attente"><span class="rond"></span>Connexion à Claude…</span>`; return; }
     if (!echantillon) { zone.innerHTML = `<p class="discret">${MESSAGES_CLAUDE.absent}</p>`; return; }
-    const prompt = `${CONSIGNE_LECTURE}\nSUJET : ${SUJETS[sujet]}\n\nDONNÉES (calculées par Trail Hub Center) :\n${donneesRubrique(sujet)}`;
-    const cle = `${etat.nomFichier}|${etat.athleteId}|${sujet}|${cleJour(new Date())}`;
+    const prompt = `${sujet === "club" ? CONSIGNE_CLUB : CONSIGNE_LECTURE}\nSUJET : ${SUJETS[sujet]}\n\nDONNÉES (calculées par Trail Hub Center) :\n${donneesRubrique(sujet)}`;
+    const cle = `${etat.nomFichier}|${sujet === "club" ? etat.saisonClub : etat.athleteId}|${sujet}|${cleJour(new Date())}`;
     demanderClaude(cle, prompt, (e) => {
       if (!carte.isConnected) return;
       if (e.etat === "attente" || (e.etat === "en_cours" && !e.texte)) { zone.innerHTML = `<span class="attente"><span class="rond"></span>Claude lit tes chiffres…</span>`; return; }
@@ -1966,7 +2172,7 @@ function vueOuvrir() {
 function rendreTout() {
   rendreSource(); rendreNav();
   const r = rubriqueCourante(), c = $("#contenu");
-  const vues = { aujourdhui: vueAujourdhui, fil: vueFil, sorties: vueSorties, forme: vueForme, sante: vueSante, courses: vueCourses, blessures: vueBlessures, fractionne: vueFractionne, materiel: vueMateriel, nutrition: vueNutrition, coach: vueCoach, ouvrir: vueOuvrir };
+  const vues = { aujourdhui: vueAujourdhui, fil: vueFil, sorties: vueSorties, forme: vueForme, sante: vueSante, courses: vueCourses, blessures: vueBlessures, fractionne: vueFractionne, club: vueClub, materiel: vueMateriel, nutrition: vueNutrition, coach: vueCoach, ouvrir: vueOuvrir };
   c.innerHTML = vues[r]() + `<p class="pied">Trail Hub Center · page de consultation · les données affichées viennent de ${etat.source === "fichier" ? "ta base" : "l'exemple intégré"}.</p>`;
   if (r === "sorties") { dessinerCalendrier(); rendreDetailSortie(); brancherSorties(); }
   if (r === "forme") dessinerForme();
@@ -1977,6 +2183,7 @@ function rendreTout() {
   if (r === "nutrition") brancherNutrition();
   if (r === "materiel") brancherMateriel();
   if (r === "fractionne") brancherFractionne();
+  if (r === "club") brancherClub();
   brancherLectures();
   c.querySelectorAll("button.ligne[data-sortie]").forEach((b) => b.onclick = () => { etat.sortieChoisie = +b.dataset.sortie; location.hash = "sorties"; if (rubriqueCourante() === "sorties") rendreTout(); });
 }

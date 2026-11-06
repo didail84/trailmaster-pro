@@ -489,9 +489,11 @@ class DialogueDetailSortie(QDialog):
         # ------------------------------------------------------------
         # FRACTIONNÉS DE LA SÉANCE (menu déroulant du suivi, étape 3.5)
         # ------------------------------------------------------------
-        from interface.fractionne import SectionFractionnesSortie
-        self.section_fractionnes = SectionFractionnesSortie(activite_id, athlete_id, self)
-        principal.addWidget(self.section_fractionnes)
+        from noyau import modules as mods
+        if mods.est_actif("fractionne"):
+            from interface.fractionne import SectionFractionnesSortie
+            self.section_fractionnes = SectionFractionnesSortie(activite_id, athlete_id, self)
+            principal.addWidget(self.section_fractionnes)
 
         # ------------------------------------------------------------
         # ANALYSE IA

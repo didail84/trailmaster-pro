@@ -81,11 +81,16 @@ class DialogueNouvelleActivite(QDialog):
         self.champ_duree.setSuffix(" min")
         formulaire.addRow("Durée :", self.champ_duree)
 
+        from noyau import modules as mods
         from interface.fractionne import remplir_combo_seances
         self.combo_fractionne = QComboBox()
         remplir_combo_seances(self.combo_fractionne, athlete_id, avec_vide="— pas de fractionné —")
         self.combo_fractionne.setToolTip("Le fractionné fait pendant la sortie : ses temps se saisissent juste après.")
-        formulaire.addRow("Fractionné fait :", self.combo_fractionne)
+        if mods.est_actif("fractionne"):
+            formulaire.addRow("Fractionné fait :", self.combo_fractionne)
+        else:
+            self.combo_fractionne.setCurrentIndex(0)
+            self.combo_fractionne.hide()
 
         self.champ_notes = QTextEdit()
         self.champ_notes.setPlaceholderText("Notes (optionnel)")

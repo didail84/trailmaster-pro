@@ -1,5 +1,25 @@
 # Historique des versions
 
+## Trail Hub Center — étape 4.1 : Espace Club, adhérents et licences FFA (blocs 17 à 19)
+- Nouveau module **Gestion du club** (éteint par défaut : Réglages > Modules). Il ajoute la fenêtre **🏟️ Club** (menu Club), en six onglets.
+- **📊 Tableau de bord** de la saison : adhérents, taux de renouvellement, dossiers incomplets, cotisations encaissées et restantes, jeunes. Liste « À faire », répartition par catégorie FFA (années de naissance de la saison) et par licence. Liste des adhérents pas encore renouvelés, à renouveler en un clic.
+- **👥 Adhérents** : recherche et filtres (groupe, dossiers incomplets, cotisation à payer, moins de 18 ans, annulées). Chaque adhérent a une fiche complète :
+  - la personne, avec la personne à prévenir ;
+  - sa licence et son numéro FFA ;
+  - sa pièce de santé, l'autorisation parentale et le droit à l'image ;
+  - son tarif, sa cotisation et son paiement ;
+  - ses groupes.
+  Chaque adhérent est une fiche Personne (rôle licencié) : pas de double saisie avec les coureurs, parents ou bénévoles. Un doublon possible est signalé à la création.
+  Depuis la liste : paiement en plusieurs fois, **reçu PDF** numéroté (attribué tout seul quand la cotisation est soldée), export tableur, copie des e-mails.
+- **Catégories FFA** calculées pour chaque saison (1er septembre au 31 août), de Baby athlé à Masters 10. Un type de licence qui ne correspond pas à l'âge est signalé.
+- **🧑‍🤝‍🧑 Groupes** d'entraînement, avec leur entraîneur et leurs membres.
+- **💶 Cotisations** : les tarifs de la saison, liés ou non à un type de licence, se reprennent d'une saison à l'autre. L'onglet donne aussi le reste à encaisser, un message de relance à copier et les paiements par mode.
+- **📥 Import** d'un export HelloAsso, de la liste du SI-FFA ou de tout tableau (CSV ou Excel), avec un aperçu avant d'importer. Les colonnes sont reconnues toutes seules. Les commandes remboursées ou annulées sont écartées. Les personnes déjà connues (même n° de licence, ou même nom, prénom et naissance) sont complétées sans doublon.
+- **⚙️ Le club** : identité, affiliation FFA et président(e), repris sur les reçus.
+- Base de données version 7 : clubs, groupes, adhésions par saison, tarifs ; contact d'urgence sur la fiche Personne.
+- Le module **Fractionné** est maintenant un module à part entière (activable).
+- Page Claude : nouvelle rubrique **Club**, visible sur l'exemple et quand le module est allumé dans la base. Elle reprend les chiffres de la saison, les catégories, les groupes, les adhérents et leur dossier, et les non-renouvelés, avec les mêmes règles que le logiciel. La lecture de Claude ne reçoit que des chiffres, aucun nom d'adhérent.
+
 ## Trail Hub Center — étape 3.5 : Fractionné court ou long, à plat ou en côte (bloc 14)
 - Nouvelle fenêtre **⏱️ Fractionné** (menu Entraînement), en quatre onglets.
 - **📚 Bibliothèque** : 20 séances types, filtrables court ou long et à plat ou en côte.

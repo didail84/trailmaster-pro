@@ -39,10 +39,12 @@ def test_eteindre_et_rallumer(base_vide):
 
 
 def test_refus(base_vide):
-    for code, actif in (("entrainement", False), ("noyau", False), ("club", True), ("rien", True)):
+    for code, actif in (("entrainement", False), ("noyau", False), ("kids", True), ("rien", True)):
         with pytest.raises(ValueError):
             M.definir_actif(code, actif)
-    assert M.est_actif("entrainement") and not M.est_actif("club")
+    assert M.est_actif("entrainement") and not M.est_actif("kids")
+    M.definir_actif("club", True)                    # étape 4.1 : le club s'allume, éteint par défaut
+    assert M.est_actif("club") and M.ecran_visible("ouvrir_club")
 
 
 def test_le_menu_suit_les_modules(base_vide):

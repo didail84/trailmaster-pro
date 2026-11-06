@@ -364,6 +364,91 @@ def _m006_fractionne(cur):
         _ajouter_uuid(cur, t)
 
 
+def _m007_club(cur):
+    """Espace Club (étape 4.1) : le club, ses groupes, les adhésions de chaque saison (licence FFA,
+    santé, autorisation parentale, cotisation) et les tarifs. Un adhérent est une fiche Personne
+    avec le rôle « licencié » : pas de second fichier de membres."""
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS clubs (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            nom TEXT NOT NULL,
+            sigle TEXT,
+            numero_ffa TEXT,
+            ligue TEXT,
+            comite TEXT,
+            adresse TEXT,
+            code_postal TEXT,
+            ville TEXT,
+            email TEXT,
+            telephone TEXT,
+            site TEXT,
+            president TEXT,
+            logo_path TEXT,
+            notes TEXT,
+            date_creation TEXT DEFAULT CURRENT_TIMESTAMP
+        )""")
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS groupes (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            club_id INTEGER NOT NULL REFERENCES clubs(id) ON DELETE CASCADE,
+            nom TEXT NOT NULL,
+            description TEXT,
+            couleur TEXT,
+            entraineur_id INTEGER REFERENCES personnes(id) ON DELETE SET NULL,
+            actif INTEGER DEFAULT 1,
+            UNIQUE (club_id, nom)
+        )""")
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS groupes_membres (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            groupe_id INTEGER NOT NULL REFERENCES groupes(id) ON DELETE CASCADE,
+            personne_id INTEGER NOT NULL REFERENCES personnes(id) ON DELETE CASCADE,
+            UNIQUE (groupe_id, personne_id)
+        )""")
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS adhesions (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            club_id INTEGER NOT NULL REFERENCES clubs(id) ON DELETE CASCADE,
+            personne_id INTEGER NOT NULL REFERENCES personnes(id) ON DELETE CASCADE,
+            saison TEXT NOT NULL,
+            type_licence TEXT,
+            numero_licence TEXT,
+            date_licence TEXT,
+            statut TEXT NOT NULL DEFAULT 'en_cours',
+            sante_type TEXT,
+            sante_date TEXT,
+            autorisation_parentale INTEGER DEFAULT 0,
+            droit_image INTEGER,
+            tarif TEXT,
+            cotisation REAL,
+            montant_paye REAL DEFAULT 0,
+            paiement_mode TEXT,
+            paiement_date TEXT,
+            recu_numero TEXT,
+            source TEXT,
+            notes TEXT,
+            date_creation TEXT DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE (club_id, personne_id, saison)
+        )""")
+    cur.execute("CREATE INDEX IF NOT EXISTS idx_adhesions_saison ON adhesions(club_id, saison)")
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS tarifs_cotisation (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            club_id INTEGER NOT NULL REFERENCES clubs(id) ON DELETE CASCADE,
+            saison TEXT NOT NULL,
+            libelle TEXT NOT NULL,
+            type_licence TEXT,
+            montant REAL NOT NULL,
+            UNIQUE (club_id, saison, libelle)
+        )""")
+    deja = _colonnes(cur, "personnes")
+    for col in ("contact_urgence_nom", "contact_urgence_tel"):
+        if col not in deja:
+            cur.execute(f"ALTER TABLE personnes ADD COLUMN {col} TEXT")
+    for t in ("clubs", "groupes", "adhesions", "tarifs_cotisation"):
+        _ajouter_uuid(cur, t)
+
+
 # (numéro, description lisible, fonction) — dans l'ordre, sans trou
 MIGRATIONS = [
     (1, "Identifiant universel (UUID) pour chaque donnée", _m001_identifiants_universels),
@@ -372,6 +457,7 @@ MIGRATIONS = [
     (4, "Nutrition de course : produits, tolérances, recettes fait maison", _m004_nutrition_course),
     (5, "Matériel obligatoire des courses et caractéristiques de ton équipement", _m005_materiel_obligatoire),
     (6, "Fractionné : séances perso et répétitions faites pendant les sorties", _m006_fractionne),
+    (7, "Espace Club : club, groupes, adhésions et licences par saison, tarifs", _m007_club),
 ]
 VERSION_LOGICIEL = MIGRATIONS[-1][0]
 

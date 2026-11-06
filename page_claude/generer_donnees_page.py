@@ -4,7 +4,8 @@ calculer exactement comme lui :
   - nutrition de course : barèmes du Nutri-Score, ingrédients, recettes de
     départ, produits génériques ;
   - matériel obligatoire : catalogue des équipements et caractéristiques ;
-  - fractionné : bibliothèque des séances types.
+  - fractionné : bibliothèque des séances types ;
+  - club : catégories FFA, types de licence, pièces de santé, statuts.
 
     python page_claude/generer_donnees_page.py
 
@@ -23,9 +24,10 @@ from noyau.nutrition import nutriscore as ns, catalogue as cat          # noqa: 
 from noyau.nutrition.ingredients import INGREDIENTS, MODELES, LIQUIDES, SODIUM_PAR_G_SEL  # noqa: E402
 from noyau.materiel import equipements as meq, comparaison as mcmp                      # noqa: E402
 from noyau.entrainement import fractionne as efr                                         # noqa: E402
+from noyau.club import categories as ccat, adhesions as cadh                             # noqa: E402
 
 PAGE = RACINE / "page_claude" / "trail_hub_center.html"
-REPERES = {"NUTRITION": None, "MATERIEL": None, "FRACTIONNE": None}
+REPERES = {"NUTRITION": None, "MATERIEL": None, "FRACTIONNE": None, "CLUB": None}
 
 
 def donnees():
@@ -54,8 +56,15 @@ def donnees_fractionne():
             "terrains": [list(x) for x in efr.TERRAINS]}
 
 
+def donnees_club():
+    return {"categories": [list(c) for c in ccat._CATEGORIES], "moisDebut": ccat.MOIS_DEBUT_SAISON,
+            "licences": [[c, l, list(u) if u else None] for c, l, u in ccat.TYPES_LICENCE],
+            "sante": [list(x) for x in cadh.SANTE], "statuts": [list(x) for x in cadh.STATUTS]}
+
+
 def bloc(nom):
-    contenu = {"NUTRITION": donnees, "MATERIEL": donnees_materiel, "FRACTIONNE": donnees_fractionne}[nom]()
+    contenu = {"NUTRITION": donnees, "MATERIEL": donnees_materiel, "FRACTIONNE": donnees_fractionne,
+               "CLUB": donnees_club}[nom]()
     return f"/*{nom}_DEBUT*/" + json.dumps(contenu, ensure_ascii=False, separators=(",", ":")) + f"/*{nom}_FIN*/"
 
 
