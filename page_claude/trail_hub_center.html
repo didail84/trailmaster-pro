@@ -136,6 +136,14 @@ tr.choisi-cmp td { background: var(--accent-doux); }
 tr[data-produit] { cursor: pointer; }
 .recette-lignes { display: grid; gap: 6px; }
 .liste-puces { margin: 0; padding-left: 1.2em; display: grid; gap: 4px; font-size: .9rem; }
+.liste-actu { display: grid; gap: 14px; }
+.actu { display: grid; gap: 3px; padding-bottom: 12px; border-bottom: 1px solid var(--bordure); min-width: 0; }
+.actu:last-child { border-bottom: 0; padding-bottom: 0; }
+.actu .titre { font-weight: 600; color: var(--texte); text-decoration: none; overflow-wrap: anywhere; }
+.actu .titre:hover { color: var(--accent-texte); text-decoration: underline; }
+.actu .sous { font-size: .82rem; color: var(--texte-3); }
+.actu p { margin: 2px 0 0; color: var(--texte-2); font-size: .9rem; }
+.coureur-connu a { color: var(--accent-texte); }
 .recette-ligne { display: grid; grid-template-columns: minmax(0, 1fr) 110px; gap: 6px; }
 .recette-ligne select, .recette-ligne input, .recette-tete select, .recette-tete input { border: 1px solid var(--bordure); background: var(--carte); color: var(--texte); padding: 7px 9px; border-radius: 8px; min-width: 0; font: inherit; }
 .recette-tete { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) 110px; gap: 6px; }
@@ -591,7 +599,7 @@ function preparer(d) {
 function utiliserExemple() {
   const ex = donneesExemple();
   etat.source = "exemple"; etat.athletes = ex.athletes; etat.athleteId = ex.athleteId; etat.donnees = preparer(ex.tables);
-  etat.nomFichier = ""; etat.versionBase = null; etat.sortieChoisie = null; etat.modules = {}; etat.club = clubExemple(); etat.annuaire = null; etat.calendrier = null;
+  etat.nomFichier = ""; etat.versionBase = null; etat.sortieChoisie = null; etat.modules = {}; etat.club = clubExemple(); etat.annuaire = null; etat.calendrier = null; etat.actualites = null;
 }
 function choisirAthlete(id) {
   etat.athleteId = id; etat.sortieChoisie = null; etat.fil = [];
@@ -616,7 +624,7 @@ async function ouvrirFichier(f) {
     /* modules allumés ou éteints dans Réglages > Modules (absents = valeur par défaut : allumés) */
     etat.modules = {};
     if (Base.tablesPresentes.has("parametres_app")) for (const l of Base.tous("SELECT cle, valeur FROM parametres_app WHERE cle LIKE 'module_%'")) etat.modules[l.cle.slice(7)] = l.valeur === "1";
-    etat.club = lireClub(); etat.annuaire = null; etat.calendrier = null;
+    etat.club = lireClub(); etat.annuaire = null; etat.calendrier = null; etat.actualites = null;
     const memo = Number(lireStockage("thc-athlete"));
     const parDefaut = aths.find((a) => a.id === memo) || aths.slice().sort((x, y) => y.nb - x.nb)[0];
     choisirAthlete(parDefaut.id);
@@ -776,15 +784,17 @@ const ICONES = {
   organisation: '<path d="M3.5 14.5V2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><path d="M3.5 2.5h9l-1.8 2.8 1.8 2.8h-9" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/>',
   annuaire: '<rect x="3" y="1.8" width="10" height="12.4" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M6 5.2h4.5M6 8h4.5M6 10.8h2.8" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><path d="M3 4.5H1.8M3 8H1.8M3 11.5H1.8" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>',
   club: '<path d="M2 13.5h12M3.5 13.5V7l4.5-3.5L12.5 7v6.5" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="M6.5 13.5v-3h3v3" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="M8 3.5V1.5h2.5" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>',
+  analyse: '<path d="M2 14h12" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><rect x="3" y="8" width="2.4" height="5" rx=".6" fill="currentColor"/><rect x="6.8" y="5" width="2.4" height="8" rx=".6" fill="currentColor"/><rect x="10.6" y="2.5" width="2.4" height="10.5" rx=".6" fill="currentColor"/>',
+  actualites: '<rect x="1.8" y="2.5" width="12.4" height="11" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M4.5 5.5h7M4.5 8h7M4.5 10.5h4.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>',
   coach: '<path d="M2.5 3.5h11v7h-6l-3 2.5v-2.5h-2z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="M5.5 6.5h5M5.5 8.5h3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>',
 };
 const RUBRIQUES = [
   ["aujourdhui", "Aujourd'hui", "Aujourd'hui"], ["fil", "Fil d'activité", "Fil"], ["sorties", "Sorties", "Sorties"], ["forme", "Forme et charge", "Forme"],
   ["sante", "Poids et sommeil", "Santé"], ["courses", "Courses et objectifs", "Courses"], ["blessures", "Blessures et soins", "Blessures"],
-  ["fractionne", "Fractionné", "Fractionné"], ["materiel", "Matériel", "Matériel"], ["nutrition", "Nutrition de course", "Nutrition"], ["club", "Club", "Club"], ["calendrier", "Calendrier des courses", "Calendrier"], ["organisation", "Organisation", "Organisation"], ["annuaire", "Annuaire trail", "Annuaire"], ["coach", "Demander à Claude", "Claude"],
+  ["fractionne", "Fractionné", "Fractionné"], ["materiel", "Matériel", "Matériel"], ["nutrition", "Nutrition de course", "Nutrition"], ["club", "Club", "Club"], ["calendrier", "Calendrier des courses", "Calendrier"], ["organisation", "Organisation", "Organisation"], ["annuaire", "Annuaire trail", "Annuaire"], ["analyse", "Analyse", "Analyse"], ["actualites", "Actualités du trail", "Actus"], ["coach", "Demander à Claude", "Claude"],
 ];
 const icone = (k) => `<svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">${ICONES[k]}</svg>`;
-const MODULE_DE_RUBRIQUE = { sante: "suivi", blessures: "suivi", materiel: "suivi", courses: "courses", nutrition: "nutrition", fractionne: "fractionne", club: "club", annuaire: "annuaire", calendrier: "calendrier", organisation: "organisation" };
+const MODULE_DE_RUBRIQUE = { sante: "suivi", blessures: "suivi", materiel: "suivi", courses: "courses", nutrition: "nutrition", fractionne: "fractionne", club: "club", annuaire: "annuaire", calendrier: "calendrier", organisation: "organisation", analyse: "analyse", actualites: "actualites" };
 /* le club est éteint par défaut : visible sur l'exemple, ou si le module est allumé dans le logiciel */
 function rubriqueVisible(k) { const m = MODULE_DE_RUBRIQUE[k]; if (m === "club" || m === "organisation") return etat.source === "exemple" || etat.modules[m] === true; if (m === "club") return etat.source === "exemple" || etat.modules.club === true; return !m || etat.modules[m] !== false; }
 function rubriqueCourante() { const h = location.hash.replace("#", ""); return RUBRIQUES.some((r) => r[0] === h) && rubriqueVisible(h) ? h : (h === "ouvrir" ? "ouvrir" : "aujourdhui"); }
@@ -1459,7 +1469,7 @@ function lireClub(clubId) {
       r.classement_general, r.nb_classes, r.classement_categorie, r.categorie, r.source, p.nom, p.prenom
       FROM resultats_licencies r JOIN personnes p ON p.id = r.personne_id
       WHERE r.personne_id IN (SELECT personne_id FROM adhesions WHERE club_id = ?) AND r.date >= ? ORDER BY r.date DESC, r.classement_general`, [club.id, plusJours(isoJour(new Date()), -365)]) : [];
-    return { club, clubs, sections, adhesions: adh, groupes, seances, presences, membres, resultats };
+    return { club, clubs, sections, adhesions: adh, groupes, seances, presences, membres, resultats, kids: kidsBase() };
   } catch (e) { return null; }
 }
 function clubExemple() {
@@ -1720,6 +1730,7 @@ function vueClub() {
       <div class="tableau-cadre"><table><thead><tr><th>Nom</th><th>Catégorie ${s}</th><th>Licence</th><th>Groupes</th></tr></thead><tbody>
       ${nonRen.map((a) => { const k = categorieClub(a.date_naissance, s); return `<tr><td>${esc(a.nom)} ${esc(a.prenom)}</td><td>${k ? esc(k.libelle) : "?"}</td><td>${esc(LIB_LICENCE[a.type_licence] || "—")}</td><td class="petit">${esc(a.groupes || "")}</td></tr>`; }).join("")}
       </tbody></table></div><p class="petit discret">Dans le logiciel, « Renouveler » crée leur adhésion ${s} avec la même licence et le tarif de la saison.</p></div>` : ""}
+    ${htmlKidsClub(c, adh)}
   </section>`;
 }
 function brancherClub() {
@@ -1783,7 +1794,7 @@ function lireCalendrier() {
         (SELECT COUNT(*) FROM inscriptions i WHERE i.epreuve_id = p.id AND i.dossard_retire = 1) AS remis,
         (SELECT COALESCE(SUM(i.montant_paye), 0) FROM inscriptions i WHERE i.epreuve_id = p.id AND i.statut != 'annulee') AS recette,
         (SELECT COALESCE(SUM(MAX(COALESCE(i.montant, 0) - COALESCE(i.montant_paye, 0), 0)), 0) FROM inscriptions i WHERE i.epreuve_id = p.id AND i.statut != 'annulee') AS reste
-        FROM epreuves p WHERE p.evenement_id = ? ORDER BY p.distance_km DESC`, [e.id]), classements: classementsBase(e.id), logistique: logistiqueBase(e.id) })) : [];
+        FROM epreuves p WHERE p.evenement_id = ? ORDER BY p.distance_km DESC`, [e.id]), classements: classementsBase(e.id), logistique: logistiqueBase(e.id), jour: jourDeCourseBase(e.id) })) : [];
     return { courses, evenements };
   } catch (e) { return { courses: [], evenements: [] }; }
 }
@@ -1974,6 +1985,7 @@ function vueOrganisation() {
       <td class="num">${entier(e.valides)}</td><td class="num">${entier(e.attente)}</td><td class="num">${eurosClub(e.recette)} €</td></tr>`; }).join("")}
     </tbody></table></div></div>
     ${htmlLogistiqueOrga(ev)}
+    ${htmlJourOrga(ev)}
     ${ev.logistique ? carteLecture("organisation") : ""}
     ${htmlClassementsOrga(ev)}
   </section>`;
@@ -1983,7 +1995,7 @@ function htmlClassementsOrga(ev) {
   if (!cls.length) return `<div class="carte"><header><h3>Classements</h3></header><p class="vide">Pas encore d'arrivée. Le jour de la course, dans le logiciel : onglet Chrono (top départ, dossard + Entrée à chaque arrivée, ou import du fichier du chronométreur), puis Classements pour publier les résultats sur les profils des licenciés.</p></div>`;
   return cls.map((c) => {
     const { classes, hors } = rangerClassement(c.lignes.map((l) => ({ ...l })));
-    const pod = (sx) => classes.filter((l) => String(l.sexe || "").toUpperCase().startsWith(sx)).slice(0, 3);
+    const pod = (sx) => classes.filter((l) => { const x = String(l.sexe || "").toUpperCase(); return x.startsWith(sx) || (sx === "H" && x.startsWith("M")); }).slice(0, 3);
     const ligne = (l) => `<tr><td class="num">${l.rang}</td><td class="num tres-discret">${l.dossard ?? ""}</td><td>${esc(l.nom)} ${esc(l.prenom || "")}</td><td>${esc(String(l.sexe || "").slice(0, 1))}${l.rangSexe ? `<span class="tres-discret petit"> ${l.rangSexe}</span>` : ""}</td>
       <td class="petit">${esc(l.club || "")}</td><td class="num">${tempsChrono(l.temps_s)}</td><td class="num petit discret">${l.ecart ? "+" + tempsChrono(l.ecart) : ""}</td>
       <td class="num petit">${c.distance_km && l.temps_s ? virgule(c.distance_km / l.temps_s * 3600, 1) : ""}</td></tr>`;
@@ -1997,6 +2009,171 @@ function htmlClassementsOrga(ev) {
 }
 function brancherOrganisation() {
   document.querySelectorAll("[data-ev-orga]").forEach((b) => b.onclick = () => { etat.evOrga = +b.dataset.evOrga; const y = window.scrollY; rendreTout(); window.scrollTo(0, y); });
+}
+
+/* ---------- Kids : carnet de progression (mêmes niveaux que noyau/club/kids) ---------- */
+const NIVEAUX_KIDS = [["decouverte", "Découverte", "🌱"], ["explorateur", "Explorateur", "🧭"], ["montagnard", "Montagnard", "⛰️"], ["jeune_traileur", "Jeune traileur", "🏔️"]];
+const NIVEAU_DE_CAT_KIDS = { BB: "decouverte", EA: "decouverte", PO: "explorateur", BE: "montagnard", MI: "jeune_traileur" };
+const TOTAL_NIVEAU_KIDS = { decouverte: 7, explorateur: 7, montagnard: 7, jeune_traileur: 7 };
+function kidsBase() {
+  if (!Base.tablesPresentes.has("kids_validations")) return null;
+  try {
+    return { competences: Base.tous("SELECT id, niveau FROM kids_competences WHERE actif = 1"),
+      validations: Base.tous("SELECT personne_id, competence_id, date FROM kids_validations"),
+      badges: Base.tous("SELECT personne_id, code, date FROM kids_badges ORDER BY date DESC") };
+  } catch (e) { return null; }
+}
+function kidsExemple(adh) {
+  const enfants = adh.filter((a) => NIVEAU_DE_CAT_KIDS[a.categorie?.code]);
+  const competences = NIVEAUX_KIDS.flatMap(([n], k) => Array.from({ length: 7 }, (_x, i) => ({ id: k * 10 + i, niveau: n })));
+  const validations = [], badges = [];
+  enfants.forEach((a, j) => { const n = NIVEAUX_KIDS.findIndex(([c]) => c === NIVEAU_DE_CAT_KIDS[a.categorie.code]); for (let i = 0; i < [7, 4, 2, 5][j % 4]; i++) validations.push({ personne_id: a.personne_id, competence_id: n * 10 + i });
+    if (j % 4 === 0) badges.push({ personne_id: a.personne_id, code: "niveau_" + NIVEAUX_KIDS[n][0] }); });
+  return { competences, validations, badges };
+}
+function htmlKidsClub(c, adh) {
+  const enfants = adh.filter((a) => a.statut !== "annulee" && NIVEAU_DE_CAT_KIDS[a.categorie?.code]);
+  if (!enfants.length) return "";
+  const k = c.kids || (c._exemple ? kidsExemple(adh) : null);
+  if (!k) return "";
+  const niv = Object.fromEntries(k.competences.map((x) => [x.id, x.niveau])), total = {};
+  for (const x of k.competences) total[x.niveau] = (total[x.niveau] || 0) + 1;
+  const faites = {}, nbBadges = {};
+  for (const v of k.validations) { const n = niv[v.competence_id]; if (!n) continue; const cle = v.personne_id + "|" + n; faites[cle] = (faites[cle] || 0) + 1; }
+  for (const b of k.badges) nbBadges[b.personne_id] = (nbBadges[b.personne_id] || 0) + 1;
+  const lignes = enfants.map((a) => { const n = NIVEAU_DE_CAT_KIDS[a.categorie.code], t = total[n] || TOTAL_NIVEAU_KIDS[n], f = faites[a.personne_id + "|" + n] || 0; return { a, n, t, f, pc: t ? Math.round(f / t * 100) : 0 }; });
+  const lib = Object.fromEntries(NIVEAUX_KIDS.map(([c0, l, i]) => [c0, `${i} ${l}`]));
+  return `<div class="carte"><header><h3>École d'athlé · carnet de progression</h3><span class="petit discret">${enfants.length} enfant(s) · ${entier(k.badges.length)} badge(s)</span></header>
+    <div class="tableau-cadre"><table><thead><tr><th>Enfant</th><th>Catégorie</th><th>Niveau conseillé</th><th>Progression</th><th class="num">Badges</th></tr></thead><tbody>
+    ${lignes.map((l) => `<tr><td>${esc(l.a.prenom)} ${esc(l.a.nom)}</td><td>${esc(l.a.categorie.code)}</td><td>${esc(lib[l.n])}</td>
+      <td style="min-width:130px"><div class="jauge" role="img" aria-label="${l.pc} %"><span style="width:${l.pc}%;background:var(--vert)"></span></div><span class="petit discret">${l.f}/${l.t} compétences</span></td><td class="num">${entier(nbBadges[l.a.personne_id] || 0)}</td></tr>`).join("")}
+    </tbody></table></div><p class="petit discret">Chaque enfant ne se compare qu'à lui-même : pas de classement. Les compétences se valident dans le logiciel (Club, onglet Kids) ; les parents voient le carnet de leur enfant sur leur téléphone.</p></div>`;
+}
+
+/* ---------- Jour de course : points de contrôle, incidents, bénévoles à leur poste ---------- */
+const LIB_GRAVITE = { info: "Pour information", moyen: "À traiter", urgent: "Urgent" };
+const LIB_INCIDENT = { blessure: "Blessure", malaise: "Malaise", perdu: "Coureur perdu ou égaré", abandon: "Abandon", balisage: "Balisage", materiel: "Matériel", securite: "Sécurité, route", autre: "Autre" };
+function jourDeCourseBase(evId) {
+  if (!Base.tablesPresentes.has("incidents")) return null;
+  try {
+    const points = Base.tous("SELECT id, nom, type, km, barriere_horaire FROM points_controle WHERE evenement_id = ? ORDER BY km", [evId]);
+    const passages = Object.fromEntries(Base.tous("SELECT point, COUNT(DISTINCT dossard) AS n FROM chrono_passages WHERE evenement_id = ? AND annule = 0 GROUP BY point", [evId]).map((r) => [r.point, r.n]));
+    const incidents = Base.tous("SELECT numero, horodatage, type, gravite, dossard, km, statut FROM incidents WHERE evenement_id = ? ORDER BY horodatage DESC", [evId]);
+    const pres = Base.tablesPresentes.has("orga_affectations") ? Base.tous("SELECT COUNT(*) AS n, COALESCE(SUM(a.present), 0) AS p FROM orga_affectations a JOIN orga_postes o ON o.id = a.poste_id WHERE o.evenement_id = ?", [evId])[0] : { n: 0, p: 0 };
+    if (!points.length && !incidents.length) return null;
+    return { points: points.map((p) => ({ ...p, passes: passages["point_" + p.id] || 0 })), arrivee: passages.arrivee || 0, incidents, benevoles: pres };
+  } catch (e) { return null; }
+}
+function htmlJourOrga(ev) {
+  const j = ev.jour;
+  if (!j) return "";
+  const ouverts = j.incidents.filter((i) => i.statut !== "clos");
+  return `<div class="carte"><header><h3>Jour de course</h3><span class="petit discret">${ouverts.length} incident(s) ouvert(s) · bénévoles à leur poste : ${entier(j.benevoles.p)}/${entier(j.benevoles.n)}</span></header>
+    ${j.points.length ? `<div class="tableau-cadre"><table><thead><tr><th>Point</th><th class="num">km</th><th>Barrière</th><th class="num">Passés</th></tr></thead><tbody>
+      ${j.points.map((p) => `<tr><td>${esc(p.nom)}</td><td class="num">${p.km !== null && p.km !== undefined ? virgule(p.km, 1) : ""}</td><td>${esc(p.barriere_horaire || "")}</td><td class="num">${entier(p.passes)}</td></tr>`).join("")}
+      <tr><td><b>Arrivée</b></td><td></td><td></td><td class="num"><b>${entier(j.arrivee)}</b></td></tr></tbody></table></div>` : ""}
+    ${j.incidents.length ? `<div class="tableau-cadre"><table><thead><tr><th class="num">N°</th><th>Heure</th><th>Type</th><th>Gravité</th><th class="num">Dossard</th><th>État</th></tr></thead><tbody>
+      ${j.incidents.slice(0, 30).map((i) => `<tr><td class="num">${i.numero ?? ""}</td><td>${esc(String(i.horodatage || "").slice(11, 16))}</td><td>${esc(LIB_INCIDENT[i.type] || i.type || "")}</td>
+        <td>${i.gravite === "urgent" ? `<span class="etat rouge">urgent</span>` : esc(LIB_GRAVITE[i.gravite] || "")}</td><td class="num">${i.dossard ?? ""}</td><td>${i.statut === "clos" ? '<span class="etat vert">clos</span>' : i.statut === "pris_en_charge" ? '<span class="etat orange">pris en charge</span>' : '<span class="etat orange">ouvert</span>'}</td></tr>`).join("")}
+      </tbody></table></div>` : `<p class="vide">Aucun incident signalé.</p>`}
+    <p class="petit discret">Le tableau de commandement du PC course (carte, retards, alertes) est dans le logiciel, onglet Jour de course ; les téléphones des bénévoles passent par le serveur.</p></div>`;
+}
+
+/* ---------- Analyse : prévu ou réel, bilans du club, bilans des événements ---------- */
+function prevuReelBase() {
+  if (etat.source !== "fichier" || !Base.tablesPresentes.has("parametres_app")) return null;
+  try { const l = Base.tous("SELECT valeur FROM parametres_app WHERE cle = ?", ["analyse_prevu_reel_" + etat.athleteId])[0]; return l ? JSON.parse(l.valeur) : null; } catch (e) { return null; }
+}
+function bilansClubJS(c) {
+  const saisons = [...new Set(c.adhesions.map((a) => a.saison))].sort();
+  return saisons.map((s) => {
+    const adh = c.adhesions.filter((a) => a.saison === s && a.statut !== "annulee"), prec = new Set(c.adhesions.filter((a) => a.saison === saisonPrec(s) && a.statut !== "annulee").map((a) => a.personne_id));
+    const ids = new Set(adh.map((a) => a.personne_id)), renouv = [...ids].filter((i) => prec.has(i)).length;
+    const [d, f] = [`${s.slice(0, 4)}-09-01`, `${s.slice(5, 9)}-08-31`];
+    const sc = (c.seances || []).filter((x) => !x.annulee && x.appel_fait && x.date >= d && x.date <= f), sids = new Set(sc.map((x) => x.id));
+    const pres = (c.presences || []).filter((x) => sids.has(x.seance_id) && ["present", "retard"].includes(x.statut)).length;
+    return { saison: s, adherents: adh.length, nouveaux: ids.size - renouv, renouveles: renouv, fidelisation: prec.size ? Math.round(renouv / prec.size * 100) : null,
+      femmes: adh.filter((a) => String(a.sexe || "").toUpperCase().startsWith("F")).length, hommes: adh.filter((a) => /^[HM]/i.test(a.sexe || "")).length,
+      jeunes: adh.filter((a) => a.mineur).length, cotisations: adh.reduce((t, a) => t + (Number(a.montant_paye) || 0), 0), seances: sc.length, presence: sc.length ? pres / sc.length : null };
+  }).filter((l) => l.adherents);
+}
+const nomEdition = (n) => String(n || "").replace(/\s*(\(\w+\)|\b(19|20)\d{2}\b)/g, "").trim().toLowerCase();
+function vueAnalyse() {
+  const pr = prevuReelBase(), c = clubVu(), cal = etat.calendrier || (etat.calendrier = lireCalendrier());
+  const pct = (v, signe) => v === null || v === undefined ? "—" : `${signe && v > 0 ? "+" : ""}${virgule(v, Math.abs(v) < 10 ? 1 : 0)} %`;
+  const METH = { temps: "temps visé", appris: "temps appris", vo2max: "VO₂max", allure: "allure sur le plat" };
+  const bc = c ? bilansClubJS(c) : [], maxAdh = Math.max(1, ...bc.map((l) => l.adherents));
+  const evs = (cal.evenements || []).map((e) => { const cl = e.classements || [], arr = cl.reduce((t, x) => t + x.lignes.filter((l) => l.temps_s).length, 0), ab = cl.reduce((t, x) => t + x.lignes.filter((l) => l.statut_course === "abandon").length, 0), np = cl.reduce((t, x) => t + x.lignes.filter((l) => l.statut_course === "non_partant").length, 0);
+    const ins = e.epreuves.reduce((t, x) => t + (Number(x.inscrits) || 0), 0), dos = e.epreuves.reduce((t, x) => t + (Number(x.dossards) || 0), 0), partants = Math.max(0, dos - np);
+    return { ...e, ins, arr, ab, partants, fin: partants && arr ? Math.round(arr / partants * 100) : null, inc: e.jour ? e.jour.incidents.length : 0, recette: e.epreuves.reduce((t, x) => t + (Number(x.recette) || 0), 0) }; });
+  const editions = {};
+  for (const e of evs) (editions[nomEdition(e.nom)] = editions[nomEdition(e.nom)] || []).push(e);
+  const comp = Object.values(editions).filter((v) => v.length > 1).map((v) => v.sort((a, b) => String(a.date_debut).localeCompare(String(b.date_debut))));
+  return `<section class="vue">
+    <div class="entete-vue"><h2>Analyse</h2><p>Prévu ou réel de tes courses, bilans du club saison par saison, bilans de tes événements. Vraiment parlant après une saison complète de données ; le détail et les PDF sont dans le logiciel (menu Analyse).</p></div>
+    <div class="carte"><header><h3>Prévu ou réel</h3>${pr ? `<span class="petit discret">calcul du logiciel du ${esc(fmtCourt(pr.calcule_le))}</span>` : ""}</header>
+      ${!pr ? `<p class="vide">${etat.source === "fichier" ? "Pas encore de calcul : dans le logiciel, ouvre Analyse, onglet Prévu ou réel (il faut un roadbook enregistré à la date d'une course et son résultat)." : "Ouvre ta base : tes courses avec roadbook et résultat apparaîtront ici, avec l'écart entre le temps prévu et le temps réel."}</p>`
+        : `<p>${esc(pr.synthese.texte)}${pr.synthese.applique ? ` Correction appliquée aux temps appris : × ${virgule(pr.synthese.applique, 3)}.` : ""}</p>
+        ${pr.lignes.length ? `<div class="tableau-cadre"><table><thead><tr><th>Date</th><th>Course</th><th>Méthode</th><th class="num">Prévu</th><th class="num">Réel</th><th class="num">Écart</th><th>Scénario</th></tr></thead><tbody>
+        ${pr.lignes.map((l) => `<tr><td>${esc(fmtCourt(l.date))}</td><td>${esc(l.course)}</td><td class="petit">${esc(METH[l.methode] || l.methode || "")}</td><td class="num">${tempsChrono(l.prevu_s)}</td><td class="num">${tempsChrono(l.reel_s)}</td>
+          <td class="num" style="color:var(--${l.ecart_pct > 5 ? "rouge" : l.ecart_pct < -2 ? "vert" : "texte"})">${pct(l.ecart_pct, true)}</td><td class="petit">${esc(l.scenario)}</td></tr>`).join("")}</tbody></table></div>` : ""}`}</div>
+    <div class="carte"><header><h3>Bilans du club</h3>${c ? `<span class="petit discret">${esc(c.club.nom)}${etat.sectionClub ? " · section" : ""}</span>` : ""}</header>
+      ${!bc.length ? `<p class="vide">Pas encore d'adhérents dans cette base.</p>` : `<div class="tableau-cadre"><table><thead><tr><th>Saison</th><th>Adhérents</th><th class="num">Nouveaux</th><th class="num">Fidélisation</th><th class="num">Femmes</th><th class="num">Hommes</th><th class="num">Jeunes</th><th class="num">Cotisations</th><th class="num">Séances</th><th class="num">Présence moy.</th></tr></thead><tbody>
+      ${bc.slice().reverse().map((l) => `<tr><td>${esc(l.saison)}</td><td style="min-width:120px"><div class="jauge" role="img" aria-label="${l.adherents} adhérents"><span style="width:${Math.round(l.adherents / maxAdh * 100)}%;background:var(--accent)"></span></div><span class="petit">${entier(l.adherents)}</span></td>
+        <td class="num">${entier(l.nouveaux)}</td><td class="num">${l.fidelisation === null ? "—" : l.fidelisation + " %"}</td><td class="num">${entier(l.femmes)}</td><td class="num">${entier(l.hommes)}</td><td class="num">${entier(l.jeunes)}</td>
+        <td class="num">${eurosClub(l.cotisations)} €</td><td class="num">${entier(l.seances)}</td><td class="num">${l.presence === null ? "—" : virgule(l.presence, 1)}</td></tr>`).join("")}</tbody></table></div>
+      <p class="petit discret">Fidélisation : part des adhérents de la saison d'avant qui sont revenus. Présence moyenne : présents (et en retard) par séance où l'appel a été fait.</p>`}</div>
+    <div class="carte"><header><h3>Bilans des événements</h3></header>
+      ${!evs.length ? `<p class="vide">Pas encore d'événement organisé dans cette base.</p>` : `<div class="tableau-cadre"><table><thead><tr><th>Date</th><th>Événement</th><th class="num">Inscrits</th><th class="num">Partants</th><th class="num">Arrivés</th><th class="num">Abandons</th><th class="num">Finishers</th><th class="num">Incidents</th><th class="num">Encaissé</th></tr></thead><tbody>
+      ${evs.map((e) => `<tr><td>${esc(fmtCourt(e.date_debut))}</td><td>${esc(e.nom)}</td><td class="num">${entier(e.ins)}</td><td class="num">${entier(e.partants)}</td><td class="num">${entier(e.arr)}</td><td class="num">${entier(e.ab)}</td><td class="num">${e.fin === null ? "—" : e.fin + " %"}</td><td class="num">${entier(e.inc)}</td><td class="num">${eurosClub(e.recette)} €</td></tr>`).join("")}</tbody></table></div>
+      ${comp.map((v) => `<p class="petit" style="margin:10px 0 4px"><b>${esc(v[v.length - 1].nom)}</b> : ${v.map((e, i) => `${esc(String(e.date_debut).slice(0, 4))} · ${entier(e.ins)} inscrits${i && v[i - 1].ins ? ` (${pct(Math.round((e.ins - v[i - 1].ins) / v[i - 1].ins * 100), true)})` : ""}`).join(" → ")}</p>`).join("")}`}</div>
+  </section>`;
+}
+
+/* ---------- Actualités du trail (flux RSS lus par le logiciel ; coureurs connus) ---------- */
+const ACTU = /*ACTUALITES_DEBUT*/{"version":"2026-11-06","verifie_le":"2026-11-06","coureurs":[{"prenom":"François","nom":"D'Haene","pays":"FRA","palmares":["Vainqueur de l'UTMB en 2012, 2014, 2017 et 2021","Quatre fois vainqueur de la Diagonale des Fous, record du parcours classique en 22 h 58 (2013)"],"sources":["https://en.wikipedia.org/wiki/Ultra-Trail_du_Mont-Blanc","https://reference-trail.fr/qui-detient-le-record-de-la-diagonale-des-fous-francois-dhaene-reste-imbattable/"]},{"prenom":"Xavier","nom":"Thévenard","pays":"FRA","palmares":["Vainqueur de l'UTMB en 2013, 2015 et 2018"],"sources":["https://en.wikipedia.org/wiki/Ultra-Trail_du_Mont-Blanc"]},{"prenom":"Ludovic","nom":"Pommeret","pays":"FRA","palmares":["Vainqueur de l'UTMB en 2016"],"sources":["https://en.wikipedia.org/wiki/Ultra-Trail_du_Mont-Blanc"]},{"prenom":"Vincent","nom":"Bouillard","pays":"FRA","palmares":["Vainqueur de l'UTMB en 2024","Vainqueur de la Western States 100 en 2026, record de l'épreuve en 13 h 46 min 15 s"],"sources":["https://en.wikipedia.org/wiki/Ultra-Trail_du_Mont-Blanc","https://en.wikipedia.org/wiki/Western_States_Endurance_Run"]},{"prenom":"Mathieu","nom":"Blanchard","pays":"FRA","palmares":["2e de l'UTMB en 2022","Vainqueur de la Diagonale des Fous en 2024 (175 km, 23 h 25 min 02 s)"],"sources":["https://stadion-actu.fr/diagonale-des-fous-2024-mathieu-blanchard-sest-sublime/"]},{"prenom":"Baptiste","nom":"Chassagne","pays":"FRA","palmares":["2e de l'UTMB en 2026"],"sources":["https://reference-trail.fr/utmb-2026-resultats-et-classement-femmes-avec-blandine-lhirondel/"]},{"prenom":"Aurélien","nom":"Dunand-Pallaz","pays":"FRA","palmares":["Vainqueur de la Hardrock 100 en 2023","Vainqueur de la Diagonale des Fous en 2023"],"sources":["https://www.dhnet.be/sports/omnisports/running/2023/10/20/le-francais-aurelien-dunand-pallaz-simpose-sur-la-diagonale-des-fous-trois-mois-apres-avoir-gagne-la-hardrock-100-5YYIWLNHIVCDHKOPJS4FIUN4HA/"]},{"prenom":"Blandine","nom":"L'Hirondel","pays":"FRA","palmares":["Vainqueur de l'UTMB en 2026 (21 h 54 min 49 s, parcours adapté à la météo)"],"sources":["https://reference-trail.fr/utmb-2026-resultats-et-classement-femmes-avec-blandine-lhirondel/"]},{"prenom":"Caroline","nom":"Chaverot","pays":"FRA","palmares":["Vainqueur de l'UTMB en 2016"],"sources":["https://en.wikipedia.org/wiki/Ultra-Trail_du_Mont-Blanc"]},{"prenom":"Nathalie","nom":"Mauclair","pays":"FRA","palmares":["Vainqueur de l'UTMB en 2015"],"sources":["https://en.wikipedia.org/wiki/Ultra-Trail_du_Mont-Blanc"]},{"prenom":"Kilian","nom":"Jornet","pays":"ESP","palmares":["Vainqueur de l'UTMB en 2008, 2009, 2011 et 2022"],"sources":["https://en.wikipedia.org/wiki/Ultra-Trail_du_Mont-Blanc"]},{"prenom":"Jim","nom":"Walmsley","pays":"USA","palmares":["Vainqueur de l'UTMB en 2023","Vainqueur de la Western States 100 en 2018, 2019, 2021 et 2024"],"sources":["https://en.wikipedia.org/wiki/Ultra-Trail_du_Mont-Blanc","https://en.wikipedia.org/wiki/Western_States_Endurance_Run"]},{"prenom":"Tom","nom":"Evans","pays":"GBR","palmares":["Vainqueur de l'UTMB en 2025","Vainqueur de la Western States 100 en 2023"],"sources":["https://en.wikipedia.org/wiki/Ultra-Trail_du_Mont-Blanc","https://en.wikipedia.org/wiki/Western_States_Endurance_Run"]},{"prenom":"Ben","nom":"Dhiman","pays":"USA","palmares":["Vainqueur de l'UTMB en 2026 (18 h 16 min 29 s)"],"sources":["https://reference-trail.fr/utmb-2026-resultats-et-classement-femmes-avec-blandine-lhirondel/"]},{"prenom":"Caleb","nom":"Olson","pays":"USA","palmares":["Vainqueur de la Western States 100 en 2025","3e de l'UTMB en 2026"],"sources":["https://en.wikipedia.org/wiki/Western_States_Endurance_Run","https://reference-trail.fr/utmb-2026-resultats-et-classement-femmes-avec-blandine-lhirondel/"]},{"prenom":"Pau","nom":"Capell","pays":"ESP","palmares":["Vainqueur de l'UTMB en 2019"],"sources":["https://en.wikipedia.org/wiki/Ultra-Trail_du_Mont-Blanc"]},{"prenom":"Courtney","nom":"Dauwalter","pays":"USA","palmares":["Vainqueur de l'UTMB en 2019, 2021 et 2023","Vainqueur de la Western States 100 en 2018 et 2023"],"sources":["https://en.wikipedia.org/wiki/Ultra-Trail_du_Mont-Blanc","https://en.wikipedia.org/wiki/Western_States_Endurance_Run"]},{"prenom":"Katie","nom":"Schide","pays":"USA","palmares":["Vainqueur de l'UTMB en 2022 et 2024","Vainqueur de la Western States 100 en 2024"],"sources":["https://en.wikipedia.org/wiki/Ultra-Trail_du_Mont-Blanc","https://en.wikipedia.org/wiki/Western_States_Endurance_Run"]},{"prenom":"Ruth","nom":"Croft","pays":"NZL","palmares":["Vainqueur de l'UTMB en 2025","Vainqueur de la Western States 100 en 2022"],"sources":["https://en.wikipedia.org/wiki/Ultra-Trail_du_Mont-Blanc","https://en.wikipedia.org/wiki/Western_States_Endurance_Run"]}]}/*ACTUALITES_FIN*/;
+const PAYS_ACTU = { FRA: "France", ESP: "Espagne", USA: "États-Unis", GBR: "Royaume-Uni", NZL: "Nouvelle-Zélande", ITA: "Italie", SUI: "Suisse", CAN: "Canada" };
+function lireActualites() {
+  const ref = () => ({ articles: null, coureurs: ACTU.coureurs.map((c, i) => ({ id: i + 1, prenom: c.prenom, nom: c.nom, pays: c.pays, palmares: c.palmares, sources: c.sources, suivi: 0, nb: 0 })).sort((x, y) => x.nom.localeCompare(y.nom, "fr")) });
+  if (etat.source !== "fichier" || !Base.tablesPresentes.has("actualites")) return ref();
+  try {
+    const articles = Base.tous(`SELECT a.id, a.titre, a.lien, a.date, a.extrait, a.trail, a.lu, a.favori, s.nom AS source, s.zone FROM actualites a LEFT JOIN actualites_sources s ON s.id = a.source_id
+      WHERE a.masque = 0 ORDER BY a.date DESC LIMIT 200`);
+    const cites = {};
+    for (const x of Base.tous("SELECT x.actualite_id, x.coureur_id FROM actualites_coureurs x")) (cites[x.actualite_id] = cites[x.actualite_id] || []).push(x.coureur_id);
+    const coureurs = Base.tous("SELECT id, prenom, nom, pays, palmares_json, sources_json, suivi FROM coureurs_connus ORDER BY nom COLLATE NOCASE").map((c) => ({ ...c, palmares: JSON.parse(c.palmares_json || "[]"), sources: JSON.parse(c.sources_json || "[]") }));
+    const nb = {};
+    for (const a of articles) for (const id of cites[a.id] || []) nb[id] = (nb[id] || 0) + 1;
+    return { articles: articles.map((a) => ({ ...a, coureurs: cites[a.id] || [] })), coureurs: coureurs.map((c) => ({ ...c, nb: nb[c.id] || 0 })) };
+  } catch (e) { return ref(); }
+}
+function vueActualites() {
+  const d = etat.actualites || (etat.actualites = lireActualites()), f = etat.filtreActu || "tous", cp = etat.coureursActu || "tous";
+  const noms = Object.fromEntries(d.coureurs.map((c) => [c.id, `${c.prenom || ""} ${c.nom}`.trim()])), suivis = new Set(d.coureurs.filter((c) => c.suivi).map((c) => c.id));
+  const arts = (d.articles || []).filter((a) => f === "tous" ? a.trail : f === "france" ? a.zone === "france" && a.trail : f === "monde" ? a.zone === "monde" && a.trail : f === "suivis" ? a.coureurs.some((i) => suivis.has(i)) : f === "favoris" ? a.favori : true);
+  const quand = (t) => { if (!t) return ""; const j = Math.floor((Date.now() - new Date(String(t).slice(0, 19) + "Z")) / 864e5); return j <= 0 ? "aujourd'hui" : j === 1 ? "hier" : fmtCourt(t); };
+  const lien = (u) => /^https?:\/\//.test(u || "") ? esc(u) : "#";
+  const cs = d.coureurs.filter((c) => cp === "tous" || (cp === "fra" ? c.pays === "FRA" : c.pays !== "FRA"));
+  return `<section class="vue">
+    <div class="entete-vue"><h2>Actualités du trail</h2><p>Les nouvelles du trail en France et dans le monde, lues par le logiciel dans les flux publiés par les sites (titre, date, court extrait ; l'article s'ouvre sur le site). Et les grands noms du trail, avec un palmarès vérifié sur les sources indiquées.</p></div>
+    <div class="carte"><header><h3>Fil d'actualités</h3>${d.articles ? `<span class="petit discret">${entier(arts.length)} article(s)</span>` : ""}</header>
+      ${d.articles === null ? `<p class="vide">${etat.source === "fichier" ? "Cette base n'a pas encore d'actualités : dans le logiciel, ouvre « Actualités du trail » (connexion Internet), puis rouvre la base ici." : "Ouvre ta base : les articles lus par le logiciel apparaîtront ici. La page ne va pas elle-même sur Internet."}</p>`
+        : `<div class="puces" role="group" aria-label="Filtre">${[["tous", "Trail, France et monde"], ["france", "France"], ["monde", "Monde"], ["suivis", "★ Coureurs suivis"], ["favoris", "Favoris"], ["tout", "Tout (running compris)"]].map(([k, l]) => `<button class="puce" data-filtre-actu="${k}" aria-pressed="${k === f}">${l}</button>`).join("")}</div>
+        ${arts.length ? `<div class="liste-actu">${arts.slice(0, 60).map((a) => `<article class="actu"><a class="titre" href="${lien(a.lien)}" target="_blank" rel="noopener noreferrer">${esc(a.titre)} ↗</a>
+          <span class="sous">${esc(a.source || "")} · ${esc(quand(a.date))}${a.favori ? " · ★ favori" : ""}</span>${a.extrait ? `<p>${esc(a.extrait)}</p>` : ""}
+          ${a.coureurs.length ? `<span class="petit">🏃 ${esc(a.coureurs.map((i) => noms[i]).filter(Boolean).join(", "))}</span>` : ""}</article>`).join("")}</div>` : `<p class="vide">Aucun article pour ce filtre.</p>`}`}</div>
+    <div class="carte"><header><h3>Coureurs connus</h3><span class="petit discret">${entier(d.coureurs.length)} coureurs · palmarès vérifié${ACTU.verifie_le ? " le " + esc(fmtCourt(ACTU.verifie_le)) : ""}</span></header>
+      <div class="puces" role="group" aria-label="Pays">${[["tous", "Tous"], ["fra", "Français"], ["etr", "Étrangers"]].map(([k, l]) => `<button class="puce" data-coureurs-actu="${k}" aria-pressed="${k === cp}">${l}</button>`).join("")}</div>
+      <div class="grille g3">${cs.map((c) => `<div class="carte coureur-connu"><header><h3>${c.suivi ? "★ " : ""}${esc(`${c.prenom || ""} ${c.nom}`.trim())}</h3><span class="petit discret">${esc(PAYS_ACTU[c.pays] || c.pays || "")}</span></header>
+        <ul class="liste-puces">${c.palmares.map((p) => `<li>${esc(p)}</li>`).join("")}</ul>
+        <p class="petit discret">${c.nb ? `${c.nb} article(s) le citent · ` : ""}Sources : ${c.sources.map((s) => { try { return `<a href="${lien(s)}" target="_blank" rel="noopener noreferrer">${esc(new URL(s).hostname.replace(/^www\./, ""))}</a>`; } catch (e) { return ""; } }).join(", ")}</p></div>`).join("")}</div>
+      <p class="petit discret">Pas de photo. Suis un coureur, corrige ou ajoute une fiche dans le logiciel (Actualités du trail, onglet Coureurs connus).</p></div>
+  </section>`;
+}
+function brancherActualites() {
+  const re = () => { const y = window.scrollY; rendreTout(); window.scrollTo(0, y); };
+  document.querySelectorAll("[data-filtre-actu]").forEach((b) => b.onclick = () => { etat.filtreActu = b.dataset.filtreActu; re(); });
+  document.querySelectorAll("[data-coureurs-actu]").forEach((b) => b.onclick = () => { etat.coureursActu = b.dataset.coureursActu; re(); });
 }
 
 /* ---------- Annuaire trail (même base que noyau/annuaire, livrée avec le logiciel) ---------- */
@@ -2691,7 +2868,7 @@ function vueOuvrir() {
 function rendreTout() {
   rendreSource(); rendreNav();
   const r = rubriqueCourante(), c = $("#contenu");
-  const vues = { aujourdhui: vueAujourdhui, fil: vueFil, sorties: vueSorties, forme: vueForme, sante: vueSante, courses: vueCourses, blessures: vueBlessures, fractionne: vueFractionne, club: vueClub, annuaire: vueAnnuaire, calendrier: vueCalendrier, organisation: vueOrganisation, materiel: vueMateriel, nutrition: vueNutrition, coach: vueCoach, ouvrir: vueOuvrir };
+  const vues = { aujourdhui: vueAujourdhui, fil: vueFil, sorties: vueSorties, forme: vueForme, sante: vueSante, courses: vueCourses, blessures: vueBlessures, fractionne: vueFractionne, club: vueClub, annuaire: vueAnnuaire, calendrier: vueCalendrier, organisation: vueOrganisation, analyse: vueAnalyse, actualites: vueActualites, materiel: vueMateriel, nutrition: vueNutrition, coach: vueCoach, ouvrir: vueOuvrir };
   c.innerHTML = vues[r]() + `<p class="pied">Trail Hub Center · page de consultation · les données affichées viennent de ${etat.source === "fichier" ? "ta base" : "l'exemple intégré"}.</p>`;
   if (r === "sorties") { dessinerCalendrier(); rendreDetailSortie(); brancherSorties(); }
   if (r === "forme") dessinerForme();
@@ -2704,6 +2881,7 @@ function rendreTout() {
   if (r === "fractionne") brancherFractionne();
   if (r === "club") brancherClub();
   if (r === "annuaire") brancherAnnuaire();
+  if (r === "actualites") brancherActualites();
   if (r === "calendrier") brancherCalendrier();
   if (r === "organisation") brancherOrganisation();
   brancherLectures();

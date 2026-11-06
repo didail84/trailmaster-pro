@@ -1,5 +1,54 @@
 # Historique des versions
 
+## Trail Hub Center — étapes 5 et 6, Kids, Analyse, Actualités, plusieurs associations
+- **Club : plusieurs associations et leurs sections, sans mélange** :
+  - un club FFA et une association de trail (ou plus) dans le même logiciel, chacun avec ses adhésions, groupes, tarifs, reçus numérotés et agenda ;
+  - des **sections** dans une association (trail, école d'athlé…) ;
+  - une personne inscrite dans deux associations garde **une seule fiche** ;
+  - choix de l'association et de la section en haut des écrans du Club (et dans la page Claude).
+- **Étape 5, mode serveur** (module « Serveur et comptes », éteint par défaut) :
+  - une seule base sur le NAS pour le bureau, les entraîneurs et les bénévoles. Chaque poste du bureau se branche dessus ; le reste du logiciel reste local ;
+  - **comptes et rôles** par association ou par événement (président, secrétaire, trésorier, entraîneur, bénévole, chronométreur, parent…). Le serveur vérifie chaque lecture et chaque écriture ;
+  - **connexion chiffrée** (HTTPS) : certificat propre au serveur, empreinte vérifiée par chaque poste. Mots de passe protégés (PBKDF2) ;
+  - **pages téléphone** : chrono, appel des présences, mon poste de bénévole, résultats ;
+  - **journal des accès** gardé un an, et **consentements** : accord parental, droit à l'image, géolocalisation ;
+  - **modifications simultanées** : si deux personnes modifient la même fiche en même temps, la seconde est prévenue, rien n'est écrasé ;
+  - installation sur le NAS (OpenMediaVault) : `packaging/serveur/LISEZ-MOI.md`.
+- **Étape 6, jour de course** (Organisation, onglet Jour de course) :
+  - **tableau de commandement du PC course** : carte du parcours, coureurs en course, retards, alertes ;
+  - **points de contrôle** créés depuis les ravitaillements, pointage des dossards ;
+  - **incidents** signalés depuis un téléphone, même sans réseau (envoi au retour du réseau, sans doublon) ; prise en charge, suivi, clôture ;
+  - présence des bénévoles à leur poste ;
+  - **Trail Live** : positions importées d'un traceur, et une page publique de suivi pour les proches. La position n'apparaît qu'avec l'accord de géolocalisation.
+- **Kids, l'école d'athlé** (Club, onglet Kids) :
+  - **carnet de progression** en 4 niveaux (Découverte, Explorateur, Montagnard, Jeune traileur) et 6 domaines (28 compétences validées par l'encadrant) ;
+  - **badges** (niveau terminé, domaine maîtrisé, assiduité, première course) ;
+  - repères de distance de la FFA, équipement de l'enfant, carnet en PDF ;
+  - **espace parents** sur le téléphone ;
+  - aucun classement : chaque enfant ne se compare qu'à lui-même.
+- **Analyse** (nouveau menu) :
+  - **prévu ou réel** : tes courses avec un roadbook et un résultat le même jour. Tu vois le temps prévu, le réel, l'écart et le scénario atteint ;
+    - l'écart médian donne un **facteur de correction**, que tu peux appliquer aux temps « appris » de la Stratégie (borné entre 0,85 et 1,2) ;
+  - **bilans du club** saison par saison : effectif, nouveaux, fidélisation, femmes et hommes, jeunes, cotisations, séances, présence moyenne, résultats, podiums ;
+  - **bilans des événements** : inscrits, partants, finishers, abandons, incidents, bénévoles, solde, et **comparaison des éditions** d'une même course ;
+  - PDF. Vraiment utile après une saison de données.
+- **Actualités du trail** (nouveau menu, Outils) :
+  - **fil d'actualités France et monde** lu dans les flux RSS des sites : u-Trail, Distances+, Esprit Trail, U Run, RunMotion, Trail Run Magazine, Canadian Running, Ian Corless ;
+    - seuls le titre, la date, un court extrait et le lien sont gardés ; l'article s'ouvre sur le site ;
+    - le **robots.txt** de chaque site est respecté ;
+    - tu peux ajouter tes propres flux ;
+  - **coureurs connus** français et étrangers (19 au départ), avec un **palmarès vérifié** et ses sources, sans photo ;
+    - suis un coureur : les articles qui le citent sont retrouvés tout seuls ;
+    - tu peux corriger une fiche ou en ajouter une.
+- **Stratégie** : le temps appris affiche la correction appliquée.
+- **Correction** : la référence de l'annuaire n'était pas copiée dans l'application installée. Elle l'est maintenant, ainsi que celle des actualités.
+- **Base de données version 17** : associations et sections, comptes et rôles, sessions, journal, consentements, points de contrôle, incidents, positions, carnet Kids, actualités et coureurs connus.
+- **Page Claude** :
+  - rubrique Club : choix de l'association et de la section, et carnet de l'école d'athlé ;
+  - rubrique Organisation : nouvelle carte Jour de course (points, passages, incidents) ;
+  - nouvelle rubrique **Analyse** ;
+  - nouvelle rubrique **Actualités du trail** (articles lus par le logiciel, coureurs connus).
+
 ## Trail Hub Center — étape 4.6 (logistique d'une course : démarches, bénévoles, ravitaillements, matériel, partenaires et budget)
 - **Fenêtre Organisation, cinq nouveaux onglets** (onze au total) :
   - **Démarches et rétroplanning** :

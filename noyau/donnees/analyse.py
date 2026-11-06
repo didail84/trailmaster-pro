@@ -63,7 +63,23 @@ def prevu_reel(athlete_id):
     for l in lignes:
         l["methode"] = next((p["methode"] for p in prev if p["id"] == l["roadbook_id"]), "")
     syn["applique"] = facteur_applique(athlete_id)
+    _garder_pour_la_page(athlete_id, lignes, syn)
     return lignes, syn
+
+
+def _garder_pour_la_page(athlete_id, lignes, syn):
+    """La page Claude ne recalcule pas les temps prévus (pente, méthode du roadbook) : elle lit ce dernier calcul."""
+    import json
+    from datetime import datetime
+    from data.database import definir_parametre
+    try:
+        definir_parametre(f"analyse_prevu_reel_{athlete_id}", json.dumps({
+            "calcule_le": datetime.now().isoformat(timespec="minutes"),
+            "synthese": {k: syn.get(k) for k in ("courses", "mediane", "facteur", "texte", "dans_la_fourchette", "applique")},
+            "lignes": [{k: l[k] for k in ("course", "date", "methode", "reel_s", "prevu_s", "ecart_s", "ecart_pct", "scenario")}
+                       for l in lignes[:40]]}, ensure_ascii=False))
+    except Exception:          # la base est en lecture seule ou ailleurs : l'écran marche quand même
+        pass
 
 
 def facteur_applique(athlete_id):
