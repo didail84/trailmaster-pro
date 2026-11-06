@@ -3,7 +3,8 @@ Recopie dans la page Claude les données du logiciel dont elle a besoin pour
 calculer exactement comme lui :
   - nutrition de course : barèmes du Nutri-Score, ingrédients, recettes de
     départ, produits génériques ;
-  - matériel obligatoire : catalogue des équipements et caractéristiques.
+  - matériel obligatoire : catalogue des équipements et caractéristiques ;
+  - fractionné : bibliothèque des séances types.
 
     python page_claude/generer_donnees_page.py
 
@@ -21,9 +22,10 @@ sys.path.insert(0, str(RACINE))
 from noyau.nutrition import nutriscore as ns, catalogue as cat          # noqa: E402
 from noyau.nutrition.ingredients import INGREDIENTS, MODELES, LIQUIDES, SODIUM_PAR_G_SEL  # noqa: E402
 from noyau.materiel import equipements as meq, comparaison as mcmp                      # noqa: E402
+from noyau.entrainement import fractionne as efr                                         # noqa: E402
 
 PAGE = RACINE / "page_claude" / "trail_hub_center.html"
-REPERES = {"NUTRITION": None, "MATERIEL": None}
+REPERES = {"NUTRITION": None, "MATERIEL": None, "FRACTIONNE": None}
 
 
 def donnees():
@@ -47,8 +49,13 @@ def donnees_materiel():
     }
 
 
+def donnees_fractionne():
+    return {"bibliotheque": list(efr.BIBLIOTHEQUE), "formats": [list(x) for x in efr.FORMATS],
+            "terrains": [list(x) for x in efr.TERRAINS]}
+
+
 def bloc(nom):
-    contenu = donnees() if nom == "NUTRITION" else donnees_materiel()
+    contenu = {"NUTRITION": donnees, "MATERIEL": donnees_materiel, "FRACTIONNE": donnees_fractionne}[nom]()
     return f"/*{nom}_DEBUT*/" + json.dumps(contenu, ensure_ascii=False, separators=(",", ":")) + f"/*{nom}_FIN*/"
 
 

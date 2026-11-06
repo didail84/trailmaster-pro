@@ -40,12 +40,12 @@ MODULES = (
            ("ouvrir_athletes", "ouvrir_personnes", "ouvrir_reglages", "ouvrir_import_et_synchro"),
            obligatoire=True, blocs=(1, 2, 3, 7, 9)),
     Module("entrainement", "Entraînement", "Coureur",
-           "Aujourd'hui, fil d'activité, tableau de bord, journal, sorties, plans, renforcement, "
-           "analyses, performance trail, bilans.",
+           "Aujourd'hui, fil d'activité, tableau de bord, journal, sorties, plans, fractionné (court, long, "
+           "à plat, en côte), renforcement, analyses, performance trail, bilans.",
            ("ouvrir_aujourdhui", "ouvrir_fil_activite", "ouvrir_tableau_de_bord", "ouvrir_journal",
-            "ouvrir_historique_activites", "ouvrir_planification", "ouvrir_renforcement",
+            "ouvrir_historique_activites", "ouvrir_planification", "ouvrir_fractionne", "ouvrir_renforcement",
             "ouvrir_analyses_et_forme", "ouvrir_performance_trail", "ouvrir_bilans_objectifs"),
-           obligatoire=True, blocs=(10,)),
+           obligatoire=True, blocs=(10, 14)),
     Module("suivi", "Récupération, santé et matériel", "Coureur",
            "Poids, IMC, sommeil, blessures, carte du corps, soins, matériel, nutrition du quotidien, zones, objectifs.",
            ("ouvrir_suivi",), blocs=(11, 13)),

@@ -326,6 +326,44 @@ def _m005_materiel_obligatoire(cur):
     _ajouter_uuid(cur, "materiel_obligatoire")
 
 
+def _m006_fractionne(cur):
+    """Fractionné court ou long, à plat ou en côte (étape 3.5, bloc 14) : tes séances perso et les
+    fractionnés faits pendant une sortie, avec le temps de chaque répétition."""
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS fractionnes (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            athlete_id INTEGER NOT NULL REFERENCES athletes(id) ON DELETE CASCADE,
+            nom TEXT NOT NULL,
+            format TEXT NOT NULL,
+            terrain TEXT NOT NULL,
+            structure_json TEXT NOT NULL,
+            notes TEXT,
+            date_creation TEXT
+        )""")
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS fractionnes_realises (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            athlete_id INTEGER NOT NULL REFERENCES athletes(id) ON DELETE CASCADE,
+            activite_id INTEGER REFERENCES activites(id) ON DELETE SET NULL,
+            date TEXT NOT NULL,
+            modele TEXT,
+            nom TEXT NOT NULL,
+            format TEXT NOT NULL,
+            terrain TEXT NOT NULL,
+            vma_ref REAL,
+            structure_json TEXT NOT NULL,
+            repetitions_json TEXT NOT NULL,
+            rpe INTEGER,
+            source TEXT,
+            notes TEXT,
+            date_saisie TEXT
+        )""")
+    cur.execute("CREATE INDEX IF NOT EXISTS idx_fractionnes_realises_athlete ON fractionnes_realises(athlete_id, date)")
+    cur.execute("CREATE INDEX IF NOT EXISTS idx_fractionnes_realises_activite ON fractionnes_realises(activite_id)")
+    for t in ("fractionnes", "fractionnes_realises"):
+        _ajouter_uuid(cur, t)
+
+
 # (numéro, description lisible, fonction) — dans l'ordre, sans trou
 MIGRATIONS = [
     (1, "Identifiant universel (UUID) pour chaque donnée", _m001_identifiants_universels),
@@ -333,6 +371,7 @@ MIGRATIONS = [
     (3, "Index de performance (ITRA, UTMB, Betrail)", _m003_index_performance),
     (4, "Nutrition de course : produits, tolérances, recettes fait maison", _m004_nutrition_course),
     (5, "Matériel obligatoire des courses et caractéristiques de ton équipement", _m005_materiel_obligatoire),
+    (6, "Fractionné : séances perso et répétitions faites pendant les sorties", _m006_fractionne),
 ]
 VERSION_LOGICIEL = MIGRATIONS[-1][0]
 

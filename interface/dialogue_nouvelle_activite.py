@@ -31,7 +31,7 @@ class DialogueNouvelleActivite(QDialog):
         self.au_enregistrement = au_enregistrement
 
         self.setWindowTitle("TrailMaster Pro – Nouvelle sortie")
-        self.resize(420, 420)
+        self.resize(460, 470)
 
         layout = QVBoxLayout(self)
 
@@ -81,6 +81,12 @@ class DialogueNouvelleActivite(QDialog):
         self.champ_duree.setSuffix(" min")
         formulaire.addRow("Durée :", self.champ_duree)
 
+        from interface.fractionne import remplir_combo_seances
+        self.combo_fractionne = QComboBox()
+        remplir_combo_seances(self.combo_fractionne, athlete_id, avec_vide="— pas de fractionné —")
+        self.combo_fractionne.setToolTip("Le fractionné fait pendant la sortie : ses temps se saisissent juste après.")
+        formulaire.addRow("Fractionné fait :", self.combo_fractionne)
+
         self.champ_notes = QTextEdit()
         self.champ_notes.setPlaceholderText("Notes (optionnel)")
         self.champ_notes.setMaximumHeight(80)
@@ -107,7 +113,7 @@ class DialogueNouvelleActivite(QDialog):
             return
 
         date_iso = self.champ_date.date().toString("yyyy-MM-dd")
-        creer_activite_manuelle(
+        nouvel_id = creer_activite_manuelle(
             self.athlete_id,
             date_iso,
             self.champ_nom.text().strip() or None,
@@ -117,6 +123,11 @@ class DialogueNouvelleActivite(QDialog):
             duree_min=self.champ_duree.value() or None,
             notes=self.champ_notes.toPlainText().strip() or None,
         )
+
+        code = self.combo_fractionne.currentData()
+        if code:
+            from interface.fractionne import DialogueSaisieFractionne
+            DialogueSaisieFractionne(self, self.athlete_id, code, nouvel_id).exec()
 
         if self.au_enregistrement:
             self.au_enregistrement()

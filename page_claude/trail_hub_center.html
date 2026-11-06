@@ -125,7 +125,7 @@ main { padding-block: 22px 60px; padding-left: max(16px, env(safe-area-inset-lef
 .mesure .detail { font-size: .85rem; color: var(--texte-2); }
 .etat { align-self: flex-start; display: inline-flex; align-items: center; gap: 6px; font-size: .8rem; font-weight: 600; padding: 2px 9px; border-radius: 99px; border: 1px solid currentColor; white-space: nowrap; }
 .etat::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
-.etat.vert { color: var(--vert); } .etat.orange { color: var(--orange); } .etat.rouge { color: var(--rouge); } .etat.jaune { color: var(--jaune); } .etat.neutre { color: var(--texte-2); }
+.etat.vert { color: var(--vert); } .etat.bleu { color: var(--bleu); } .etat.orange { color: var(--orange); } .etat.rouge { color: var(--rouge); } .etat.jaune { color: var(--jaune); } .etat.neutre { color: var(--texte-2); }
 .vide { color: var(--texte-3); font-size: .9rem; padding: 6px 0; }
 
 /* Nutrition de course */
@@ -481,7 +481,7 @@ function donneesExemple() {
   ];
   const traces = new Map(activites.filter((a) => a.type !== "Randonnée").map((a) => [a.id, { id: a.id, activite_id: a.id }]));
   return { athletes: [athlete], athleteId: 1, tables: { athlete, activites, suivi, sommeil, recup, garmin: [], blessures, soins, courses, resultats, objectifs, materiel, seances, plans: [], musculation: [], traces, analyses: new Map(),
-    produits: [], essais: [], recettes: [], materielObligatoire: [],
+    produits: [], essais: [], recettes: [], materielObligatoire: [], fractionnes: [],
     index: [{ organisme: "ITRA", categorie: "Général", valeur: 512, date_releve: cleJour(ajouterJours(auj, -30)), source: "Exemple" }, { organisme: "UTMB Index", categorie: "Général", valeur: 498, date_releve: cleJour(ajouterJours(auj, -30)), source: "Exemple" }] } };
 }
 function traceExemple(a) {
@@ -557,6 +557,7 @@ function lireAthlete(idAth) {
     objectifs: t("objectifs", "date_cible"), materiel: t("materiel", "id"), seances: t("seances_structurees", "date_prevue"),
     plans: t("plans_entrainement", "date_debut DESC"), musculation: t("musculation_suivi", "date"), traces,
     materielObligatoire: t("materiel_obligatoire", "course_id, ordre, id"),
+    fractionnes: t("fractionnes_realises", "date DESC, id DESC"),
     produits: t("produits_nutrition", "nom"), essais: t("tolerances_nutrition", "date DESC, id DESC"), recettes: t("recettes_nutrition", "nom"),
     index: Base.tablesPresentes.has("index_performance") && Base.cols("athletes").includes("personne_id")
       ? Base.tous("SELECT i.organisme, i.categorie, i.valeur, i.date_releve, i.source FROM index_performance i JOIN athletes a ON a.personne_id = i.personne_id WHERE a.id = ? ORDER BY i.date_releve DESC", [idAth])
@@ -768,13 +769,14 @@ const ICONES = {
   courses: '<path d="M3 14V2.5M3 3h8.5l-1.8 2.6L11.5 8H3" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round"/>',
   blessures: '<rect x="2" y="5.5" width="12" height="5" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.4" transform="rotate(-35 8 8)"/><circle cx="8" cy="8" r=".9" fill="currentColor"/>',
   materiel: '<path d="M2 11.5c2.5 0 3.5-1 4.5-3l1-2 2 1.5c1 .8 2.5 1.3 4.5 1.5v2.5H2z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/>',
+  fractionne: '<circle cx="8" cy="9" r="5.2" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M8 9V6.2M6.5 1.8h3M12.2 4.4l1-1" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>',
   nutrition: '<path d="M6 2.5h4M6.5 2.5v2.2L4.6 7.4A3 3 0 0 0 4 9.2V12a1.5 1.5 0 0 0 1.5 1.5h5A1.5 1.5 0 0 0 12 12V9.2a3 3 0 0 0-.6-1.8L9.5 4.7V2.5" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round"/><path d="M4.3 9.5h7.4" stroke="currentColor" stroke-width="1.3"/>',
   coach: '<path d="M2.5 3.5h11v7h-6l-3 2.5v-2.5h-2z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="M5.5 6.5h5M5.5 8.5h3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>',
 };
 const RUBRIQUES = [
   ["aujourdhui", "Aujourd'hui", "Aujourd'hui"], ["fil", "Fil d'activité", "Fil"], ["sorties", "Sorties", "Sorties"], ["forme", "Forme et charge", "Forme"],
   ["sante", "Poids et sommeil", "Santé"], ["courses", "Courses et objectifs", "Courses"], ["blessures", "Blessures et soins", "Blessures"],
-  ["materiel", "Matériel", "Matériel"], ["nutrition", "Nutrition de course", "Nutrition"], ["coach", "Demander à Claude", "Claude"],
+  ["fractionne", "Fractionné", "Fractionné"], ["materiel", "Matériel", "Matériel"], ["nutrition", "Nutrition de course", "Nutrition"], ["coach", "Demander à Claude", "Claude"],
 ];
 const icone = (k) => `<svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">${ICONES[k]}</svg>`;
 const MODULE_DE_RUBRIQUE = { sante: "suivi", blessures: "suivi", materiel: "suivi", courses: "courses", nutrition: "nutrition" };
@@ -925,6 +927,7 @@ function rendreDetailSortie() {
     <p class="petit tres-discret">Charge calculée comme dans le logiciel (${ch.methode === "trimp" ? "TRIMP, à partir de la fréquence cardiaque" : ch.methode === "duree" ? "estimation par la durée" : ch.methode === "distance" ? "estimation par la distance" : "pas assez de données"}).</p>
     ${totZ ? `<div><span class="etiquette">Temps par zone cardiaque</span><div class="zones" style="margin-top:6px">${zones.map((z, i) => z ? `<span style="width:${z / totZ * 100}%;background:var(--z${i + 1})" title="Zone ${i + 1} : ${duree(z)}"></span>` : "").join("")}</div><div class="legende" style="margin-top:6px">${zones.map((z, i) => `<span><i style="background:var(--z${i + 1});height:8px;width:8px;border-radius:2px"></i>Z${i + 1} ${duree(z)}</span>`).join("")}</div></div>` : ""}
     ${pts ? `<div class="trace-et-profil"><div class="trace" id="trace"></div><div><span class="etiquette">Profil</span><div class="graphe" id="profil"></div><p class="petit tres-discret" id="trace-info"></p></div></div><div id="diag-trace"></div>` : `<p class="vide">Pas de tracé GPS enregistré pour cette sortie.</p>`}
+    ${fractionnesDeLaSortie(a)}
     ${plus.length ? `<div class="mesures-ligne">${plus.map(([e, v, u]) => `<div class="mesure"><span class="etiquette">${e}</span><span class="valeur" style="font-size:1rem">${virgule(nb(v), Number.isInteger(nb(v)) ? 0 : 1)}${u ? `<small>${u}</small>` : ""}</span></div>`).join("")}</div>` : ""}
     ${a.notes ? `<p class="discret" style="white-space:pre-wrap">${esc(a.notes)}</p>` : ""}
   </div>`;
@@ -1210,6 +1213,134 @@ function vueMateriel() {
     }).join("") : `<div class="carte"><p class="vide">Aucun matériel enregistré.</p></div>`}</div>
     ${carteMaterielObligatoire()}
   </section>`;
+}
+
+/* ---------- Fractionné (mêmes calculs que noyau/entrainement/fractionne.py) ---------- */
+const FRAC = /*FRACTIONNE_DEBUT*/{"bibliotheque":[{"code":"30_30","nom":"30/30 (2 × 10)","format":"court","terrain":"plat","echauffement_min":20,"retour_calme_min":10,"blocs":[{"series":2,"repetitions":10,"effort":{"mode":"duree","valeur":30},"pct_vma":100,"pente_pct":0,"recup":{"mode":"duree","valeur":30,"type":"trot"},"recup_series_s":180}],"objectif":"VMA","description":"Le classique pour développer la VMA : 30 s vite, 30 s en trottinant."},{"code":"15_15","nom":"15/15 (2 × 12)","format":"court","terrain":"plat","echauffement_min":20,"retour_calme_min":10,"blocs":[{"series":2,"repetitions":12,"effort":{"mode":"duree","valeur":15},"pct_vma":110,"pente_pct":0,"recup":{"mode":"duree","valeur":15,"type":"trot"},"recup_series_s":180}],"objectif":"VMA, vitesse","description":"Très court et très vite : la foulée reste relâchée."},{"code":"10x200","nom":"10 × 200 m","format":"court","terrain":"plat","echauffement_min":20,"retour_calme_min":10,"blocs":[{"series":1,"repetitions":10,"effort":{"mode":"distance","valeur":200},"pct_vma":105,"pente_pct":0,"recup":{"mode":"duree","valeur":45,"type":"trot"},"recup_series_s":0}],"objectif":"VMA, vitesse","description":"Sur piste : récupération de 45 s en trottinant."},{"code":"8x300","nom":"8 × 300 m","format":"court","terrain":"plat","echauffement_min":20,"retour_calme_min":10,"blocs":[{"series":1,"repetitions":8,"effort":{"mode":"distance","valeur":300},"pct_vma":103,"pente_pct":0,"recup":{"mode":"duree","valeur":60,"type":"trot"},"recup_series_s":0}],"objectif":"VMA","description":"Le 300 m apprend à tenir l'allure quand ça pique."},{"code":"10x400","nom":"10 × 400 m","format":"court","terrain":"plat","echauffement_min":20,"retour_calme_min":10,"blocs":[{"series":1,"repetitions":10,"effort":{"mode":"distance","valeur":400},"pct_vma":100,"pente_pct":0,"recup":{"mode":"duree","valeur":90,"type":"trot"},"recup_series_s":0}],"objectif":"VMA","description":"Le tour de piste à VMA, 1 min 30 de récupération."},{"code":"pyramide","nom":"Pyramide 200-400-600-800-600-400-200","format":"court","terrain":"plat","echauffement_min":20,"retour_calme_min":10,"blocs":[{"series":1,"repetitions":1,"effort":{"mode":"distance","valeur":200},"pct_vma":105,"pente_pct":0,"recup":{"mode":"duree","valeur":60,"type":"trot"},"recup_series_s":0},{"series":1,"repetitions":1,"effort":{"mode":"distance","valeur":400},"pct_vma":100,"pente_pct":0,"recup":{"mode":"duree","valeur":90,"type":"trot"},"recup_series_s":0},{"series":1,"repetitions":1,"effort":{"mode":"distance","valeur":600},"pct_vma":97,"pente_pct":0,"recup":{"mode":"duree","valeur":120,"type":"trot"},"recup_series_s":0},{"series":1,"repetitions":1,"effort":{"mode":"distance","valeur":800},"pct_vma":95,"pente_pct":0,"recup":{"mode":"duree","valeur":150,"type":"trot"},"recup_series_s":0},{"series":1,"repetitions":1,"effort":{"mode":"distance","valeur":600},"pct_vma":97,"pente_pct":0,"recup":{"mode":"duree","valeur":120,"type":"trot"},"recup_series_s":0},{"series":1,"repetitions":1,"effort":{"mode":"distance","valeur":400},"pct_vma":100,"pente_pct":0,"recup":{"mode":"duree","valeur":90,"type":"trot"},"recup_series_s":0},{"series":1,"repetitions":1,"effort":{"mode":"distance","valeur":200},"pct_vma":105,"pente_pct":0,"recup":{"mode":"duree","valeur":60,"type":"trot"},"recup_series_s":0}],"objectif":"VMA, gestion de l'allure","description":"Monter puis redescendre : la vitesse s'adapte à la longueur."},{"code":"6x1000","nom":"6 × 1000 m","format":"long","terrain":"plat","echauffement_min":20,"retour_calme_min":10,"blocs":[{"series":1,"repetitions":6,"effort":{"mode":"distance","valeur":1000},"pct_vma":92,"pente_pct":0,"recup":{"mode":"duree","valeur":120,"type":"trot"},"recup_series_s":0}],"objectif":"Allure 10 km, VMA longue","description":"Le grand classique pour l'allure 10 km."},{"code":"5x1000_95","nom":"5 × 1000 m vite","format":"long","terrain":"plat","echauffement_min":20,"retour_calme_min":10,"blocs":[{"series":1,"repetitions":5,"effort":{"mode":"distance","valeur":1000},"pct_vma":95,"pente_pct":0,"recup":{"mode":"duree","valeur":150,"type":"trot"},"recup_series_s":0}],"objectif":"VMA longue","description":"Plus court mais plus rapide que le 6 × 1000 m."},{"code":"4x2000","nom":"4 × 2000 m","format":"long","terrain":"plat","echauffement_min":20,"retour_calme_min":10,"blocs":[{"series":1,"repetitions":4,"effort":{"mode":"distance","valeur":2000},"pct_vma":88,"pente_pct":0,"recup":{"mode":"duree","valeur":150,"type":"trot"},"recup_series_s":0}],"objectif":"Seuil haut","description":"Entre le semi et le 10 km : régularité avant tout."},{"code":"3x3000","nom":"3 × 3000 m au seuil","format":"long","terrain":"plat","echauffement_min":20,"retour_calme_min":10,"blocs":[{"series":1,"repetitions":3,"effort":{"mode":"distance","valeur":3000},"pct_vma":85,"pente_pct":0,"recup":{"mode":"duree","valeur":180,"type":"trot"},"recup_series_s":0}],"objectif":"Seuil","description":"Allure « confortablement dure », on peut dire quelques mots."},{"code":"3x10min","nom":"3 × 10 min au seuil","format":"long","terrain":"plat","echauffement_min":20,"retour_calme_min":10,"blocs":[{"series":1,"repetitions":3,"effort":{"mode":"duree","valeur":600},"pct_vma":85,"pente_pct":0,"recup":{"mode":"duree","valeur":120,"type":"trot"},"recup_series_s":0}],"objectif":"Seuil","description":"Version en durée : pratique hors piste."},{"code":"2x15min","nom":"2 × 15 min allure semi","format":"long","terrain":"plat","echauffement_min":20,"retour_calme_min":10,"blocs":[{"series":1,"repetitions":2,"effort":{"mode":"duree","valeur":900},"pct_vma":82,"pente_pct":0,"recup":{"mode":"duree","valeur":180,"type":"trot"},"recup_series_s":0}],"objectif":"Seuil bas, endurance","description":"Pour préparer un semi ou un trail rapide."},{"code":"c10x30","nom":"10 × 30 s en côte","format":"court","terrain":"cote","echauffement_min":25,"retour_calme_min":10,"blocs":[{"series":1,"repetitions":10,"effort":{"mode":"duree","valeur":30},"pct_vma":105,"pente_pct":10,"recup":{"mode":"duree","valeur":60,"type":"descente en trottinant"},"recup_series_s":0}],"objectif":"Puissance, VMA en montée","description":"Côte de 8 à 12 % : fréquence élevée, buste droit, retour en trottinant."},{"code":"c12x100","nom":"12 × 100 m en côte raide","format":"court","terrain":"cote","echauffement_min":25,"retour_calme_min":10,"blocs":[{"series":1,"repetitions":12,"effort":{"mode":"distance","valeur":100},"pct_vma":105,"pente_pct":14,"recup":{"mode":"duree","valeur":60,"type":"descente en trottinant"},"recup_series_s":0}],"objectif":"Force, puissance","description":"Côte raide (12 à 15 %) : appuis courts, bras actifs."},{"code":"c8x45","nom":"8 × 45 s en côte","format":"court","terrain":"cote","echauffement_min":25,"retour_calme_min":10,"blocs":[{"series":1,"repetitions":8,"effort":{"mode":"duree","valeur":45},"pct_vma":100,"pente_pct":8,"recup":{"mode":"duree","valeur":75,"type":"descente en trottinant"},"recup_series_s":0}],"objectif":"VMA en montée","description":"Côte régulière de 6 à 10 %."},{"code":"c2x6x1","nom":"2 × 6 × 1 min en côte","format":"court","terrain":"cote","echauffement_min":25,"retour_calme_min":10,"blocs":[{"series":2,"repetitions":6,"effort":{"mode":"duree","valeur":60},"pct_vma":98,"pente_pct":8,"recup":{"mode":"duree","valeur":60,"type":"descente en trottinant"},"recup_series_s":240}],"objectif":"VMA en montée","description":"Deux séries, 4 min entre les séries."},{"code":"c5x3min","nom":"5 × 3 min en côte","format":"long","terrain":"cote","echauffement_min":25,"retour_calme_min":10,"blocs":[{"series":1,"repetitions":5,"effort":{"mode":"duree","valeur":180},"pct_vma":90,"pente_pct":7,"recup":{"mode":"duree","valeur":150,"type":"descente en trottinant"},"recup_series_s":0}],"objectif":"Seuil en montée","description":"Côte de 5 à 8 % : allure tenue jusqu'au bout."},{"code":"c4x5min","nom":"4 × 5 min en côte","format":"long","terrain":"cote","echauffement_min":25,"retour_calme_min":10,"blocs":[{"series":1,"repetitions":4,"effort":{"mode":"duree","valeur":300},"pct_vma":87,"pente_pct":7,"recup":{"mode":"duree","valeur":180,"type":"descente en trottinant"},"recup_series_s":0}],"objectif":"Seuil en montée, spécifique trail","description":"Montée longue en courant, sans marcher."},{"code":"c3x8min","nom":"3 × 8 min en côte","format":"long","terrain":"cote","echauffement_min":25,"retour_calme_min":10,"blocs":[{"series":1,"repetitions":3,"effort":{"mode":"duree","valeur":480},"pct_vma":84,"pente_pct":8,"recup":{"mode":"duree","valeur":240,"type":"descente en trottinant"},"recup_series_s":0}],"objectif":"Spécifique trail","description":"Peut se faire en alternant course et marche rapide si la pente dépasse 15 %."},{"code":"c4x1000","nom":"4 × 1000 m en côte","format":"long","terrain":"cote","echauffement_min":25,"retour_calme_min":10,"blocs":[{"series":1,"repetitions":4,"effort":{"mode":"distance","valeur":1000},"pct_vma":88,"pente_pct":6,"recup":{"mode":"duree","valeur":240,"type":"descente en trottinant"},"recup_series_s":0}],"objectif":"Seuil en montée","description":"Côte longue et régulière ; récupération en redescendant."}],"formats":[["court","Court"],["long","Long"]],"terrains":[["plat","À plat"],["cote","En côte"]]}/*FRACTIONNE_FIN*/;
+const LIB_FORMAT = Object.fromEntries(FRAC.formats), LIB_TERRAIN = Object.fromEntries(FRAC.terrains);
+function coutMinetti(g) { g = Math.max(-0.45, Math.min(0.45, g)); return 155.4 * g ** 5 - 30.4 * g ** 4 - 43.3 * g ** 3 + 46.3 * g ** 2 + 19.5 * g + 3.6; }
+function facteurPente(g) { if (g >= 0) return coutMinetti(g) / coutMinetti(0); g = Math.max(g, -0.45); return g >= -0.09 ? 1 + g : 0.91 + (-0.09 - g); }
+const fr1 = (v, d = 1) => { const t = Number(v).toFixed(d).replace(".", ","); return t.endsWith(",0") ? t.slice(0, -2) : t; };
+function texteTemps(s) { if (s === null || s === undefined) return "—"; s = Number(s); if (s < 60) return `${fr1(s, 1)} s`; s = Math.round(s); const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), x = s % 60; return h ? `${h} h ${String(m).padStart(2, "0")}:${String(x).padStart(2, "0")}` : `${m}:${String(x).padStart(2, "0")}`; }
+function dureeCourte(s) { s = Math.round(s || 0); if (s < 60) return `${s} s`; const m = Math.floor(s / 60), r = s % 60; return `${m} min` + (r ? ` ${String(r).padStart(2, "0")}` : ""); }
+function allureTxt(v) { if (!v) return "—"; const s = 3600 / v; return `${Math.floor(s / 60)}:${String(Math.round(s % 60)).padStart(2, "0")}/km`.replace(":60", ":59"); }
+function libelleEffort(e) { if (e.mode === "distance") return e.valeur < 1000 || e.valeur % 1000 ? `${Math.trunc(e.valeur)} m` : `${Math.trunc(e.valeur / 1000)} km`; return dureeCourte(e.valeur); }
+function pyRound(x, n = 0) { const f = 10 ** n, y = x * f, r = Math.round(y); return (Math.abs(y % 1) === 0.5 ? (r % 2 === 0 ? r : r - 1) : r) / f; }
+function cibleRep(bloc, vma, terrain) {
+  const vPlat = vma * bloc.pct_vma / 100, pente = terrain === "cote" ? (bloc.pente_pct || 0) : 0, v = pente ? vPlat / facteurPente(pente / 100) : vPlat, e = bloc.effort;
+  const temps = e.mode === "distance" ? e.valeur / (v / 3.6) : e.valeur, dist = e.mode === "distance" ? e.valeur : v / 3.6 * temps;
+  return { vitesse_kmh: pyRound(v, 2), vitesse_plat_kmh: pyRound(vPlat, 2), allure: allureTxt(v), allure_plat: allureTxt(vPlat), temps_s: pyRound(temps, 1), distance_m: pyRound(dist), dplus_m: pente ? pyRound(dist * pente / 100) : 0 };
+}
+function repsFrac(s) { const r = []; let n = 0; s.blocs.forEach((b, i) => { for (let se = 0; se < Math.max(1, b.series || 1); se++) for (let k = 0; k < Math.max(1, b.repetitions); k++) r.push({ bloc: i, serie: se, rep: k, numero: ++n }); }); return r; }
+function deroulerFrac(s, vma) {
+  const trot = vma * 0.55, ph = [], reps = repsFrac(s);
+  if (s.echauffement_min) ph.push(s.echauffement_min * 60);
+  reps.forEach((r, i) => { const b = s.blocs[r.bloc]; ph.push(cibleRep(b, vma, s.terrain).temps_s); if (i === reps.length - 1) return; const sv = reps[i + 1];
+    if (sv.bloc === r.bloc && sv.serie !== r.serie && b.recup_series_s) ph.push(b.recup_series_s); else if (b.recup.valeur) ph.push(pyRound(b.recup.mode === "duree" ? b.recup.valeur : b.recup.valeur / (trot / 3.6))); });
+  if (s.retour_calme_min) ph.push(s.retour_calme_min * 60);
+  return ph.reduce((a, b) => a + Math.round(b * 10), 0) / 10;
+}
+function ciblesFrac(s, vma) {
+  const lignes = repsFrac(s).map((r) => { const b = s.blocs[r.bloc]; return { ...r, ...cibleRep(b, vma, s.terrain), libelle: libelleEffort(b.effort), pct_vma: b.pct_vma, pente_pct: b.pente_pct || 0 }; });
+  return { lignes, temps_effort_s: pyRound(lignes.reduce((a, l) => a + Math.round(l.temps_s * 10), 0) / 10), distance_effort_m: pyRound(lignes.reduce((a, l) => a + l.distance_m, 0)), dplus_m: lignes.reduce((a, l) => a + l.dplus_m, 0), duree_totale_s: pyRound(deroulerFrac(s, vma)) };
+}
+function resumeFrac(s) {
+  if (s.blocs.length > 3 && new Set(s.blocs.map((b) => libelleEffort(b.effort))).size > 2) return s.blocs.map((b) => libelleEffort(b.effort)).join(" – ") + " (pyramide)";
+  return s.blocs.map((b) => { let t = ((b.series || 1) > 1 ? `${b.series} × ` : "") + `${b.repetitions} × ${libelleEffort(b.effort)} à ${b.pct_vma} % VMA`;
+    if (s.terrain === "cote" && b.pente_pct) t += ` (côte ≈ ${b.pente_pct} %)`;
+    if (b.recup.valeur) t += `, récup ${b.recup.mode === "duree" ? dureeCourte(b.recup.valeur) : Math.trunc(b.recup.valeur) + " m"} ${b.recup.type || "trot"}`;
+    if ((b.series || 1) > 1 && b.recup_series_s) t += ` (${dureeCourte(b.recup_series_s)} entre les séries)`; return t; }).join(" ; ");
+}
+const moy = (a) => a.reduce((x, y) => x + y, 0) / a.length;
+const ecartType = (a) => { const m = moy(a); return Math.sqrt(moy(a.map((x) => (x - m) ** 2))); };
+function analyserFrac(s, vma, realisees) {
+  const cib = new Map(ciblesFrac(s, vma).lignes.map((l) => [l.numero, l])), lignes = [];
+  for (const r of realisees) {
+    const c = cib.get(r.numero); if (!c) continue;
+    const e = s.blocs[c.bloc].effort, t = e.mode === "distance" ? r.temps_s : (r.temps_s || e.valeur), d = e.mode === "duree" ? r.distance_m : (r.distance_m || e.valeur);
+    if (!t || !d) continue;
+    const v = d / t * 3.6, pente = r.dplus_m && d ? r.dplus_m / d * 100 : (s.terrain === "cote" ? c.pente_pct : 0), vp = pente ? v * facteurPente(pente / 100) : v;
+    lignes.push({ ...r, temps_s: pyRound(t, 1), distance_m: pyRound(d), vitesse_kmh: pyRound(v, 2), allure: allureTxt(v), pct_vma: pyRound(vp / vma * 100, 1), ecart_pct: pyRound((v - c.vitesse_kmh) / c.vitesse_kmh * 100, 1), cible: c, mode: e.mode });
+  }
+  if (!lignes.length) return { lignes: [], nb: 0, verdict: "Aucun temps saisi.", conseils: [] };
+  const pcts = lignes.map((l) => l.pct_vma), ec = lignes.map((l) => l.ecart_pct), cv = pcts.length > 1 ? ecartType(pcts) / moy(pcts) * 100 : 0;
+  const tiers = Math.max(1, Math.floor(lignes.length / 3)), baisse = lignes.length >= 3 ? (moy(pcts.slice(-tiers)) - moy(pcts.slice(0, tiers))) / moy(pcts.slice(0, tiers)) * 100 : 0, me = moy(ec), conseils = [];
+  let verdict;
+  if (me > 4) { verdict = "Plus vite que prévu"; conseils.push("Tu as couru nettement plus vite que la cible : ta VMA est peut-être sous-estimée, ou les répétitions étaient trop courtes pour toi. Refais un test ou monte la cible de 2 à 3 %."); }
+  else if (me < -5) { verdict = "Plus lent que prévu"; conseils.push("Cible pas tenue : fatigue, chaleur, terrain, ou VMA surestimée. Allonge la récupération ou baisse la cible de 3 à 5 % la prochaine fois."); }
+  else verdict = "Dans la cible";
+  if (baisse < -5) conseils.push(`Baisse de ${fr1(-baisse)} % en fin de séance : départ trop rapide ou récupération trop courte.`);
+  else if (baisse > 4) conseils.push(`Tu as fini ${fr1(baisse)} % plus vite que tu n'as commencé : départ prudent, bonne gestion.`);
+  if (cv > 4) conseils.push(`Répétitions irrégulières (écart de ${fr1(cv)} %) : cherche une allure plus constante.`);
+  else if (lignes.length >= 4) conseils.push("Répétitions très régulières : bonne maîtrise de l'allure.");
+  if (lignes.length < cib.size) conseils.push(`${lignes.length} répétitions sur ${cib.size} prévues.`);
+  return { lignes, nb: lignes.length, nb_prevues: cib.size, pct_vma_moyen: pyRound(moy(pcts), 1), ecart_moyen_pct: pyRound(me, 1), regularite_cv: pyRound(cv, 1), baisse_fin_pct: pyRound(baisse, 1), verdict, conseils };
+}
+function realisesFrac() {
+  return (etat.donnees.fractionnes || []).map((r) => { let s = null, reps = []; try { s = JSON.parse(r.structure_json); reps = JSON.parse(r.repetitions_json || "[]"); } catch (e) { s = null; } return s ? { ...r, structure: s, repetitions: reps } : null; }).filter(Boolean).sort((a, b) => String(b.date).localeCompare(String(a.date)) || b.id - a.id);
+}
+const bilanFrac = (r) => analyserFrac(r.structure, nb(r.vma_ref) || 15, r.repetitions);
+function vmaReference() {
+  const d = etat.donnees, f = nb(d.athlete.vma); if (f) return { vma: f, source: "de ta fiche" };
+  const eff = effortsVma(d.activites); if (!eff.length) return { vma: null, source: null };
+  const v = moyenne3(eff, eff[eff.length - 1].jour, "vma"); return { vma: v, source: "estimée sur tes sorties" };
+}
+const CLASSE_VERDICT = { "Dans la cible": "vert", "Plus vite que prévu": "bleu", "Plus lent que prévu": "orange" };
+function vueFractionne() {
+  const ref = vmaReference(); if (etat.vmaFrac === undefined) etat.vmaFrac = ref.vma || 15;
+  const vma = etat.vmaFrac, f = etat.filtreFrac || "tous", seances = FRAC.bibliotheque.filter((s) => f === "tous" || s.format === f || s.terrain === f);
+  if (!seances.some((s) => s.code === etat.seanceFrac)) etat.seanceFrac = seances[0]?.code;
+  const s = seances.find((x) => x.code === etat.seanceFrac), c = s && ciblesFrac(s, vma);
+  const real = realisesFrac(), parNom = {};
+  for (const r of [...real].reverse()) { const a = bilanFrac(r); if (a.nb) (parNom[r.nom] = parNom[r.nom] || []).push({ date: r.date, v: moy(a.lignes.map((l) => l.vitesse_kmh)), pct: a.pct_vma_moyen }); }
+  const prog = Object.entries(parNom).filter(([, p]) => p.length >= 2);
+  const vus = new Set(), lignesCibles = c ? c.lignes.filter((l) => { const k = s.blocs.length > 1 ? `${l.bloc}-${l.serie}` : "x"; if (vus.has(k)) return false; vus.add(k); return true; }) : [];
+  return `<section class="vue">
+    <div class="entete-vue"><h2>Fractionné</h2><p>Court ou long, à plat ou en côte : les cibles de chaque séance depuis ta VMA, et tes fractionnés faits. La saisie des temps, le minuteur à bips et l'envoi à la montre se font dans le logiciel.</p></div>
+    ${carteLecture("fractionne")}
+    <div class="carte"><header><h3>Séances types</h3><label class="petit discret">VMA <input id="vma-frac" type="number" min="8" max="26" step="0.1" value="${vma}" style="width:5.5em;border:1px solid var(--bordure);background:var(--carte);color:var(--texte);border-radius:8px;padding:4px 6px"> km/h${ref.source ? ` (${ref.source} : ${fr1(ref.vma)})` : ""}</label></header>
+      <div class="puces">${[["tous", "Toutes"], ["court", "Court"], ["long", "Long"], ["plat", "À plat"], ["cote", "En côte"]].map(([k, l]) => `<button class="puce" data-frac="${k}" aria-pressed="${k === f}">${l}</button>`).join("")}</div>
+      <div class="tableau-cadre"><table><thead><tr><th>Séance</th><th>Catégorie</th><th>Ce qu'on fait</th><th class="num">Durée</th></tr></thead><tbody>
+      ${seances.map((x) => `<tr data-seance-frac="${x.code}" tabindex="0" class="cliquable ${x.code === etat.seanceFrac ? "choisie" : ""}"><td>${esc(x.nom)}</td><td>${LIB_FORMAT[x.format]} · ${LIB_TERRAIN[x.terrain].toLowerCase()}</td><td class="long petit">${esc(resumeFrac(x))}</td><td class="num">${texteTemps(ciblesFrac(x, vma).duree_totale_s)}</td></tr>`).join("")}
+      </tbody></table></div></div>
+    ${s ? `<div class="carte"><header><h3>${esc(s.nom)}</h3><span class="petit discret">${LIB_FORMAT[s.format]} · ${LIB_TERRAIN[s.terrain].toLowerCase()} · ${esc(s.objectif)}</span></header>
+      <p class="petit">${esc(resumeFrac(s))}. ${esc(s.description)}</p>
+      <div class="mesures-ligne">${[["Effort", texteTemps(c.temps_effort_s)], ["Distance vite", virgule(c.distance_effort_m / 1000, 2) + " km"], ["D+", c.dplus_m ? entier(c.dplus_m) + " m" : "—"], ["Séance complète", texteTemps(c.duree_totale_s)]].map(([e, v]) => `<div class="mesure"><span class="etiquette">${e}</span><span class="valeur" style="font-size:1.2rem">${esc(v)}</span></div>`).join("")}</div>
+      <div class="tableau-cadre"><table><thead><tr><th>N°</th><th>Répétition</th><th class="num">% VMA</th><th class="num">Temps cible</th><th>Allure</th><th class="num">Distance</th><th class="num">D+</th></tr></thead><tbody>
+      ${lignesCibles.map((l) => { const b = s.blocs[l.bloc], n = s.blocs.length === 1 ? b.repetitions * (b.series || 1) : b.repetitions; return `<tr><td>${n === 1 ? l.numero : `${l.numero} à ${l.numero + n - 1}`}</td><td>${esc(l.libelle)}</td><td class="num">${l.pct_vma} %</td><td class="num">${texteTemps(l.temps_s)}</td><td>${l.allure}${s.terrain === "cote" ? ` <span class="petit tres-discret">(plat ${l.allure_plat})</span>` : ""}</td><td class="num">${entier(l.distance_m)} m</td><td class="num">${l.dplus_m ? entier(l.dplus_m) + " m" : "—"}</td></tr>`; }).join("")}
+      </tbody></table></div>
+      ${s.terrain === "cote" ? `<p class="petit tres-discret">En côte, la vitesse attendue tient compte de la pente (coût énergétique de Minetti) : à effort égal, tu vas moins vite qu'à plat.</p>` : ""}</div>` : ""}
+    <div class="carte"><header><h3>Temps de passage selon ta VMA</h3></header><div class="tableau-cadre"><table><thead><tr><th>% VMA</th><th>Allure</th>${[100, 200, 300, 400, 1000].map((x) => `<th class="num">${x} m</th>`).join("")}</tr></thead><tbody>
+      ${[80, 85, 90, 95, 100, 105, 110].map((p) => { const v = vma * p / 100 / 3.6; return `<tr${p === 100 ? ' style="font-weight:700"' : ""}><td>${p} %</td><td>${allureTxt(vma * p / 100)}</td>${[100, 200, 300, 400, 1000].map((x) => `<td class="num">${texteTemps(pyRound(x / v, 1))}</td>`).join("")}</tr>`; }).join("")}
+      </tbody></table></div></div>
+    <div class="carte"><header><h3>Mes fractionnés</h3><span class="petit discret">${real.length} séance(s)</span></header>
+      ${real.length ? `<div class="tableau-cadre"><table><thead><tr><th>Date</th><th>Fractionné</th><th class="num">Répétitions</th><th class="num">% VMA moyen</th><th class="num">Écart</th><th class="num">Régularité</th><th>Verdict</th></tr></thead><tbody>
+      ${real.slice(0, 30).map((r) => { const a = bilanFrac(r); return `<tr data-frac-real="${r.id}" class="cliquable" tabindex="0"><td>${esc(fmtJour(parseDate(String(r.date).slice(0, 10))))}</td><td>${esc(r.nom)}</td><td class="num">${a.nb} / ${repsFrac(r.structure).length}</td><td class="num">${a.nb ? fr1(a.pct_vma_moyen) + " %" : "—"}</td><td class="num">${a.nb ? (a.ecart_moyen_pct >= 0 ? "+" : "−") + fr1(Math.abs(a.ecart_moyen_pct)) + " %" : "—"}</td><td class="num">${a.nb ? fr1(a.regularite_cv) + " %" : "—"}</td><td><span class="etat ${CLASSE_VERDICT[a.verdict] || "neutre"}">${esc(a.verdict)}</span></td></tr>`; }).join("")}
+      </tbody></table></div><div id="detail-frac"></div>` : `<p class="vide">Aucun fractionné enregistré. Dans le logiciel, choisis le fractionné fait dans le détail d'une sortie (menu « Fractionné fait ») : ses temps se saisissent ou se retrouvent dans la trace.</p>`}
+      ${prog.length ? `<p class="petit">${prog.map(([n, p]) => { const e = (p[p.length - 1].v - p[0].v) / p[0].v * 100; return `<b>${esc(n)}</b> : ${e >= 0 ? "+" : "−"}${fr1(Math.abs(e))} % de vitesse moyenne depuis la première fois (${p.length} séances).`; }).join("<br>")}</p>` : ""}
+    </div>
+  </section>`;
+}
+function detailFracHtml(r) {
+  const a = bilanFrac(r);
+  return `<div class="carte" style="margin-top:10px"><header><h3>${esc(r.nom)} · ${esc(fmtJour(parseDate(String(r.date).slice(0, 10))))}</h3><span class="etat ${CLASSE_VERDICT[a.verdict] || "neutre"}">${esc(a.verdict)}</span></header>
+    <p class="petit">VMA de référence ${fr1(nb(r.vma_ref) || 15)} km/h${r.rpe ? ` · difficulté ${r.rpe}/10` : ""}${a.nb ? ` · ${fr1(a.pct_vma_moyen)} % de VMA en moyenne, régularité ${fr1(a.regularite_cv)} %` : ""}.</p>
+    ${a.conseils.length ? `<ul class="liste-puces">${a.conseils.map((x) => `<li>${esc(x)}</li>`).join("")}</ul>` : ""}
+    <div class="tableau-cadre"><table><thead><tr><th>N°</th><th>Répétition</th><th class="num">Cible</th><th class="num">Réalisé</th><th>Allure</th><th class="num">% VMA</th><th class="num">FC</th></tr></thead><tbody>
+    ${a.lignes.map((l) => `<tr><td>${l.numero}</td><td>${esc(l.cible.libelle)}</td><td class="num">${l.mode === "distance" ? texteTemps(l.cible.temps_s) : entier(l.cible.distance_m) + " m"}</td><td class="num">${l.mode === "distance" ? texteTemps(l.temps_s) : entier(l.distance_m) + " m"}${l.dplus_m ? `, D+ ${entier(l.dplus_m)} m` : ""}</td><td>${l.allure}</td><td class="num">${fr1(l.pct_vma)} %</td><td class="num">${l.fc ? entier(l.fc) : ""}</td></tr>`).join("")}
+    </tbody></table></div>${r.notes ? `<p class="petit discret"><i>${esc(r.notes)}</i></p>` : ""}</div>`;
+}
+function brancherFractionne() {
+  const v = $("#vma-frac"); if (v) v.onchange = () => { const x = nb(String(v.value).replace(",", ".")); if (x && x >= 8 && x <= 26) { etat.vmaFrac = x; const y = window.scrollY; rendreTout(); window.scrollTo(0, y); } };
+  document.querySelectorAll("[data-frac]").forEach((b) => b.onclick = () => { etat.filtreFrac = b.dataset.frac; const y = window.scrollY; rendreTout(); window.scrollTo(0, y); });
+  document.querySelectorAll("tr[data-seance-frac]").forEach((tr) => { const go = () => { etat.seanceFrac = tr.dataset.seanceFrac; const y = window.scrollY; rendreTout(); window.scrollTo(0, y); }; tr.onclick = go; tr.onkeydown = (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); go(); } }; });
+  const real = realisesFrac();
+  document.querySelectorAll("tr[data-frac-real]").forEach((tr) => { const go = () => { const r = real.find((x) => String(x.id) === tr.dataset.fracReal); $("#detail-frac").innerHTML = r ? detailFracHtml(r) : ""; }; tr.onclick = go; tr.onkeydown = (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); go(); } }; });
+}
+function fractionnesDeLaSortie(a) {
+  const fs = realisesFrac().filter((r) => r.activite_id === a.id);
+  if (!fs.length) return "";
+  return `<div><span class="etiquette">Fractionnés de cette séance</span>${fs.map((r) => { const x = bilanFrac(r); return `<p class="petit" style="margin:4px 0"><b>${esc(r.nom)}</b> — ${x.nb}/${repsFrac(r.structure).length} répétitions${x.nb ? `, ${fr1(x.pct_vma_moyen)} % de VMA` : ""} <span class="etat ${CLASSE_VERDICT[x.verdict] || "neutre"}">${esc(x.verdict)}</span></p>`; }).join("")}</div>`;
 }
 
 /* ---------- Matériel obligatoire (mêmes règles que noyau/materiel/comparaison.py) ---------- */
@@ -1619,6 +1750,7 @@ const SUJETS = {
   courses: "Préparation à la prochaine course : écart entre la préparation actuelle et ce que la course demande, et les 3 priorités des semaines restantes.",
   blessures: "Blessures et soins : points de vigilance pour l'entraînement, prudence sur la reprise. Aucun diagnostic médical ; conseille un professionnel si la douleur dure.",
   materiel: "Usure du matériel : ce qu'il faut remplacer, quand, et ce qu'il faut surveiller ; matériel obligatoire des prochaines courses : ce qui manque ou reste à vérifier, et ce qu'il faut acheter ou contrôler en priorité.",
+  fractionne: "Fractionné : séances faites (court ou long, à plat ou en côte), % de VMA tenu, régularité, baisse en fin de séance, progression des séances refaites, et ce qu'il faut ajuster (cible, récupération, prochaine séance).",
   nutrition: "Nutrition de course : produits validés ou à éviter, apport de glucides par heure déjà toléré face à ce que demandent les prochaines courses, et les essais à faire à l'entraînement. Le Nutri-Score D ou E d'un produit d'effort est normal.",
 };
 function donneesRubrique(sujet) {
@@ -1639,6 +1771,11 @@ function donneesRubrique(sujet) {
     if ((d.index || []).length) l.push("Index de performance : " + d.index.slice(0, 10).map((i) => `${i.organisme} ${i.valeur} au ${i.date_releve}`).join(" ; "));
     l.push("Résultats : " + d.resultats.slice(0, 8).map((r) => `${r.date} ${r.nom_course} ${r.distance ?? "?"} km ${r.temps || ""} ${r.classement_general || ""}`).join(" ; "));
     l.push("Objectifs : " + d.objectifs.map((o) => `${o.titre} (${o.statut || "?"}, ${o.date_cible || "sans date"})`).join(" ; "));
+  }
+  if (sujet === "fractionne") {
+    const ref = vmaReference();
+    l.push(`VMA de référence : ${ref.vma ?? "?"} km/h (${ref.source || "inconnue"}).`);
+    l.push("Fractionnés faits : " + (realisesFrac().slice(0, 15).map((r) => { const a = bilanFrac(r); return `${r.date} ${r.nom} (${r.format}, ${r.terrain}) ${a.nb}/${repsFrac(r.structure).length} reps, ${a.pct_vma_moyen ?? "?"} % VMA, écart ${a.ecart_moyen_pct ?? "?"} %, régularité ${a.regularite_cv ?? "?"} %, fin ${a.baisse_fin_pct ?? "?"} %, ${a.verdict}${r.rpe ? ", RPE " + r.rpe : ""}`; }).join(" ; ") || "aucun"));
   }
   if (sujet === "nutrition") {
     const ps = produitsNutrition().filter((p) => !p.generique);
@@ -1829,7 +1966,7 @@ function vueOuvrir() {
 function rendreTout() {
   rendreSource(); rendreNav();
   const r = rubriqueCourante(), c = $("#contenu");
-  const vues = { aujourdhui: vueAujourdhui, fil: vueFil, sorties: vueSorties, forme: vueForme, sante: vueSante, courses: vueCourses, blessures: vueBlessures, materiel: vueMateriel, nutrition: vueNutrition, coach: vueCoach, ouvrir: vueOuvrir };
+  const vues = { aujourdhui: vueAujourdhui, fil: vueFil, sorties: vueSorties, forme: vueForme, sante: vueSante, courses: vueCourses, blessures: vueBlessures, fractionne: vueFractionne, materiel: vueMateriel, nutrition: vueNutrition, coach: vueCoach, ouvrir: vueOuvrir };
   c.innerHTML = vues[r]() + `<p class="pied">Trail Hub Center · page de consultation · les données affichées viennent de ${etat.source === "fichier" ? "ta base" : "l'exemple intégré"}.</p>`;
   if (r === "sorties") { dessinerCalendrier(); rendreDetailSortie(); brancherSorties(); }
   if (r === "forme") dessinerForme();
@@ -1839,6 +1976,7 @@ function rendreTout() {
   if (r === "fil") brancherFil();
   if (r === "nutrition") brancherNutrition();
   if (r === "materiel") brancherMateriel();
+  if (r === "fractionne") brancherFractionne();
   brancherLectures();
   c.querySelectorAll("button.ligne[data-sortie]").forEach((b) => b.onclick = () => { etat.sortieChoisie = +b.dataset.sortie; location.hash = "sorties"; if (rubriqueCourante() === "sorties") rendreTout(); });
 }

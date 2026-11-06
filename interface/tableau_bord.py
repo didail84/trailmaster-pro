@@ -148,6 +148,7 @@ class TableauBord(QMainWindow):
                 ("🗺️  Cartes && Traces", self.ouvrir_cartes_et_traces, False),
                 ("📷  Photos", self.ouvrir_photos, False),
                 ("📅  Planification", self.ouvrir_planification, False),
+                ("⏱️  Fractionné", self.ouvrir_fractionne, False),
                 ("💪  Renforcement && Mobilité", self.ouvrir_renforcement, False),
             ]),
             ("ANALYSE", [
@@ -1533,6 +1534,10 @@ class TableauBord(QMainWindow):
         from interface.journal import Journal
         self._ouvrir_ou_activer("journal", lambda: Journal(athlete_id_initial=self.athlete_actif_id))
 
+    def ouvrir_fractionne(self):
+        from interface.fractionne import FractionneFenetre
+        self._ouvrir_ou_activer("fractionne", lambda: FractionneFenetre(athlete_id_initial=self.athlete_actif_id))
+
     def ouvrir_historique_activites(self):
         self._ouvrir_ou_activer(
             "historique",
@@ -1746,6 +1751,7 @@ class TableauBord(QMainWindow):
             ("Cartes & Traces", "carte parcours gpx", self.ouvrir_cartes_et_traces),
             ("Photos", "album images", self.ouvrir_photos),
             ("Planification", "plan calendrier seances", self.ouvrir_planification),
+            ("Fractionné", "vma piste cotes intervalles 30/30 400 1000 minuteur bips", self.ouvrir_fractionne),
             ("Renforcement & Mobilité", "muscu", self.ouvrir_renforcement),
             ("Fil d'activité", "strava cartes sorties analyses", self.ouvrir_fil_activite),
             ("Analyses & Forme", "fatigue charge vma sommeil hrv", self.ouvrir_analyses_et_forme),

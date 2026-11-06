@@ -1,5 +1,31 @@
 # Historique des versions
 
+## Trail Hub Center — étape 3.5 : Fractionné court ou long, à plat ou en côte (bloc 14)
+- Nouvelle fenêtre **⏱️ Fractionné** (menu Entraînement), en quatre onglets.
+- **📚 Bibliothèque** : 20 séances types, filtrables court ou long et à plat ou en côte.
+  - Court à plat : 30/30, 15/15, 10 × 200 m, 8 × 300 m, 10 × 400 m, pyramide.
+  - Long à plat : 6 × 1000 m, 5 × 1000 m vite, 4 × 2000 m, 3 × 3000 m au seuil, 3 × 10 min, 2 × 15 min.
+  - Court en côte : 10 × 30 s, 12 × 100 m en côte raide, 8 × 45 s, 2 × 6 × 1 min.
+  - Long en côte : 5 × 3 min, 4 × 5 min, 3 × 8 min, 4 × 1000 m.
+  - Cibles calculées depuis ta VMA (celle de ta fiche, sinon celle estimée sur tes sorties, modifiable) : temps de chaque répétition, allure, distance attendue sur une répétition en durée.
+  - En côte, la vitesse attendue et le D+ tiennent compte de la pente (coût énergétique de Minetti).
+  - Tableau des temps au 100, 200, 300, 400 et 1000 m, de 80 à 110 % de VMA.
+  - Chaque séance peut être envoyée à la montre (fichier FIT, allure cible à plat), ajoutée aux séances prévues ou copiée en séance perso (blocs, séries, récupération, pente).
+- **⏲ Minuteur** : la séance déroulée phase par phase, en gros chiffres, avec la couleur de la phase.
+  - Un bip long à chaque changement, trois bips courts avant la fin de chaque phase.
+  - Sur piste, le bouton « Fin de répétition » relève ton temps en passant la ligne ; les temps relevés vont directement à la saisie.
+- **Dans le suivi** (ta demande) : le détail d'une sortie a une section « Fractionnés de cette séance ».
+  - Un **menu déroulant** (filtrable court ou long, à plat ou en côte) choisit le fractionné fait ; on peut en ajouter plusieurs pour une même sortie.
+  - La saisie d'une nouvelle sortie a aussi son menu « Fractionné fait ».
+- **Saisie des temps** :
+  - temps des répétitions en distance (1:32 ou 92), distance des répétitions en durée, D+ en côte, FC ;
+  - ou bien « Retrouver les répétitions dans la trace » : le logiciel cherche dans la trace GPS de la sortie les passages les plus rapides de la bonne longueur (en pente corrigée en côte, pour ne pas prendre les descentes). Les répétitions identiques restent dans le bon ordre, par exemple les deux 400 m d'une pyramide.
+- **Analyse** : % de VMA tenu (corrigé de la pente en côte), écart à la cible, régularité, baisse en fin de séance, verdict (dans la cible, plus vite, plus lent), conseils, et VMA suggérée quand les répétitions courtes sont tenues plus vite que prévu.
+- **📝 Mes fractionnés** et **📈 Progression** : historique avec le détail répétition par répétition, et l'évolution de la vitesse moyenne de chaque séance refaite.
+- Migration n° 6 de la base : séances perso et fractionnés faits. Un fractionné fait garde une copie de sa séance (si tu supprimes ta séance perso, rien n'est perdu) et survit à la suppression de la sortie. La v108 fonctionne toujours sur la base convertie.
+- Page Claude : nouvelle rubrique **Fractionné** (séances types avec les cibles selon ta VMA, temps de passage, tes fractionnés avec leur analyse, progression, lecture de Claude), et les fractionnés d'une sortie dans son détail. Les calculs sont les mêmes que dans le logiciel (vérifié séance par séance).
+- Étape 3 du Master Plan construite (3.1 à 3.5), reste à la valider sur une vraie course. Tests : 309.
+
 ## Trail Hub Center — étape 3.4 : Matériel obligatoire comparé à ton équipement (bloc 13)
 - « Matériel pour une course » est refait en deux onglets : **Pour une course** et **Mon équipement**.
 - **Liste du règlement** :
