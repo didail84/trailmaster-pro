@@ -5,7 +5,8 @@ calculer exactement comme lui :
     départ, produits génériques ;
   - matériel obligatoire : catalogue des équipements et caractéristiques ;
   - fractionné : bibliothèque des séances types ;
-  - club : catégories FFA, types de licence, pièces de santé, statuts.
+  - club : catégories FFA, types de licence, pièces de santé, statuts, vacances
+    scolaires et types de séances de l'agenda.
 
     python page_claude/generer_donnees_page.py
 
@@ -24,7 +25,7 @@ from noyau.nutrition import nutriscore as ns, catalogue as cat          # noqa: 
 from noyau.nutrition.ingredients import INGREDIENTS, MODELES, LIQUIDES, SODIUM_PAR_G_SEL  # noqa: E402
 from noyau.materiel import equipements as meq, comparaison as mcmp                      # noqa: E402
 from noyau.entrainement import fractionne as efr                                         # noqa: E402
-from noyau.club import categories as ccat, adhesions as cadh                             # noqa: E402
+from noyau.club import categories as ccat, adhesions as cadh, agenda as cag              # noqa: E402
 
 PAGE = RACINE / "page_claude" / "trail_hub_center.html"
 REPERES = {"NUTRITION": None, "MATERIEL": None, "FRACTIONNE": None, "CLUB": None}
@@ -59,7 +60,11 @@ def donnees_fractionne():
 def donnees_club():
     return {"categories": [list(c) for c in ccat._CATEGORIES], "moisDebut": ccat.MOIS_DEBUT_SAISON,
             "licences": [[c, l, list(u) if u else None] for c, l, u in ccat.TYPES_LICENCE],
-            "sante": [list(x) for x in cadh.SANTE], "statuts": [list(x) for x in cadh.STATUTS]}
+            "sante": [list(x) for x in cadh.SANTE], "statuts": [list(x) for x in cadh.STATUTS],
+            "types": [list(x) for x in cag.TYPES], "presences": [list(x) for x in cag.STATUTS_PRESENCE],
+            "vacances": {s: {z: [list(v) for v in p] for z, p in zs.items()} for s, zs in cag.VACANCES.items()},
+            "nomVacances": cag.NOM_VACANCES, "ponts": [list(x) for x in cag.PONTS],
+            "estimations": sorted([list(x) for x in cag.ESTIMATIONS]), "decrochage": cag.ABSENCES_DECROCHAGE}
 
 
 def bloc(nom):

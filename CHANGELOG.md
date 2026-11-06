@@ -1,5 +1,34 @@
 # Historique des versions
 
+## Trail Hub Center — étape 4.2 : Agenda du club et appel des présences (blocs 17 à 19)
+- Deux nouveaux onglets dans la fenêtre **🏟️ Club** :
+  - **📅 Agenda**
+  - **✅ Présences**
+- **Agenda**
+  - **Séances** une par une ou **en série chaque semaine** : groupe, jour, horaire, lieu, entraîneur.
+  - **Dates retirées toutes seules** : les jours fériés sont calculés (Pâques, Ascension, Pentecôte…). Les vacances scolaires officielles 2025-2026 et 2026-2027 (zones A, B, C) et le pont de l'Ascension sont retirés au choix.
+  - **Aperçu** du nombre de séances et des dates sautées avant de créer la série.
+  - **Modifier une série** refait ses séances à venir sans appel. Les séances passées ou déjà appelées sont gardées.
+  - Sur une séance : **annuler** (avec motif, la séance reste barrée), rétablir, dupliquer, supprimer.
+  - Périodes affichées : semaine, 4 semaines, mois, saison, ou les séances passées dont l'appel reste à faire.
+  - **Feuille d'appel PDF** à imprimer : cases P, R, E, A, téléphone de la personne à prévenir, lignes libres.
+  - **Export de l'agenda (.ics)** : en ouvrant le fichier, les adhérents ajoutent les séances à leur téléphone ou à Google Agenda. Les séances annulées y apparaissent comme annulées.
+- **Présences**
+  - **L'appel** : par défaut, la séance du jour. Chaque personne est notée présente, en retard, excusée ou absente, avec une remarque.
+  - Boutons « Tout le monde présent » et « Les non pointés : absents ».
+  - **Ajout d'une personne venue en plus**, notée comme invitée.
+  - La colonne Urgence affiche le téléphone de la personne à prévenir. Il est signalé quand il manque pour un mineur.
+  - **Assiduité** sur 30 jours, 3 mois ou la saison :
+    - par groupe : présents en moyenne, taux ;
+    - par personne : taux, absences de suite, dernière présence.
+  - **Export tableur** des présences : une colonne par séance.
+  - **Alertes** : un adhérent absent 3 fois de suite sans excuse est signalé, ainsi que les séances passées sans appel. Elles apparaissent aussi dans le « À faire » du tableau de bord.
+- **Tableau de bord** du club : nouvelle liste des prochaines séances.
+- **Onglet Le club** : choix de la zone de vacances scolaires selon l'académie (zone B par défaut).
+- **Reçus PDF** : le texte s'imprimait trop petit, il est maintenant à la bonne taille.
+- **Base de données version 8** : séries, séances, présences ; zone de vacances du club.
+- **Page Claude**, rubrique Club : agenda des 4 prochaines semaines avec les prochaines vacances, présences des 60 derniers jours par groupe et par adhérent, décrochages et appels oubliés. Les calculs sont les mêmes que dans le logiciel. La lecture de Claude reçoit les chiffres des présences, toujours sans aucun nom.
+
 ## Trail Hub Center — étape 4.1 : Espace Club, adhérents et licences FFA (blocs 17 à 19)
 - Nouveau module **Gestion du club** (éteint par défaut : Réglages > Modules). Il ajoute la fenêtre **🏟️ Club** (menu Club), en six onglets.
 - **📊 Tableau de bord** de la saison : adhérents, taux de renouvellement, dossiers incomplets, cotisations encaissées et restantes, jeunes. Liste « À faire », répartition par catégorie FFA (années de naissance de la saison) et par licence. Liste des adhérents pas encore renouvelés, à renouveler en un clic.

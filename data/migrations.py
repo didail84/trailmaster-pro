@@ -449,6 +449,63 @@ def _m007_club(cur):
         _ajouter_uuid(cur, t)
 
 
+def _m008_agenda_club(cur):
+    """Agenda du club et appel des présences (étape 4.2) : séries hebdomadaires (un groupe, un jour,
+    un horaire, hors vacances scolaires et jours fériés au choix), séances (issues d'une série ou
+    ponctuelles, annulables) et présences de chaque personne à chaque séance."""
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS series_club (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            club_id INTEGER NOT NULL REFERENCES clubs(id) ON DELETE CASCADE,
+            groupe_id INTEGER REFERENCES groupes(id) ON DELETE CASCADE,
+            titre TEXT NOT NULL,
+            type TEXT NOT NULL DEFAULT 'entrainement',
+            jour_semaine INTEGER NOT NULL,
+            heure_debut TEXT,
+            heure_fin TEXT,
+            lieu TEXT,
+            entraineur_id INTEGER REFERENCES personnes(id) ON DELETE SET NULL,
+            date_debut TEXT NOT NULL,
+            date_fin TEXT NOT NULL,
+            sauf_vacances INTEGER DEFAULT 0,
+            sauf_feries INTEGER DEFAULT 1,
+            notes TEXT
+        )""")
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS seances_club (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            club_id INTEGER NOT NULL REFERENCES clubs(id) ON DELETE CASCADE,
+            serie_id INTEGER REFERENCES series_club(id) ON DELETE SET NULL,
+            groupe_id INTEGER REFERENCES groupes(id) ON DELETE SET NULL,
+            titre TEXT NOT NULL,
+            type TEXT NOT NULL DEFAULT 'entrainement',
+            date TEXT NOT NULL,
+            heure_debut TEXT,
+            heure_fin TEXT,
+            lieu TEXT,
+            entraineur_id INTEGER REFERENCES personnes(id) ON DELETE SET NULL,
+            contenu TEXT,
+            annulee INTEGER DEFAULT 0,
+            motif_annulation TEXT,
+            appel_fait INTEGER DEFAULT 0,
+            notes TEXT
+        )""")
+    cur.execute("CREATE INDEX IF NOT EXISTS idx_seances_club_date ON seances_club(club_id, date)")
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS presences_club (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            seance_id INTEGER NOT NULL REFERENCES seances_club(id) ON DELETE CASCADE,
+            personne_id INTEGER NOT NULL REFERENCES personnes(id) ON DELETE CASCADE,
+            statut TEXT NOT NULL,
+            note TEXT,
+            UNIQUE (seance_id, personne_id)
+        )""")
+    if "zone_vacances" not in _colonnes(cur, "clubs"):
+        cur.execute("ALTER TABLE clubs ADD COLUMN zone_vacances TEXT DEFAULT 'B'")
+    for t in ("series_club", "seances_club", "presences_club"):
+        _ajouter_uuid(cur, t)
+
+
 # (numéro, description lisible, fonction) — dans l'ordre, sans trou
 MIGRATIONS = [
     (1, "Identifiant universel (UUID) pour chaque donnée", _m001_identifiants_universels),
@@ -458,6 +515,7 @@ MIGRATIONS = [
     (5, "Matériel obligatoire des courses et caractéristiques de ton équipement", _m005_materiel_obligatoire),
     (6, "Fractionné : séances perso et répétitions faites pendant les sorties", _m006_fractionne),
     (7, "Espace Club : club, groupes, adhésions et licences par saison, tarifs", _m007_club),
+    (8, "Agenda du club : séries hebdomadaires, séances, appel des présences", _m008_agenda_club),
 ]
 VERSION_LOGICIEL = MIGRATIONS[-1][0]
 

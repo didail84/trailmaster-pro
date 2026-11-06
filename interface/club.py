@@ -489,6 +489,10 @@ class TableauDeBordClub(_EcranClub):
         self.label_alertes.setTextFormat(Qt.TextFormat.RichText)
         lc.addWidget(self.label_alertes)
         self.principal.addWidget(cadre)
+        cadre, lc = _cadre("Prochaines séances")
+        self.table_proch = _table(["Date", "Horaire", "Séance", "Groupe", "Lieu", "Entraîneur"], 150)
+        lc.addWidget(self.table_proch)
+        self.principal.addWidget(cadre)
         lignes = QHBoxLayout()
         cadre, lc = _cadre("Par catégorie FFA")
         self.table_cat = _table(["Catégorie", "Nés", "Femmes", "Hommes", "Total"], 200)
@@ -539,6 +543,23 @@ class TableauDeBordClub(_EcranClub):
         c["mineurs"].valeur.setText(str(ch["mineurs"]))
         c["mineurs"].detail.setText("autorisation parentale obligatoire")
         al = regles.alertes(adh, ch, s)
+        from noyau.donnees import agenda_club as dag
+        from noyau.club import agenda as ag
+        from datetime import timedelta
+        if s == cat.saison_de():
+            auj = date.today()
+            assid = dag.assiduite(self.club_id, auj - timedelta(days=60), auj)
+            noms = {pid: f"{r.get('prenom', '')} {r.get('nom', '')}".strip() for pid, r in assid.items()}
+            al += ag.alertes_presences(assid, noms, len(dag.sans_appel(self.club_id)))
+        from interface.club_agenda import _date_courte, _horaire
+        proch = dag.prochaines(self.club_id, 6)
+        tp = self.table_proch
+        tp.setRowCount(len(proch))
+        for i, x in enumerate(proch):
+            for j, v in enumerate((_date_courte(x["date"]), _horaire(x), x["titre"], x["groupe"] or "Tout le club",
+                                   x["lieu"] or "", x["entraineur"] or "")):
+                tp.setItem(i, j, QTableWidgetItem(v))
+        tp.resizeColumnsToContents()
         self.label_alertes.setText("<ul>" + "".join(f"<li>{html.escape(x)}</li>" for x in al) + "</ul>" if al
                                    else f"<span style='color:{VERT}'>Rien à signaler pour {s}.</span>")
         # catégories
@@ -1177,7 +1198,8 @@ class ReglagesClub(_EcranClub):
 
     def __init__(self, athlete_id_initial=None):
         super().__init__("⚙️  Le club", "Les informations du club, reprises sur les reçus et, plus tard, sur les "
-                         "documents des courses.", athlete_id_initial)
+                         "documents des courses. La zone de vacances (selon l'académie) sert à l'agenda.",
+                         athlete_id_initial)
         cadre, lc = _cadre("Identité du club")
         f = QFormLayout()
         self.champs = {}
@@ -1188,6 +1210,11 @@ class ReglagesClub(_EcranClub):
             w = QLineEdit()
             self.champs[cle] = w
             f.addRow(lib, w)
+        self.zone = QComboBox()
+        from noyau.club import agenda as ag
+        for z in ag.ZONES:
+            self.zone.addItem(f"Zone {z} : " + ", ".join(ag.ZONE_PAR_ACADEMIE[z]), z)
+        f.addRow("Vacances scolaires", self.zone)
         self.notes = QTextEdit()
         self.notes.setMaximumHeight(80)
         f.addRow("Notes", self.notes)
@@ -1207,10 +1234,12 @@ class ReglagesClub(_EcranClub):
         for k, w in self.champs.items():
             w.setText(c.get(k) or "")
         self.notes.setPlainText(c.get("notes") or "")
+        self.zone.setCurrentIndex(max(0, self.zone.findData(c.get("zone_vacances") or "B")))
 
     def _enregistrer(self):
         v = {k: w.text() for k, w in self.champs.items()}
         v["notes"] = self.notes.toPlainText()
+        v["zone_vacances"] = self.zone.currentData()
         try:
             dclub.enregistrer_club(v, self.club_id)
         except dclub.ErreurClub as e:
@@ -1233,8 +1262,12 @@ class ClubFenetre(ConteneurOnglets):
         super().__init__(
             titre="Club",
             onglets=[("📊 Tableau de bord", TableauDeBordClub), ("👥 Adhérents", AdherentsClub),
-                     ("🧑‍🤝‍🧑 Groupes", GroupesClub), ("💶 Cotisations", CotisationsClub),
-                     ("📥 Import", ImportClub), ("⚙️ Le club", ReglagesClub)],
+                     ("🧑‍🤝‍🧑 Groupes", GroupesClub), ("📅 Agenda", AgendaClub), ("✅ Présences", PresencesClub),
+                     ("💶 Cotisations", CotisationsClub), ("📥 Import", ImportClub), ("⚙️ Le club", ReglagesClub)],
             athlete_id_initial=athlete_id_initial,
         )
-        self.tableau, self.adherents, self.groupes, self.cotisations, self.import_, self.reglages = self.ecrans
+        (self.tableau, self.adherents, self.groupes, self.agenda, self.presences, self.cotisations, self.import_,
+         self.reglages) = self.ecrans
+
+
+from interface.club_agenda import AgendaClub, PresencesClub   # noqa: E402  (les onglets de l'étape 4.2)

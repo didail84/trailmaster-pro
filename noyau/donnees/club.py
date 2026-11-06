@@ -11,7 +11,7 @@ from noyau.donnees import base, personnes as dper
 from noyau.club import categories as cat, adhesions as regles
 
 CHAMPS_CLUB = ("nom", "sigle", "numero_ffa", "ligue", "comite", "adresse", "code_postal", "ville", "email",
-               "telephone", "site", "president", "logo_path", "notes")
+               "telephone", "site", "president", "logo_path", "notes", "zone_vacances")
 CHAMPS_ADHESION = ("type_licence", "numero_licence", "date_licence", "statut", "sante_type", "sante_date",
                    "autorisation_parentale", "droit_image", "tarif", "cotisation", "montant_paye", "paiement_mode",
                    "paiement_date", "recu_numero", "source", "notes")

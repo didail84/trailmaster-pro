@@ -194,7 +194,7 @@ def test_ecrans(base_vide, tmp_path):
     fichier.write_text(HELLOASSO, encoding="utf-8")
     from interface.club import ClubFenetre, DialogueAdherent
     f = ClubFenetre(1)
-    assert f.tabs.count() == 6
+    assert f.tabs.count() == 8
     f.import_.charger(str(fichier))
     assert f.import_.table.rowCount() == 3 and f.import_.b_importer.isEnabled()
     r = dclub.importer(cid, saison, f.import_._analyse["lignes"])
