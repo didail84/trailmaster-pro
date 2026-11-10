@@ -96,6 +96,15 @@ def registre(modules_actifs=None):
                   "destinataires": "PC course, secours ; proches (page publique sans position sans accord)",
                   "duree": f"positions {d['positions_gps']} mois ; incidents avec le dossier de la course",
                   "securite": secu})
+    if "livetrack_coach" in actifs:
+        t.append({"traitement": "LiveTrack coach (suivi des coureurs par l'entraîneur)", "finalite": "suivre en direct la "
+                  "sortie d'un coureur par son lien Garmin LiveTrack, rattacher la sortie à son suivi", "personnes":
+                  "coureurs suivis (avec leur accord : c'est eux qui lancent LiveTrack et envoient le lien)",
+                  "donnees": "nom, montre, objectif, lien de suivi en direct (donne accès à la position pendant la "
+                  "sortie), dates et durées des suivis, notes du coach", "base_legale": "consentement du coureur",
+                  "destinataires": "l'entraîneur seulement ; rien n'est envoyé à Garmin ni ailleurs par le logiciel",
+                  "duree": "lien effacé 30 jours après la fin du suivi ; historique gardé jusqu'à la suppression du coureur",
+                  "securite": secu})
     if "photos_dossard" in actifs:
         t.append({"traitement": "Photos par dossard", "finalite": "rendre à chaque coureur ses photos de course",
                   "personnes": "coureurs photographiés", "donnees": "photos, numéro de dossard lu (pas de "

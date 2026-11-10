@@ -21,6 +21,7 @@ from interface.resultats_courses import ResultatsCourses
 from interface.meteo_ecran import MeteoEcran
 from interface.historique_activites import HistoriqueActivites
 from interface.suivi_direct import SuiviDirect
+from interface.livetrack_coach import LiveTrackCoachFenetre
 from interface.cartes_et_traces import CartesEtTraces
 from interface.photos_ecran import Photos
 from interface.analyses_et_forme import AnalysesEtForme
@@ -145,6 +146,7 @@ class TableauBord(QMainWindow):
                 ("📓  Journal", self.ouvrir_journal, False),
                 ("📋  Historique des activités", self.ouvrir_historique_activites, False),
                 ("📡  Suivi en direct", self.ouvrir_suivi_direct, False),
+                ("🔗  LiveTrack coach", self.ouvrir_livetrack_coach, False),
                 ("🗺️  Cartes && Traces", self.ouvrir_cartes_et_traces, False),
                 ("📷  Photos", self.ouvrir_photos, False),
                 ("📅  Planification", self.ouvrir_planification, False),
@@ -1595,6 +1597,11 @@ class TableauBord(QMainWindow):
             "suivi_direct",
             lambda: SuiviDirect(athlete_id_initial=self.athlete_actif_id),
         )
+    def ouvrir_livetrack_coach(self):
+        self._ouvrir_ou_activer(
+            "livetrack_coach",
+            lambda: LiveTrackCoachFenetre(athlete_id_initial=self.athlete_actif_id),
+        )
     def ouvrir_personnes(self):
         fenetre = self._ouvrir_ou_activer(
             "compte", lambda: Compte(athlete_id_initial=self.athlete_actif_id)
@@ -1795,6 +1802,7 @@ class TableauBord(QMainWindow):
             ("Journal", "fil diaire notes photos", self.ouvrir_journal),
             ("Historique des activités", "sorties liste", self.ouvrir_historique_activites),
             ("Suivi en direct", "live", self.ouvrir_suivi_direct),
+            ("LiveTrack coach", "garmin livetrack lien suivre coureur entraineur direct fc coach", self.ouvrir_livetrack_coach),
             ("Cartes & Traces", "carte parcours gpx", self.ouvrir_cartes_et_traces),
             ("Photos", "album images", self.ouvrir_photos),
             ("Planification", "plan calendrier seances", self.ouvrir_planification),

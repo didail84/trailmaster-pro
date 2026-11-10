@@ -2122,6 +2122,29 @@ function bilansClubJS(c) {
   }).filter((l) => l.adherents);
 }
 const nomEdition = (n) => String(n || "").replace(/\s*(\(\w+\)|\b(19|20)\d{2}\b)/g, "").trim().toLowerCase();
+/* LiveTrack coach : les suivis en direct créés dans le logiciel de bureau. La page les montre (lecture seule) et ouvre
+   le lien du coureur dans un nouvel onglet ; elle ne lit pas les données de la page Garmin. */
+function liveTrackBase() {
+  if (etat.source !== "fichier" || etat.modules.livetrack_coach === false || !Base.tablesPresentes.has("livetrack_suivis")) return null;
+  try { return Base.tous("SELECT s.id, s.lien, s.debut, s.fin, s.etat, s.fc_visible, c.nom AS coureur FROM livetrack_suivis s JOIN livetrack_coureurs c ON c.id = s.coureur_id ORDER BY s.debut DESC, s.id DESC LIMIT 8"); } catch (e) { return null; }
+}
+const lienGarmin = (u) => /^https:\/\/(livetrack\.garmin\.com|connect\.garmin\.(com|cn))\//i.test(String(u || "")) ? String(u) : "";
+function htmlLiveTrack() {
+  const l = liveTrackBase();
+  if (l === null || !l.length) return "";
+  const maintenant = Date.now();
+  const lignes = l.map((s) => {
+    const debut = new Date(String(s.debut).replace(" ", "T")), vivant = s.etat === "en_cours" && maintenant - debut.getTime() < 24 * 3600e3;
+    const etatTxt = vivant ? "En cours" : s.etat === "en_cours" ? "Expiré probable" : s.etat === "annule" ? "Annulé" : "Terminé";
+    const lien = vivant ? lienGarmin(s.lien) : "";
+    const quand = isNaN(debut) ? "" : debut.toLocaleString("fr-FR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
+    return `<tr><td>${esc(s.coureur)}</td><td>${esc(quand)}</td><td${vivant ? ' style="color:var(--vert)"' : ""}>${etatTxt}</td><td>${s.fc_visible === 1 ? "oui" : s.fc_visible === 0 ? "non" : "—"}</td>
+      <td>${lien ? `<a href="${esc(lien)}" target="_blank" rel="noopener noreferrer">Ouvrir le suivi ↗</a>` : ""}</td></tr>`;
+  }).join("");
+  return `<div class="carte"><header><h3>📡 LiveTrack coach</h3><span class="petit discret">${l.filter((s) => s.etat === "en_cours").length} suivi(s) en cours</span></header>
+    <div class="tableau-cadre"><table><thead><tr><th>Coureur</th><th>Départ</th><th>État</th><th>FC sur la page</th><th></th></tr></thead><tbody>${lignes}</tbody></table></div>
+    <p class="petit discret">Les liens se collent dans le logiciel (LiveTrack coach). Cette page ne lit pas les données de la page Garmin : elle ouvre le lien.</p></div>`;
+}
 /* mise en service (étape 8) : les essais pour de vrai cochés dans le logiciel */
 function recetteBase() {
   if (etat.source !== "fichier" || !Base.tablesPresentes.has("recette")) return null;
@@ -2828,6 +2851,7 @@ function vueFil() {
   return `<section class="vue">
     <div class="entete-vue"><h2>Fil d'activité</h2><p>Tes sorties comme sur Strava, chacune avec son analyse, écrite toute seule. ${etat.source === "fichier" ? "Les analyses déjà faites par le logiciel sont reprises ; Claude écrit celles qui manquent." : "Ici sur l'exemple, les analyses sont calculées par les règles de la page."}</p></div>
     <div class="carte"><span class="chiffre">Cette semaine : ${sem.n} sortie${sem.n > 1 ? "s" : ""} · ${virgule(sem.km, 1)} km · +${entier(sem.dplus)} m · ${duree(sem.sec)}</span></div>
+    ${htmlLiveTrack()}
     <div class="fil">${h || `<p class="vide">Aucune sortie dans cette base.</p>`}</div>
     ${d.activites.length > nbFil ? `<div><button class="bouton" type="button" id="fil-plus">Afficher plus de sorties</button></div>` : ""}
   </section>`;

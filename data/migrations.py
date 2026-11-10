@@ -1270,6 +1270,47 @@ def _m019_mise_en_service(cur):
         )""")
 
 
+def _m020_livetrack_coach(cur):
+    """LiveTrack coach : coureurs suivis par un entraîneur, suivis en direct (lien Garmin LiveTrack, état, sortie
+    rattachée) et tests de configuration (ce que le coach voit réellement sur la page)."""
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS livetrack_coureurs (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            athlete_id INTEGER REFERENCES athletes(id) ON DELETE SET NULL,
+            nom TEXT NOT NULL,
+            montre TEXT,
+            objectif TEXT,
+            notes TEXT,
+            actif INTEGER DEFAULT 1,
+            cree_le TEXT
+        )""")
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS livetrack_suivis (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            coureur_id INTEGER NOT NULL REFERENCES livetrack_coureurs(id) ON DELETE CASCADE,
+            lien TEXT NOT NULL,
+            debut TEXT NOT NULL,
+            fin TEXT,
+            etat TEXT NOT NULL DEFAULT 'en_cours',
+            seance_id INTEGER REFERENCES seances_structurees(id) ON DELETE SET NULL,
+            activite_id INTEGER REFERENCES activites(id) ON DELETE SET NULL,
+            fc_visible INTEGER,
+            notes TEXT
+        )""")
+    cur.execute("CREATE INDEX IF NOT EXISTS idx_livetrack_suivis_coureur ON livetrack_suivis(coureur_id, debut)")
+    cur.execute("CREATE INDEX IF NOT EXISTS idx_livetrack_suivis_activite ON livetrack_suivis(activite_id)")
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS livetrack_tests (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            coureur_id INTEGER NOT NULL REFERENCES livetrack_coureurs(id) ON DELETE CASCADE,
+            fait_le TEXT NOT NULL,
+            resultats_json TEXT NOT NULL,
+            note TEXT
+        )""")
+    for t in ("livetrack_coureurs", "livetrack_suivis", "livetrack_tests"):
+        _ajouter_uuid(cur, t)
+
+
 MIGRATIONS = [
     (1, "Identifiant universel (UUID) pour chaque donnée", _m001_identifiants_universels),
     (2, "Fiche Personne unique et rôles", _m002_personnes_et_roles),
@@ -1293,6 +1334,8 @@ MIGRATIONS = [
     (17, "Actualités du trail : flux RSS, articles, coureurs connus et leur palmarès", _m017_actualites),
     (18, "Photos par dossard : photos d'une course, dossards lus, codes d'accès, droit à l'image", _m018_photos),
     (19, "Mise en service : recette, demandes et incidents sur les données personnelles", _m019_mise_en_service),
+    (20, "LiveTrack coach : coureurs suivis, suivis en direct (lien Garmin) et tests de configuration",
+     _m020_livetrack_coach),
 ]
 VERSION_LOGICIEL = MIGRATIONS[-1][0]
 

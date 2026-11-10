@@ -1,5 +1,18 @@
 # Historique des versions
 
+## LiveTrack coach — suivre ses coureurs en direct avec le lien Garmin
+- **Nouveau module « LiveTrack coach »** (espace Coureur, allumé par défaut ; à ne pas confondre avec « Trail Live et jour de course », qui reste celui des organisateurs). Menu 🔗 LiveTrack coach, 3 onglets :
+  - **📡 Suivi en direct** : fiche coureur (nom, profil du logiciel, montre, objectif, notes), coller le lien LiveTrack (le message entier du coureur convient : le lien est retrouvé), liste des suivis en cours avec la durée qui avance, la page LiveTrack du coureur choisi s'affiche dans la fenêtre (ou « Ouvrir dans le navigateur » si le moteur web manque), plusieurs coureurs en même temps, terminer / annuler, « FC vue sur la page » ;
+  - **🗂️ Historique** : tous les suivis ; rattacher la sortie envoyée ensuite par la montre (elle reçoit son analyse automatiquement, sans bouton) ; séance prévue ; notes du coach ; reprendre un suivi terminé par erreur ; export et import d'une sauvegarde en JSON, sans doublon ;
+  - **✉️ Message et test** : message à envoyer au coureur (les étapes Garmin Connect > Plus > Sécurité et suivi > LiveTrack), refait tout seul tant qu'on ne l'a pas retouché ; test de configuration de 5 minutes (lien reçu, page qui s'ouvre, carte, allure, fréquence cardiaque) avec un bilan en une phrase.
+- **Ce que le module ne fait pas** : lire les données de la page LiveTrack (Garmin n'en donne pas l'accès). La fréquence cardiaque n'est donc visible que si Garmin l'affiche sur la page, et elle n'est pas enregistrée. Pour de vraies données en direct, il faudra diffuser la FC depuis la montre (Bluetooth ou ANT+).
+- **Seuls les liens Garmin sont acceptés** (livetrack.garmin.com, connect.garmin.com/connect.garmin.cn pour LiveTrack, en https) ; tout autre lien est refusé avec un message lisible.
+- **Données personnelles** : le lien donne accès à la position du coureur pendant sa sortie. Il reste sur l'ordinateur du coach et est **effacé 30 jours après la fin du suivi** (l'historique reste) ; un suivi « en cours » depuis plus de 24 h est signalé « expiré probable ». Le registre des traitements (Mise en service et données) décrit ce traitement quand le module est allumé.
+- **Fil d'activité** : une sortie rattachée à un suivi porte le repère « 📡 Suivie en direct », et les suivis des dernières 48 heures apparaissent sous le bilan de la semaine.
+- **Page Claude**, rubrique Fil : carte « LiveTrack coach » (lecture seule) avec les derniers suivis et un lien « Ouvrir le suivi » vers la page Garmin, pour le PC de travail.
+- **Base de données version 20** : coureurs suivis, suivis en direct, tests de configuration.
+- **Tests** : `tests/test_livetrack.py` (règles, données, export/import, page) et `tests/test_livetrack_ecran.py` (parcours à l'écran).
+
 ## Trail Hub Center — étape 8 (mise en service, Linux, volet commercial, mises à jour par Relais)
 - **Mise en service et données** (nouveau menu) :
   - **contrôles de cet ordinateur** : base à jour, dernière sauvegarde, modules, club, prochaine course (plages de dossards, accords pour l'image), lecture des dossards, trousseau, e-mails, Relais ; avec le réseau : serveur du club et Relais joignables ;

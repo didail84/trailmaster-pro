@@ -11,7 +11,7 @@ Un clic sur une carte ouvre la fiche complète de la sortie.
 
 import json
 import os
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 
 from PySide6.QtCore import Qt, QPointF, QThread, Signal
 from PySide6.QtGui import QPainter, QPen, QColor, QPixmap, QPolygonF
@@ -110,6 +110,43 @@ def _points_trace(activite_id):
         return []
 
 
+def _live_actif():
+    """Le module LiveTrack coach est-il allumé ? (les repères « suivi en direct » n'apparaissent que si oui)"""
+    try:
+        from noyau import modules as MO
+        return MO.est_actif("livetrack_coach")
+    except Exception:
+        return False
+
+
+def _repere_livetrack(activite_id):
+    """« 📡 Suivie en direct par … » si un suivi LiveTrack a été rattaché à cette sortie, sinon None."""
+    if not _live_actif():
+        return None
+    try:
+        from noyau.donnees import livetrack as dliv
+        from noyau.livetrack import regles as rliv
+        sv = dliv.suivi_de_activite(activite_id)
+        if not sv:
+            return None
+        d = rliv.duree_texte(sv.get("duree"))
+        return f"📡 Suivie en direct ({sv['coureur_nom']})" + (f" · {d} de suivi" if d else "")
+    except Exception:
+        return None
+
+
+def _lignes_live_recentes(heures=48, limite=3):
+    """Phrases du fil pour les suivis LiveTrack des dernières heures (module allumé seulement)."""
+    if not _live_actif():
+        return []
+    try:
+        from noyau.donnees import livetrack as dliv
+        depuis = (datetime.now() - timedelta(hours=heures)).isoformat(timespec="seconds")
+        return [t for d, t in dliv.lignes_fil(limite * 3) if d >= depuis][:limite]
+    except Exception:
+        return []
+
+
 class CarteSortie(QFrame):
     clique = Signal(int)
 
@@ -148,6 +185,9 @@ class CarteSortie(QFrame):
         gauche.addLayout(chiffres)
         if ressenti:
             gauche.addWidget(_l(ressenti, "font-size:12.5px;", True))
+        repere = _repere_livetrack(s["id"])
+        if repere:
+            gauche.addWidget(_l(repere, "font-size:12.5px; font-weight:600;", True))
         gauche.addStretch(1)
         haut.addLayout(gauche, 1)
         pts = _points_trace(s["id"])
@@ -261,8 +301,14 @@ class FilActivite(_EcranAthlete):
         self.bandeau_semaine.setStyleSheet(f"#bandeauSemaine {{ background:{A_CARTE}; border:1px solid {A_BORDURE}; border-radius:14px; }}")
         lb = QHBoxLayout(self.bandeau_semaine)
         lb.setContentsMargins(18, 12, 18, 12)
+        colonne = QVBoxLayout()
+        colonne.setSpacing(4)
         self.texte_semaine = _l("", "font-size:14px; font-weight:600;")
-        lb.addWidget(self.texte_semaine)
+        colonne.addWidget(self.texte_semaine)
+        self.texte_live = _l("", "font-size:12.5px;", True)        # suivis LiveTrack récents (module LiveTrack coach)
+        self.texte_live.setVisible(False)
+        colonne.addWidget(self.texte_live)
+        lb.addLayout(colonne)
         self.principal.addWidget(self.bandeau_semaine)
         self.fil = QVBoxLayout()
         self.fil.setSpacing(12)
@@ -314,6 +360,9 @@ class FilActivite(_EcranAthlete):
         self.texte_semaine.setText(
             f"Cette semaine : {len(semaine)} sortie{'s' if len(semaine) > 1 else ''} · "
             f"{km:.1f} km · {int(dp)} m D+ · {_duree(sec)}".replace(".", ","))
+        lignes_live = _lignes_live_recentes()
+        self.texte_live.setText("\n".join(lignes_live))
+        self.texte_live.setVisible(bool(lignes_live))
 
         # les sorties les plus récentes, sur une fenêtre qui s'élargit jusqu'à en avoir assez
         sorties, jours = [], 60

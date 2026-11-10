@@ -64,6 +64,11 @@ MODULES = (
     Module("direct", "Suivi en direct", "Coureur",
            "Ta position en direct par téléphone sur le Wi-Fi de la maison (premier pas vers Trail Live).",
            ("ouvrir_suivi_direct",)),
+    Module("livetrack_coach", "LiveTrack coach", "Coureur",
+           "Suivre en direct, avec le lien Garmin LiveTrack, la sortie de ses coureurs : fiches coureurs, liens collés "
+           "et affichés dans l'appli, historique des suivis, sortie rattachée (analyse automatique), message "
+           "à envoyer au coureur et test de configuration. Ne lit pas les données de la page LiveTrack.",
+           ("ouvrir_livetrack_coach",)),
     Module("nutrition", "Alimentation", "Coureur",
            "Produits de course et Nutri-Score, fait maison (barres, gels, boissons), comparatif, tolérances "
            "et besoins par heure, fiches aliments.",
