@@ -69,6 +69,12 @@ MODULES = (
            "et affichés dans l'appli, historique des suivis, sortie rattachée (analyse automatique), message "
            "à envoyer au coureur et test de configuration. Ne lit pas les données de la page LiveTrack.",
            ("ouvrir_livetrack_coach",)),
+    Module("connecteurs", "Connecteurs Claude", "Coureur",
+           "Ce que Claude rapporte de tes connecteurs chaque matin, par un dossier Google Drive partagé : sorties "
+           "Strava et Garmin, récupération, records, usure des chaussures, charge de la semaine, agenda (journées "
+           "chargées), courses trouvées dans tes mails, parcours AllTrails, sécurité des trajets (TrailSync) ; et en "
+           "retour, tes demandes : séance sur la montre, événement d'agenda, playlist Spotify.",
+           ("ouvrir_connecteurs",)),
     Module("nutrition", "Alimentation", "Coureur",
            "Produits de course et Nutri-Score, fait maison (barres, gels, boissons), comparatif, tolérances "
            "et besoins par heure, fiches aliments.",

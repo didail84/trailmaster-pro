@@ -147,7 +147,7 @@ def _exception_active(date_reference):
     return None
 
 
-def contexte_fatigue_vie(date_reference=None):
+def _contexte_fatigue_rythme(date_reference=None):
     """Décrit l'impact du rythme de vie sur le jour donné (aujourd'hui
     par défaut) :
       - configure : un rythme a été renseigné dans Réglages
@@ -227,4 +227,42 @@ def contexte_fatigue_vie(date_reference=None):
         )
         resultat["texte"] = texte
 
+    return resultat
+
+
+def _agenda_du_jour(date_reference):
+    """Heures prises dans Google Agenda ce jour-là (reçues par les connecteurs Claude), ou 0."""
+    try:
+        from noyau.connecteurs import regles as RC
+        conn = connexion()
+        try:
+            lignes = conn.execute(
+                "SELECT titre, debut, fin, journee FROM connecteurs_agenda WHERE debut LIKE ?",
+                (date_reference.isoformat() + "%",)).fetchall()
+        finally:
+            conn.close()
+    except Exception:          # base ancienne sans la table, ou connecteurs jamais utilisés
+        return 0, []
+    evts = [{"titre": t, "debut": d, "fin": f, "journee": j} for t, d, f, j in lignes]
+    return RC.charge_agenda_par_jour(evts).get(date_reference.isoformat(), 0), evts
+
+
+def contexte_fatigue_vie(date_reference=None):
+    """Rythme de vie habituel (Réglages) + agenda réel du jour (Google Agenda via les connecteurs Claude).
+    Une journée très prise dans l'agenda déclenche le même léger malus qu'une journée longue."""
+    date_reference = date_reference or datetime.now().date()
+    resultat = _contexte_fatigue_rythme(date_reference)
+    heures, _evts = _agenda_du_jour(date_reference)
+    resultat["agenda_heures"] = heures
+    try:
+        from noyau.connecteurs.regles import fatigue_agenda
+        bonus = fatigue_agenda(heures)
+    except Exception:
+        bonus = 0
+    resultat["agenda_bonus"] = bonus
+    if bonus:
+        resultat["actif"] = True
+        phrase = (f"Agenda du jour (Google Agenda) : environ {str(heures).replace('.', ',')} h d'engagements, "
+                  "journée chargée à prendre en compte dans la fatigue et les conseils.")
+        resultat["texte"] = (resultat["texte"] + " " + phrase) if resultat.get("texte") else phrase
     return resultat

@@ -108,18 +108,19 @@ def test_coureur_creation_modification_suppression(base_vide):
 
 def test_suivi_lien_etats_et_remplacement(base_vide):
     cid = D.creer_coureur({"nom": "Léa"})
+    jour = (datetime.now() - timedelta(hours=12)).strftime("%Y-%m-%d")   # suivi récent : jamais « expiré probable »
     with pytest.raises(D.ErreurLiveTrack):
         D.ajouter_suivi(cid, "https://exemple.com/x")
     with pytest.raises(D.ErreurLiveTrack):
         D.ajouter_suivi(999, LIEN)
-    s1 = D.ajouter_suivi(cid, f"Voici mon lien {LIEN}", debut="2026-11-10T09:00:00")
+    s1 = D.ajouter_suivi(cid, f"Voici mon lien {LIEN}", debut=f"{jour}T09:00:00")
     assert D.ajouter_suivi(cid, LIEN) == s1                                              # même lien : pas de doublon
     assert [s["id"] for s in D.suivis_en_cours()] == [s1]
     lien2 = LIEN.replace("ABCDEF", "UVWXYZ")
-    s2 = D.ajouter_suivi(cid, lien2, debut="2026-11-10T14:00:00")
-    assert D.suivi(s1)["etat"] == "termine" and D.suivi(s1)["fin"] == "2026-11-10T14:00:00"     # le précédent est fermé
+    s2 = D.ajouter_suivi(cid, lien2, debut=f"{jour}T14:00:00")
+    assert D.suivi(s1)["etat"] == "termine" and D.suivi(s1)["fin"] == f"{jour}T14:00:00"     # le précédent est fermé
     assert D.suivi(s2)["etat"] == "en_cours" and D.coureurs()[0]["nb_suivis"] == 2
-    D.terminer_suivi(s2, "2026-11-10T15:30:00")
+    D.terminer_suivi(s2, f"{jour}T15:30:00")
     assert D.suivi(s2)["duree"] == 5400 and D.suivi(s2)["etat_libelle"] == "Terminé"
     D.reprendre_suivi(s2)
     assert D.suivi(s2)["etat"] == "en_cours" and D.suivi(s2)["fin"] is None

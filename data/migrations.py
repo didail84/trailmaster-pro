@@ -1311,6 +1311,119 @@ def _m020_livetrack_coach(cur):
         _ajouter_uuid(cur, t)
 
 
+def _m021_connecteurs_claude(cur):
+    """Connecteurs Claude : paquets reçus du pont (Strava, Garmin via Running Workout, AllTrails, TrailSync,
+    Google Agenda, Gmail, Spotify), records, charge, agenda, parcours, sécurité, playlists, et demandes envoyées
+    à Claude (séance vers la montre, événement d'agenda, playlist, recherche de parcours, contrôle de sécurité)."""
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS connecteurs_paquets (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            empreinte TEXT NOT NULL UNIQUE,
+            fichier TEXT,
+            cree_le TEXT,
+            importe_le TEXT NOT NULL,
+            athlete_id INTEGER REFERENCES athletes(id) ON DELETE SET NULL,
+            bilan_json TEXT
+        )""")
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS connecteurs_records (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            athlete_id INTEGER REFERENCES athletes(id) ON DELETE CASCADE,
+            sport TEXT NOT NULL,
+            type TEXT NOT NULL,
+            valeur REAL,
+            unite TEXT,
+            date TEXT,
+            activite_externe TEXT,
+            recu_le TEXT,
+            UNIQUE (athlete_id, sport, type)
+        )""")
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS connecteurs_charge (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            athlete_id INTEGER REFERENCES athletes(id) ON DELETE CASCADE,
+            date TEXT NOT NULL,
+            aigue REAL,
+            chronique REAL,
+            acwr REAL,
+            source TEXT,
+            UNIQUE (athlete_id, date, source)
+        )""")
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS connecteurs_agenda (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            athlete_id INTEGER REFERENCES athletes(id) ON DELETE CASCADE,
+            cle TEXT NOT NULL,
+            titre TEXT,
+            debut TEXT NOT NULL,
+            fin TEXT,
+            lieu TEXT,
+            journee INTEGER DEFAULT 0,
+            UNIQUE (athlete_id, cle)
+        )""")
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS connecteurs_parcours (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            athlete_id INTEGER REFERENCES athletes(id) ON DELETE CASCADE,
+            source TEXT NOT NULL,
+            externe_id TEXT NOT NULL,
+            nom TEXT,
+            lieu TEXT,
+            distance_m REAL,
+            denivele_m REAL,
+            difficulte TEXT,
+            type_parcours TEXT,
+            note REAL,
+            lien TEXT,
+            lat REAL,
+            lon REAL,
+            meteo TEXT,
+            recu_le TEXT,
+            favori INTEGER DEFAULT 0,
+            UNIQUE (athlete_id, source, externe_id)
+        )""")
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS connecteurs_securite (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            athlete_id INTEGER REFERENCES athletes(id) ON DELETE CASCADE,
+            trajet TEXT NOT NULL,
+            date TEXT NOT NULL,
+            niveau TEXT,
+            resume TEXT,
+            details TEXT,
+            lien TEXT,
+            UNIQUE (athlete_id, trajet, date)
+        )""")
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS connecteurs_playlists (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            athlete_id INTEGER REFERENCES athletes(id) ON DELETE CASCADE,
+            nom TEXT NOT NULL,
+            lien TEXT,
+            duree_min INTEGER,
+            seance TEXT,
+            cree_le TEXT,
+            UNIQUE (athlete_id, nom, lien)
+        )""")
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS connecteurs_demandes (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            cle TEXT NOT NULL UNIQUE,
+            athlete_id INTEGER REFERENCES athletes(id) ON DELETE CASCADE,
+            type TEXT NOT NULL,
+            titre TEXT,
+            parametres_json TEXT,
+            statut TEXT NOT NULL DEFAULT 'a_faire',
+            cree_le TEXT NOT NULL,
+            traite_le TEXT,
+            message TEXT,
+            lien TEXT
+        )""")
+    for t in ("connecteurs_paquets", "connecteurs_records", "connecteurs_charge", "connecteurs_agenda",
+              "connecteurs_parcours", "connecteurs_securite", "connecteurs_playlists", "connecteurs_demandes"):
+        _ajouter_uuid(cur, t)
+
+
 MIGRATIONS = [
     (1, "Identifiant universel (UUID) pour chaque donnée", _m001_identifiants_universels),
     (2, "Fiche Personne unique et rôles", _m002_personnes_et_roles),
@@ -1336,6 +1449,8 @@ MIGRATIONS = [
     (19, "Mise en service : recette, demandes et incidents sur les données personnelles", _m019_mise_en_service),
     (20, "LiveTrack coach : coureurs suivis, suivis en direct (lien Garmin) et tests de configuration",
      _m020_livetrack_coach),
+    (21, "Connecteurs Claude : paquets du pont, records, charge, agenda, parcours, sécurité, playlists, demandes",
+     _m021_connecteurs_claude),
 ]
 VERSION_LOGICIEL = MIGRATIONS[-1][0]
 

@@ -787,15 +787,16 @@ const ICONES = {
   analyse: '<path d="M2 14h12" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><rect x="3" y="8" width="2.4" height="5" rx=".6" fill="currentColor"/><rect x="6.8" y="5" width="2.4" height="8" rx=".6" fill="currentColor"/><rect x="10.6" y="2.5" width="2.4" height="10.5" rx=".6" fill="currentColor"/>',
   bibliotheque: '<path d="M2.5 3h3.2v10.5H2.5zM6.5 3h3.2v10.5H6.5z" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><path d="M10.6 3.6l2.9-.8 2 9.9-2.9.8z" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/>',
   actualites: '<rect x="1.8" y="2.5" width="12.4" height="11" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M4.5 5.5h7M4.5 8h7M4.5 10.5h4.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>',
+  connecteurs: '<path d="M5.5 1.8v3M10.5 1.8v3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><path d="M3.5 4.8h9v2.7a4.5 4.5 0 0 1-9 0z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="M8 12v2.4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>',
   coach: '<path d="M2.5 3.5h11v7h-6l-3 2.5v-2.5h-2z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="M5.5 6.5h5M5.5 8.5h3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>',
 };
 const RUBRIQUES = [
-  ["aujourdhui", "Aujourd'hui", "Aujourd'hui"], ["fil", "Fil d'activité", "Fil"], ["sorties", "Sorties", "Sorties"], ["forme", "Forme et charge", "Forme"],
+  ["aujourdhui", "Aujourd'hui", "Aujourd'hui"], ["fil", "Fil d'activité", "Fil"], ["connecteurs", "Connecteurs en direct", "Connect."], ["sorties", "Sorties", "Sorties"], ["forme", "Forme et charge", "Forme"],
   ["sante", "Poids et sommeil", "Santé"], ["courses", "Courses et objectifs", "Courses"], ["blessures", "Blessures et soins", "Blessures"],
   ["fractionne", "Fractionné", "Fractionné"], ["materiel", "Matériel", "Matériel"], ["nutrition", "Nutrition de course", "Nutrition"], ["club", "Club", "Club"], ["calendrier", "Calendrier des courses", "Calendrier"], ["organisation", "Organisation", "Organisation"], ["annuaire", "Annuaire trail", "Annuaire"], ["bibliotheque", "Bibliothèque trail", "Livres"], ["analyse", "Analyse", "Analyse"], ["actualites", "Actualités du trail", "Actus"], ["coach", "Demander à Claude", "Claude"],
 ];
 const icone = (k) => `<svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">${ICONES[k]}</svg>`;
-const MODULE_DE_RUBRIQUE = { sante: "suivi", blessures: "suivi", materiel: "suivi", courses: "courses", nutrition: "nutrition", fractionne: "fractionne", club: "club", annuaire: "annuaire", bibliotheque: "bibliotheque", calendrier: "calendrier", organisation: "organisation", analyse: "analyse", actualites: "actualites" };
+const MODULE_DE_RUBRIQUE = { connecteurs: "connecteurs", sante: "suivi", blessures: "suivi", materiel: "suivi", courses: "courses", nutrition: "nutrition", fractionne: "fractionne", club: "club", annuaire: "annuaire", bibliotheque: "bibliotheque", calendrier: "calendrier", organisation: "organisation", analyse: "analyse", actualites: "actualites" };
 /* le club est éteint par défaut : visible sur l'exemple, ou si le module est allumé dans le logiciel */
 function rubriqueVisible(k) { const m = MODULE_DE_RUBRIQUE[k]; if (m === "club" || m === "organisation") return etat.source === "exemple" || etat.modules[m] === true; if (m === "club") return etat.source === "exemple" || etat.modules.club === true; return !m || etat.modules[m] !== false; }
 function rubriqueCourante() { const h = location.hash.replace("#", ""); return RUBRIQUES.some((r) => r[0] === h) && rubriqueVisible(h) ? h : (h === "ouvrir" ? "ouvrir" : "aujourdhui"); }
@@ -2988,12 +2989,454 @@ function vueOuvrir() {
 }
 
 /* ================================================================
+   Connecteurs en direct (capacité « mcp » de la page Claude)
+   Strava, Garmin (Running Workout), AllTrails, TrailSync, Google Agenda,
+   Gmail, Spotify — appelés avec TES connexions claude.ai, jamais celles
+   de quelqu'un d'autre. Chaque carte gère ses propres erreurs.
+   Paquet « trailhub-connecteurs » : même format que noyau/connecteurs/regles.py.
+   ================================================================ */
+const SERVEURS = {
+  strava: ["Strava", "list_activities"], garmin: ["running-workout", "get_wellness_summary"],
+  alltrails: ["AllTrails", "find_trails_near_location"], trailsync: ["TrailSync", "scan_route_risks"],
+  agenda: ["Google Calendar", "list_events"], gmail: ["Gmail", "search_threads"], spotify: ["Spotify", "generate_playlist"],
+};
+const NOM_SERVICE = { strava: "Strava", garmin: "Garmin (Running Workout)", alltrails: "AllTrails", trailsync: "TrailSync", agenda: "Google Agenda", gmail: "Gmail", spotify: "Spotify" };
+const LIEU_DEFAUT = { nom: "L'Isle-sur-la-Sorgue", lat: 43.9194, lon: 5.0511 };
+let mcp = null, mcpPret = false, telechargements = null;
+const cx = { noms: {}, statut: {}, strava: null, records: null, materiel: null, garminProfil: null, sante: null, charge: null, agenda: null, mails: null, parcours: [], meteo: {}, securite: [], playlists: [], analyses: {}, seancesMontre: [], analyseEnCours: false };
+
+const MESSAGE_ERREUR_MCP = {
+  needs_reauth: (s) => `Reconnecte ${s} dans claude.ai, Réglages > Connecteurs.`,
+  server_not_connected: (s) => `${s} n'est pas connecté à ton compte Claude (Réglages > Connecteurs).`,
+  selection_required: (s) => `Plusieurs connecteurs « ${s} » : choisis celui à utiliser quand Claude le demande.`,
+  not_in_manifest: (s) => `${s} n'est pas autorisé pour cette page.`,
+  blocked_by_policy: (s) => `${s} est bloqué par les règles de ton organisation.`,
+  approval_required: (s) => `${s} attend ton accord : relance l'action et accepte la demande de Claude.`,
+  server_unavailable: (s) => `${s} ne répond pas pour l'instant. Réessaie dans un moment.`,
+  tool_error: (s, e) => `${s} a répondu par une erreur : ${String(e?.message || "").slice(0, 200)}`,
+  not_granted: () => "Les connecteurs ne sont pas disponibles pour cette page.",
+  capability_disabled: () => "Les connecteurs ne sont pas disponibles ici.",
+};
+function texteErreurMcp(cle, e) {
+  const s = NOM_SERVICE[cle] || cle;
+  const f = MESSAGE_ERREUR_MCP[e?.code];
+  return f ? f(s, e) : `${s} : la demande n'a pas abouti. Réessaie.`;
+}
+function texteDe(payload) {
+  if (payload == null) return "";
+  if (typeof payload === "string") return payload;
+  return JSON.stringify(payload);
+}
+async function appeler(cle, outil, entree, options) {
+  if (!mcp) throw { code: "capability_disabled" };
+  const serveur = cx.noms[cle] || SERVEURS[cle][0];
+  const r = await mcp.callTool(serveur, outil, entree, options);
+  cx.statut[cle] = "ok";
+  return r.payload;
+}
+async function relireServeurs() {
+  if (!mcp) return;
+  try {
+    const { servers } = await mcp.listTools();
+    for (const [cle, [nom, temoin]] of Object.entries(SERVEURS)) {
+      const s = servers.find((x) => x.server === nom) || servers.find((x) => (x.tools || []).some((t) => t.name === temoin));
+      if (s) { cx.noms[cle] = s.server; if (!cx.statut[cle]) cx.statut[cle] = s.authStatus === "needs_reauth" ? "reauth" : "pret"; }
+      else if (!cx.statut[cle]) cx.statut[cle] = "absent";
+    }
+  } catch (e) { /* liste indisponible : chaque carte essaiera son appel */ }
+}
+
+/* ---------- conversions vers le paquet ---------- */
+function activiteStrava(a) {
+  const s = a.summary || {};
+  return { source: "strava", id_externe: String(a.id), date: a.start_local, nom: a.name, sport: a.sport_type, distance_m: s.distance,
+    duree_s: s.moving_time, duree_totale_s: s.elapsed_time, denivele_m: s.elevation_gain, vitesse_moy_ms: s.avg_speed, vitesse_max_ms: s.max_speed,
+    calories: s.total_calories, cadence: s.avg_cadence, effort_relatif: s.relative_effort, materiel_id: a.gear_id || null, lieu: a.location_summary || null };
+}
+function lireCharge(texte) {
+  const m = String(texte || "").match(/Aigu[ëe]\s*7\s*j\s*:\s*([\d.,]+).*?Chronique\s*42\s*j\s*:\s*([\d.,]+).*?ACWR\s*([\d.,]+)/is);
+  if (!m) return null;
+  const n = (x) => Number(String(x).replace(",", "."));
+  return { date: cleJour(new Date()), aigue: n(m[1]), chronique: n(m[2]), acwr: n(m[3]), source: "Running Workout (Garmin)" };
+}
+function zoneAcwr(r) {
+  if (r == null) return ["neutre", "Pas de donnée", ""];
+  if (r < 0.8) return ["bleu", "Charge en baisse", "Tu peux remonter progressivement le volume."];
+  if (r <= 1.3) return ["vert", "Zone conseillée", "Charge bien dosée : continue ainsi."];
+  if (r <= 1.5) return ["orange", "Au-dessus de la zone conseillée", "Semaine plus chargée que d'habitude : prévois une séance facile ou un jour de repos."];
+  return ["rouge", "Hausse brutale", "Risque de blessure accru : allège nettement les 3 prochains jours."];
+}
+function heuresParJour(evts) {
+  const h = {};
+  for (const e of evts || []) {
+    const d = e.start?.dateTime || e.startTime, f = e.end?.dateTime || e.endTime;
+    if (!d || !f) continue;
+    const dd = new Date(d), ff = new Date(f);
+    if (!(ff > dd) || ff - dd > 16 * 3600000) continue;
+    const k = cleJour(dd); h[k] = (h[k] || 0) + (ff - dd) / 3600000;
+  }
+  return h;
+}
+const RECORDS_FR = { Fastest400: "400 m", Fastest1k: "1 km", FastestMile: "1 mile", Fastest5k: "5 km", Fastest10k: "10 km", FastestHalfMarathon: "Semi-marathon", FastestMarathon: "Marathon", Fastest50k: "50 km", BiggestClimb: "Plus grande montée", MostElevationGain: "Plus gros dénivelé", LongestActivity: "Plus longue sortie" };
+function texteRecord(v, u) {
+  if (v == null) return "—";
+  if (String(u || "").startsWith("second")) { const s = Math.round(v), h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), r = s % 60; return h ? `${h} h ${String(m).padStart(2, "0")} min` : `${m} min ${String(r).padStart(2, "0")} s`; }
+  if (String(u || "").startsWith("meter")) return v >= 1000 ? `${virgule(v / 1000, 2)} km` : `${entier(v)} m`;
+  return `${virgule(v, 0)} ${esc(u || "")}`;
+}
+function listeRecords(p) {
+  const res = [];
+  const parcourir = (o) => {
+    if (!o || typeof o !== "object") return;
+    if (Array.isArray(o)) { o.forEach(parcourir); return; }
+    if ((o.best_effort_type || o.type) && o.value !== undefined) { res.push({ sport: o.sport || o.sport_type || "Run", type: o.best_effort_type || o.type, valeur: o.value, unite: o.unit, date: o.date || o.start_date || o.date_set || null, activite_externe: o.activity_id ? String(o.activity_id) : null }); return; }
+    Object.values(o).forEach(parcourir);
+  };
+  parcourir(p);
+  return res;
+}
+
+/* ---------- vue ---------- */
+function carteConnecteur(id, titre, cle, corps = "") {
+  return `<div class="carte" id="cx-${id}"><header><h3>${esc(titre)}</h3><span class="etat neutre" id="cx-${id}-etat">${esc(NOM_SERVICE[cle] || "")}</span></header><div id="cx-${id}-corps">${corps || `<span class="attente"><span class="rond"></span>Chargement…</span>`}</div></div>`;
+}
+function vueConnecteurs() {
+  const sel = "border:1px solid var(--bordure);background:var(--carte);color:var(--texte);border-radius:8px;padding:6px 8px;max-width:100%";
+  const indispo = mcpPret && !mcp;
+  return `<section class="vue">
+    <div class="entete-vue"><h2>Connecteurs en direct</h2><p>Tes données Strava, Garmin, Google Agenda et Gmail lues à l'instant avec tes propres connexions Claude ; une séance envoyée sur ta montre, une playlist, un parcours, un trajet contrôlé. Le paquet en bas de page se télécharge pour le logiciel de bureau (Connecteurs Claude > Importer un paquet), qui le reçoit aussi tout seul chaque matin par Google Drive.</p></div>
+    ${indispo ? `<div class="carte"><p class="discret">Cette rubrique marche quand la page est ouverte dans Claude, connectée à ton compte. Ici, les connecteurs ne sont pas disponibles.</p></div>` : ""}
+    <div class="grille g3">
+      <div class="carte mesure"><span class="etiquette">Charge 7 j / 42 j</span><span class="valeur" id="cx-acwr">—</span><span class="detail" id="cx-acwr-detail">Garmin, via Running Workout</span></div>
+      <div class="carte mesure"><span class="etiquette">Chaussures</span><span class="valeur" id="cx-chaussure">—</span><span class="detail" id="cx-chaussure-detail">Kilométrage Strava</span></div>
+      <div class="carte mesure"><span class="etiquette">Agenda de demain</span><span class="valeur" id="cx-demain">—</span><span class="detail" id="cx-demain-detail">Google Agenda</span></div>
+    </div>
+    <div class="grille g2">
+      ${carteConnecteur("sorties", "Dernières sorties", "strava")}
+      ${carteConnecteur("analyse", "Analyse de la dernière sortie", "strava")}
+    </div>
+    <div class="grille g2">
+      ${carteConnecteur("records", "Records et matériel", "strava")}
+      ${carteConnecteur("garmin", "Récupération et séances prévues", "garmin")}
+    </div>
+    <div class="carte" id="cx-seance"><header><h3>Séance vers la montre, l'agenda et Spotify</h3><span class="etat neutre">Garmin · Google Agenda · Spotify</span></header>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center">
+        <select id="cx-type-seance" style="${sel}" aria-label="Séance">${MODELES_SEANCE.map((m, i) => `<option value="${i}">${esc(m.nom)} (${m.duree} min)</option>`).join("")}</select>
+        <input id="cx-date-seance" type="date" style="${sel}" value="${cleJour(ajouterJours(new Date(), 1))}" aria-label="Date">
+        <input id="cx-heure-seance" type="time" style="${sel}" value="18:00" aria-label="Heure">
+      </div>
+      <p class="petit discret" id="cx-seance-desc"></p>
+      <div style="display:flex;flex-wrap:wrap;gap:8px">
+        <button class="bouton principal" type="button" id="cx-montre">⌚ Envoyer sur la montre</button>
+        <button class="bouton" type="button" id="cx-agenda">📅 Ajouter à l'agenda</button>
+        <button class="bouton" type="button" id="cx-playlist">🎵 Créer la playlist</button>
+      </div>
+      <p class="petit" id="cx-seance-etat" aria-live="polite"></p>
+      <p class="petit discret">Running Workout en compte gratuit : 4 séances par mois envoyées sur la montre. Les allures se règlent sur ta fréquence cardiaque (zones Garmin) tant qu'aucune VMA n'est enregistrée chez Running Workout.</p>
+    </div>
+    <div class="grille g2">
+      <div class="carte" id="cx-parcours"><header><h3>Parcours de trail</h3><span class="etat neutre" id="cx-parcours-etat">AllTrails</span></header>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center">
+          <input id="cx-lieu" style="${sel};flex:1 1 160px" value="${esc(LIEU_DEFAUT.nom)}" aria-label="Lieu">
+          <input id="cx-lat" style="${sel};width:90px" value="${LIEU_DEFAUT.lat}" aria-label="Latitude"><input id="cx-lon" style="${sel};width:90px" value="${LIEU_DEFAUT.lon}" aria-label="Longitude">
+          <input id="cx-dist" type="number" min="0" style="${sel};width:90px" placeholder="km" aria-label="Distance voulue (km)">
+          <input id="cx-dplus" type="number" min="0" style="${sel};width:90px" placeholder="D+ m" aria-label="Dénivelé voulu (m)">
+          <button class="bouton principal" type="button" id="cx-chercher">Chercher</button>
+        </div>
+        <div id="cx-parcours-corps"><p class="vide">Indique un lieu (coordonnées) et, si tu veux, la distance et le dénivelé visés.</p></div>
+      </div>
+      <div class="carte" id="cx-securite"><header><h3>Sécurité d'un trajet</h3><span class="etat neutre" id="cx-securite-etat">TrailSync</span></header>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center">
+          <input id="cx-depart" style="${sel};flex:1 1 140px" value="${esc(LIEU_DEFAUT.nom)}, France" aria-label="Départ">
+          <input id="cx-arrivee" style="${sel};flex:1 1 140px" placeholder="Chalet Reynard, Mont Ventoux" aria-label="Arrivée">
+          <button class="bouton principal" type="button" id="cx-controler">Contrôler</button>
+        </div>
+        <div id="cx-securite-corps"><p class="vide">Feux et fumées, alertes météo, neige et nuits sous zéro sur la route d'une sortie ou d'une course. TrailSync couvre surtout les États-Unis : en France, une donnée absente est affichée « inconnue », jamais « sans risque ».</p></div>
+      </div>
+    </div>
+    <div class="grille g2">
+      ${carteConnecteur("agenda", "Agenda des 7 prochains jours", "agenda")}
+      ${carteConnecteur("mails", "Courses dans tes mails", "gmail")}
+    </div>
+    <div class="carte"><header><h3>Paquet pour le logiciel de bureau</h3></header>
+      <p class="discret petit" id="cx-paquet-resume">Il rassemble ce qui est affiché ici (sorties, records, matériel, charge, agenda, courses, parcours, sécurité, playlists, analyses). Le logiciel l'importe sans doublon.</p>
+      <div style="display:flex;flex-wrap:wrap;gap:8px"><button class="bouton principal" type="button" id="cx-telecharger">⬇︎ Télécharger le paquet</button></div>
+      <p class="petit" id="cx-paquet-etat" aria-live="polite"></p>
+    </div>
+  </section>`;
+}
+
+const MODELES_SEANCE = [
+  { nom: "Footing tranquille", duree: 45, desc: "45 min en zone 2 (aisance respiratoire).",
+    pas: [{ type: "WorkoutStep", intensity: "ACTIVE", durationType: "TIME", durationValue: 2700, targetType: "HEART_RATE_ZONE", targetValue: 2 }] },
+  { nom: "Fractionné 10 × 30/30", duree: 45, desc: "15 min d'échauffement, 10 × (30 s vite / 30 s trot), 10 min de retour au calme.",
+    pas: [{ type: "WorkoutStep", intensity: "WARMUP", durationType: "TIME", durationValue: 900, targetType: "HEART_RATE_ZONE", targetValue: 2 },
+      { type: "WorkoutRepeatStep", repeatValue: 10, steps: [{ type: "WorkoutStep", intensity: "ACTIVE", durationType: "TIME", durationValue: 30, targetType: "OPEN", description: "Vite, relâché" }, { type: "WorkoutStep", intensity: "RECOVERY", durationType: "TIME", durationValue: 30, targetType: "OPEN", description: "Trot" }] },
+      { type: "WorkoutStep", intensity: "COOLDOWN", durationType: "TIME", durationValue: 600, targetType: "HEART_RATE_ZONE", targetValue: 1 }] },
+  { nom: "Seuil 3 × 8 min", duree: 55, desc: "15 min d'échauffement, 3 × 8 min en zone 4 (récup 2 min), 10 min de retour au calme.",
+    pas: [{ type: "WorkoutStep", intensity: "WARMUP", durationType: "TIME", durationValue: 900, targetType: "HEART_RATE_ZONE", targetValue: 2 },
+      { type: "WorkoutRepeatStep", repeatValue: 3, steps: [{ type: "WorkoutStep", intensity: "ACTIVE", durationType: "TIME", durationValue: 480, targetType: "HEART_RATE_ZONE", targetValue: 4 }, { type: "WorkoutStep", intensity: "RECOVERY", durationType: "TIME", durationValue: 120, targetType: "HEART_RATE_ZONE", targetValue: 1 }] },
+      { type: "WorkoutStep", intensity: "COOLDOWN", durationType: "TIME", durationValue: 600, targetType: "HEART_RATE_ZONE", targetValue: 1 }] },
+  { nom: "Côtes 8 × 1 min", duree: 50, desc: "20 min d'échauffement, 8 × 1 min en montée appuyée (descente en trottinant), 10 min de retour au calme.",
+    pas: [{ type: "WorkoutStep", intensity: "WARMUP", durationType: "TIME", durationValue: 1200, targetType: "HEART_RATE_ZONE", targetValue: 2 },
+      { type: "WorkoutRepeatStep", repeatValue: 8, steps: [{ type: "WorkoutStep", intensity: "ACTIVE", durationType: "TIME", durationValue: 60, targetType: "OPEN", description: "Montée appuyée" }, { type: "WorkoutStep", intensity: "RECOVERY", durationType: "TIME", durationValue: 90, targetType: "OPEN", description: "Descente en trottinant" }] },
+      { type: "WorkoutStep", intensity: "COOLDOWN", durationType: "TIME", durationValue: 600, targetType: "HEART_RATE_ZONE", targetValue: 1 }] },
+  { nom: "Sortie longue trail", duree: 90, desc: "1 h 30 en zone 2, marche dans les montées raides.",
+    pas: [{ type: "WorkoutStep", intensity: "ACTIVE", durationType: "TIME", durationValue: 5400, targetType: "HEART_RATE_ZONE", targetValue: 2, description: "Marche dans les montées raides" }] },
+  { nom: "Test VMA 6 minutes", duree: 31, desc: "15 min facile, 6 min à fond et régulier, 10 min de retour au calme : la VMA se calcule ensuite.",
+    pas: [{ type: "WorkoutStep", intensity: "WARMUP", durationType: "TIME", durationValue: 900, targetType: "HEART_RATE_ZONE", targetValue: 2 },
+      { type: "WorkoutStep", intensity: "ACTIVE", durationType: "TIME", durationValue: 360, targetType: "OPEN", description: "6 min à fond, allure régulière" },
+      { type: "WorkoutStep", intensity: "COOLDOWN", durationType: "TIME", durationValue: 600, targetType: "HEART_RATE_ZONE", targetValue: 1 }] },
+];
+
+/* ---------- remplissage ---------- */
+function poserEtat(id, classe, texte) { const e = $(`#cx-${id}-etat`); if (e) { e.className = `etat ${classe}`; e.textContent = texte; } }
+function poserCorps(id, html) { const c = $(`#cx-${id}-corps`); if (c) c.innerHTML = html; }
+function erreurCarte(id, cle, e) { poserEtat(id, "rouge", "Indisponible"); poserCorps(id, `<p class="discret">${esc(texteErreurMcp(cle, e))}</p>`); }
+
+async function chargerSorties() {
+  try {
+    const p = await appeler("strava", "list_activities", { first: 15 });
+    cx.strava = Array.isArray(p?.activities) ? p.activities : [];
+    poserEtat("sorties", "vert", "Strava");
+    poserCorps("sorties", cx.strava.length ? cx.strava.slice(0, 8).map((a) => {
+      const s = a.summary || {}, d = parseDate(a.start_local);
+      return `<div class="ligne"><span><span class="titre">${esc(a.name)}</span><br><span class="sous discret petit">${esc(fmtJourLong(d))} · ${esc(a.sport_type || "")}${a.location_summary ? " · " + esc(a.location_summary) : ""}</span></span><span class="droite"><span class="chiffre">${virgule((s.distance || 0) / 1000, 1)} km</span><br><span class="sous petit discret">${s.elevation_gain ? "+" + entier(s.elevation_gain) + " m · " : ""}${duree(s.moving_time)}${/Run|Hike|Walk/.test(a.sport_type || "") ? " · " + allure(s.moving_time, (s.distance || 0) / 1000) : ""}</span></span></div>`;
+    }).join("") : `<p class="vide">Aucune sortie sur Strava.</p>`);
+    analyserDerniere();
+  } catch (e) { erreurCarte("sorties", "strava", e); poserCorps("analyse", `<p class="discret">L'analyse attend les sorties Strava.</p>`); }
+}
+
+/* analyse automatique, sans bouton : à l'ouverture de la rubrique, pour la dernière sortie */
+async function analyserDerniere() {
+  const a = (cx.strava || [])[0];
+  if (!a) { poserCorps("analyse", `<p class="vide">Pas de sortie à analyser.</p>`); return; }
+  if (!echantillonPret) { setTimeout(analyserDerniere, 800); return; }
+  if (!echantillon) { poserEtat("analyse", "neutre", "Claude absent"); poserCorps("analyse", `<p class="discret">L'analyse par Claude marche quand la page est ouverte dans Claude.</p>`); return; }
+  const s = a.summary || {};
+  const contexte = {
+    sortie: { nom: a.name, sport: a.sport_type, date: a.start_local, lieu: a.location_summary, distance_km: +((s.distance || 0) / 1000).toFixed(2), duree_min: Math.round((s.moving_time || 0) / 60), denivele_m: s.elevation_gain, allure: s.distance ? allure(s.moving_time, s.distance / 1000) : null, effort_relatif: s.relative_effort, cadence_pas_min: s.avg_cadence ? Math.round(s.avg_cadence * 2) : null, records_battus: s.pr_count },
+    semaine_precedente: (cx.strava || []).slice(1, 8).map((x) => ({ date: x.start_local, sport: x.sport_type, km: +(((x.summary || {}).distance || 0) / 1000).toFixed(1), d_plus: (x.summary || {}).elevation_gain, effort: (x.summary || {}).relative_effort })),
+    charge: cx.charge, coureur: "Didier, trail, montre Garmin Fenix 6 Pro, se lève tôt, journées chantier/bureau",
+  };
+  const prompt = `Tu es le coach trail de Didier. Analyse sa dernière sortie en français, en 5 à 7 phrases courtes, tutoiement, sans titre ni liste : ce qui s'est bien passé, ce qui mérite attention (effort relatif, enchaînement avec la semaine, charge si donnée), et un conseil concret pour les 48 prochaines heures. Dis clairement quand un chiffre est une estimation. N'invente aucune donnée absente.\n\nDonnées (JSON) :\n${JSON.stringify(contexte)}`;
+  poserEtat("analyse", "bleu", "Claude · estimation");
+  poserCorps("analyse", `<p class="petit discret">${esc(a.name)} — ${esc(fmtJourLong(parseDate(a.start_local)))}</p><p id="cx-analyse-texte"><span class="attente"><span class="rond"></span>Claude analyse la sortie…</span></p>`);
+  try {
+    const { text } = await echantillon(prompt, { cache: { gcTime: 86400000 }, onText: ({ text }) => { const t = $("#cx-analyse-texte"); if (t) t.textContent = text; } });
+    const t = $("#cx-analyse-texte"); if (t) t.textContent = text;
+    cx.analyses[String(a.id)] = text;
+  } catch (e) {
+    const t = $("#cx-analyse-texte");
+    if (t) t.textContent = { not_granted: "Claude n'a pas été autorisé pour cette page.", sampling_disabled: "Claude n'est pas disponible pour ce compte.", rate_limited: "Trop de demandes : l'analyse reviendra à la prochaine ouverture." }[e?.code] || "L'analyse n'a pas pu arriver.";
+  }
+}
+
+async function chargerRecordsMateriel() {
+  const morceaux = [];
+  try {
+    const g = await appeler("strava", "get_gear", {});
+    cx.materiel = (g?.gear || []).map((x) => ({ id: x.gear_id?.id, type: x.gear_id?.gear_type, nom: x.name || null, marque: x.brand || null, modele: x.model_name || null, distance_m: x.total_distance, retire: !!x.retired }));
+    const ch = cx.materiel.filter((m) => m.type === "Shoe" && !m.retire).sort((a, b) => b.distance_m - a.distance_m)[0];
+    if (ch) {
+      const km = ch.distance_m / 1000, pct = Math.round(100 * km / 700);
+      $("#cx-chaussure").textContent = `${entier(km)} km`;
+      $("#cx-chaussure-detail").textContent = `${[ch.marque, ch.modele].filter(Boolean).join(" ") || ch.nom} : ${pct >= 100 ? "à changer" : pct >= 85 ? "bientôt à changer" : "bon état"}, encore ~${entier(Math.max(0, 700 - km))} km (repère 700 km).`;
+    }
+    morceaux.push(`<div class="tableau-cadre"><table><thead><tr><th>Matériel</th><th>Km</th></tr></thead><tbody>${cx.materiel.map((m) => `<tr><td>${esc([m.marque, m.modele].filter(Boolean).join(" ") || m.nom || "")}${m.retire ? " (retiré)" : ""}</td><td class="num">${entier((m.distance_m || 0) / 1000)}</td></tr>`).join("")}</tbody></table></div>`);
+  } catch (e) { morceaux.push(`<p class="discret">${esc(texteErreurMcp("strava", e))}</p>`); }
+  try {
+    const r = await appeler("strava", "get_athlete_best_efforts", { sports: ["Run", "TrailRun"] });
+    cx.records = listeRecords(r);
+    morceaux.unshift(cx.records.length ? `<div class="tableau-cadre"><table><thead><tr><th>Record</th><th>Temps / valeur</th><th>Date</th></tr></thead><tbody>${cx.records.map((x) => `<tr><td>${esc(RECORDS_FR[x.type] || x.type)} <span class="discret petit">${esc(x.sport)}</span></td><td class="num">${texteRecord(x.valeur, x.unite)}</td><td>${esc(x.date ? fmtJour(parseDate(x.date)) : "")}</td></tr>`).join("")}</tbody></table></div>` : `<p class="vide">Pas encore de record sur Strava.</p>`);
+  } catch (e) { morceaux.unshift(`<p class="discret">${esc(texteErreurMcp("strava", e))}</p>`); }
+  poserEtat("records", "vert", "Strava");
+  poserCorps("records", morceaux.join(""));
+}
+
+async function chargerGarmin() {
+  const morceaux = [];
+  try {
+    const p = texteDe(await appeler("garmin", "get_athlete_profile", { sport: "RUNNING", includeNotes: 0 }));
+    cx.garminProfil = p;
+    cx.charge = lireCharge(p);
+    if (cx.charge) {
+      const [cl, lib, conseil] = zoneAcwr(cx.charge.acwr);
+      $("#cx-acwr").textContent = virgule(cx.charge.acwr, 2);
+      $("#cx-acwr-detail").innerHTML = `<span class="etat ${cl}">${esc(lib)}</span> ${esc(conseil)} <span class="discret">(zone conseillée 0,8 à 1,3 ; aiguë ${entier(cx.charge.aigue)}, chronique ${entier(cx.charge.chronique)})</span>`;
+    }
+  } catch (e) { morceaux.push(`<p class="discret">${esc(texteErreurMcp("garmin", e))}</p>`); }
+  try {
+    const w = texteDe(await appeler("garmin", "get_wellness_summary", { days: 7 }));
+    cx.sante = w;
+    morceaux.push(`<h4 class="etiquette" style="margin:10px 0 2px">Récupération (7 jours)</h4><p class="petit" style="white-space:pre-wrap">${esc(w.slice(0, 1200))}</p>`);
+  } catch (e) { morceaux.push(`<p class="discret">${esc(texteErreurMcp("garmin", e))}</p>`); }
+  try {
+    const d0 = cleJour(new Date()), d1 = cleJour(ajouterJours(new Date(), 21));
+    const s = texteDe(await appeler("garmin", "list_scheduled_workouts", { startDate: d0, endDate: d1 }));
+    morceaux.push(`<h4 class="etiquette" style="margin:10px 0 2px">Séances au calendrier Garmin (3 semaines)</h4><p class="petit" style="white-space:pre-wrap">${esc(s.slice(0, 1200))}</p>`);
+  } catch (e) { morceaux.push(`<p class="discret">${esc(texteErreurMcp("garmin", e))}</p>`); }
+  poserEtat("garmin", "vert", "Garmin");
+  poserCorps("garmin", morceaux.join(""));
+}
+
+async function chargerAgenda() {
+  try {
+    const debut = new Date(), fin = ajouterJours(debut, 7);
+    const iso = (d) => `${cleJour(d)}T00:00:00`;
+    const p = await appeler("agenda", "list_events", { startTime: iso(debut), endTime: iso(fin), orderBy: "startTime", pageSize: 100 });
+    const evts = Array.isArray(p?.items) ? p.items : Array.isArray(p?.events) ? p.events : [];
+    cx.agenda = evts.map((e) => ({ cle: e.id || `${e.start?.dateTime || e.start?.date}|${e.summary}`, titre: e.summary || "(sans titre)", debut: e.start?.dateTime || e.start?.date, fin: e.end?.dateTime || e.end?.date, lieu: e.location || null, journee: !e.start?.dateTime }));
+    const h = heuresParJour(evts), demain = cleJour(ajouterJours(new Date(), 1)), hd = h[demain] || 0;
+    $("#cx-demain").textContent = `${virgule(hd, hd % 1 ? 1 : 0)} h`;
+    $("#cx-demain-detail").textContent = hd >= 9 ? "Journée chargée : prévois une séance facile ou un jour de repos." : "Journée normale dans l'agenda.";
+    poserEtat("agenda", "vert", "Google Agenda");
+    poserCorps("agenda", cx.agenda.length ? cx.agenda.map((e) => `<div class="ligne"><span><span class="titre">${esc(e.titre)}</span><br><span class="sous petit discret">${esc(e.journee ? fmtJourLong(parseDate(e.debut)) + " · journée" : fmtJourLong(new Date(e.debut)) + " · " + new Date(e.debut).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }))}</span></span><span class="droite petit discret">${esc(e.lieu || "")}</span></div>`).join("") : `<p class="vide">Rien dans l'agenda ces 7 prochains jours.</p>`);
+  } catch (e) { erreurCarte("agenda", "agenda", e); }
+}
+
+async function chargerMails() {
+  try {
+    const p = await appeler("gmail", "search_threads", { query: '(inscription OR dossard OR "confirmation d\'inscription" OR "infos course") (trail OR course OR km OR marathon) newer_than:365d', pageSize: 20, view: "THREAD_VIEW_SUMMARY" });
+    const fils = Array.isArray(p?.threads) ? p.threads : [];
+    cx.mails = fils.map((t) => { const m = (t.messages || [])[0] || {}; return { sujet: m.subject || "", expediteur: m.sender || "", date: m.date || null, lien: t.viewUrl || m.viewUrl || null }; });
+    poserEtat("mails", "vert", "Gmail");
+    poserCorps("mails", cx.mails.length ? cx.mails.map((m) => `<div class="actu">${m.lien && String(m.lien).startsWith("https://") ? `<a class="titre" href="${esc(m.lien)}" target="_blank" rel="noopener">${esc(m.sujet)}</a>` : `<span class="titre">${esc(m.sujet)}</span>`}<span class="sous">${esc(m.expediteur)}${m.date ? " · " + esc(fmtJour(new Date(m.date))) : ""}</span></div>`).join("") + `<p class="petit discret">Le logiciel ajoute à « Courses à venir » les courses que Claude retrouve dans ces mails (nom, date, lieu) au passage du matin.</p>` : `<p class="vide">Aucun mail d'inscription trouvé sur un an.</p>`);
+  } catch (e) { erreurCarte("mails", "gmail", e); }
+}
+
+async function chercherParcours() {
+  const corps = $("#cx-parcours-corps"), lat = Number(String($("#cx-lat").value).replace(",", ".")), lon = Number(String($("#cx-lon").value).replace(",", "."));
+  if (!isFinite(lat) || !isFinite(lon)) { corps.innerHTML = `<p class="discret">Coordonnées illisibles.</p>`; return; }
+  const filtres = { activity: ["trail-running"] }, km = Number($("#cx-dist").value), dp = Number($("#cx-dplus").value);
+  if (km > 0) filtres.length = { min: Math.max(1000, km * 750), max: km * 1250 };
+  if (dp > 0) filtres.elevation_gain = { min: Math.max(0, dp * 0.7), max: dp * 1.3 };
+  corps.innerHTML = `<span class="attente"><span class="rond"></span>Recherche…</span>`;
+  try {
+    const p = await appeler("alltrails", "find_trails_near_location", { input: { latitude: lat, longitude: lon, max_radius_meters: 25000, limit: 10, locale: "fr-FR", filters: filtres } });
+    const lieu = $("#cx-lieu").value.trim();
+    const t = Array.isArray(p?.trails) ? p.trails : [];
+    cx.parcours = t.map((x) => ({ source: "AllTrails", id: String(x.id), nom: x.name, lieu: x.location_label || lieu, distance_m: x.length_meters, denivele_m: x.elevation_gain_meters, difficulte: x.difficulty, type_parcours: x.route_type, note: x.avg_rating, lien: x.alltrails_web_url, lat: null, lon: null }));
+    $("#cx-parcours-etat").className = "etat vert";
+    corps.innerHTML = cx.parcours.length ? cx.parcours.map((x, i) => `<div class="actu">${String(x.lien || "").startsWith("https://") ? `<a class="titre" href="${esc(x.lien)}" target="_blank" rel="noopener">${esc(x.nom)}</a>` : `<span class="titre">${esc(x.nom)}</span>`}<span class="sous">${esc(x.lieu || "")} · ${virgule((x.distance_m || 0) / 1000, 1)} km · +${entier(x.denivele_m)} m · ${esc(x.difficulte || "")} · ${esc(x.type_parcours || "")}${x.note ? " · ★ " + virgule(x.note, 1) : ""}</span><span class="sous" id="cx-meteo-${i}"><button class="puce" type="button" data-meteo="${i}">Météo 7 jours</button></span></div>`).join("") : `<p class="vide">Aucun parcours de trail trouvé avec ces critères : élargis la distance ou le dénivelé.</p>`;
+    corps.querySelectorAll("[data-meteo]").forEach((b) => b.onclick = () => meteoParcours(+b.dataset.meteo));
+  } catch (e) { $("#cx-parcours-etat").className = "etat rouge"; corps.innerHTML = `<p class="discret">${esc(texteErreurMcp("alltrails", e))}</p>`; }
+}
+async function meteoParcours(i) {
+  const x = cx.parcours[i], zone = $(`#cx-meteo-${i}`);
+  if (!x || !zone) return;
+  zone.innerHTML = `<span class="attente"><span class="rond"></span>Météo…</span>`;
+  try {
+    const p = await appeler("alltrails", "get_trail_weather_overview", { input: { trail_id: Number(x.id), units: "m", locale: "fr-FR" } });
+    const jours = Array.isArray(p?.forecast) ? p.forecast : Array.isArray(p?.days) ? p.days : Array.isArray(p?.daily) ? p.daily : null;
+    const txt = jours ? jours.slice(0, 7).map((j) => `${j.date || j.day || ""} ${j.high ?? j.max ?? j.high_temp ?? ""}°/${j.low ?? j.min ?? j.low_temp ?? ""}° ${j.condition || j.summary || ""}`.trim()).join(" · ") : texteDe(p).slice(0, 400);
+    x.meteo = txt; zone.textContent = txt;
+  } catch (e) { zone.textContent = texteErreurMcp("alltrails", e); }
+}
+
+async function controlerTrajet() {
+  const corps = $("#cx-securite-corps"), de = $("#cx-depart").value.trim(), a = $("#cx-arrivee").value.trim();
+  if (!de || !a) { corps.innerHTML = `<p class="discret">Indique le départ et l'arrivée.</p>`; return; }
+  corps.innerHTML = `<span class="attente"><span class="rond"></span>Contrôle du trajet…</span>`;
+  const blocs = [], resume = [];
+  let niveau = "inconnu";
+  for (const [outil, titre, entree] of [["scan_route_risks", "Feux, fumées, alertes météo", { from: de, to: a, corridor_mi: 15 }], ["scan_winter_conditions", "Neige, gel et routes d'hiver", { from: de, to: a, days: 3 }]]) {
+    try {
+      const p = await appeler("trailsync", outil, entree);
+      const t = typeof p === "string" ? p : JSON.stringify(p, null, 1);
+      blocs.push(`<h4 class="etiquette" style="margin:10px 0 2px">${esc(titre)}</h4><p class="petit" style="white-space:pre-wrap;max-height:220px;overflow:auto">${esc(t.slice(0, 2500))}</p>`);
+      resume.push(`${titre} : ${t.replace(/\s+/g, " ").slice(0, 160)}`);
+      if (/warning|alerte|red flag|closure|avalanche|chain/i.test(t)) niveau = "vigilance"; else if (niveau === "inconnu") niveau = "rien de signalé";
+    } catch (e) { blocs.push(`<p class="discret">${esc(texteErreurMcp("trailsync", e))}</p>`); }
+  }
+  cx.securite.push({ trajet: `${de} → ${a}`, date: cleJour(new Date()), niveau, resume: resume.join(" | ").slice(0, 900), details: null, lien: null });
+  $("#cx-securite-etat").className = `etat ${niveau === "vigilance" ? "orange" : "vert"}`;
+  corps.innerHTML = blocs.join("") + `<p class="petit discret">Une donnée absente veut dire « inconnue », jamais « sans risque ». En France, vérifie aussi Météo-France (vigilances) et la préfecture (accès aux massifs en été).</p>`;
+}
+
+function modeleChoisi() { return MODELES_SEANCE[+$("#cx-type-seance").value] || MODELES_SEANCE[0]; }
+async function envoyerMontre() {
+  const m = modeleChoisi(), j = $("#cx-date-seance").value, et = $("#cx-seance-etat"), b = $("#cx-montre");
+  b.disabled = true; et.textContent = "Envoi sur Garmin Connect…";
+  try {
+    const p = await appeler("garmin", "create_workout", { workout: { workoutName: m.nom, sport: "RUNNING", description: m.desc, segments: [{ segmentOrder: 1, steps: m.pas }] }, scheduledDate: j || undefined });
+    et.textContent = `✓ ${texteDe(p).slice(0, 300)} — elle arrive sur la montre à la prochaine synchronisation.`;
+    cx.seancesMontre.push({ nom: m.nom, date: j });
+  } catch (e) { et.textContent = texteErreurMcp("garmin", e) + (e?.code === "server_unavailable" || e?.code === "upstream_error" ? " Vérifie dans Garmin Connect avant de renvoyer (la séance a pu partir)." : ""); }
+  finally { b.disabled = false; }
+}
+async function ajouterAgenda() {
+  const m = modeleChoisi(), j = $("#cx-date-seance").value, h = $("#cx-heure-seance").value || "18:00", et = $("#cx-seance-etat"), b = $("#cx-agenda");
+  if (!j) { et.textContent = "Choisis la date."; return; }
+  const debut = new Date(`${j}T${h}:00`), fin = new Date(debut.getTime() + m.duree * 60000);
+  const loc = (d) => `${cleJour(d)}T${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}:00`;
+  b.disabled = true; et.textContent = "Ajout à Google Agenda…";
+  try {
+    const p = await appeler("agenda", "create_event", { summary: `🏃 ${m.nom}`, startTime: loc(debut), endTime: loc(fin), description: `${m.desc}\nSéance préparée par Trail Hub Center.`, overrideReminders: [{ method: "popup", minutes: 60 }] });
+    const lien = p?.htmlLink || p?.viewUrl;
+    et.innerHTML = `✓ Ajoutée à l'agenda le ${esc(fmtJourLong(debut))} à ${esc(h)}.${lien && String(lien).startsWith("https://") ? ` <a href="${esc(lien)}" target="_blank" rel="noopener">Ouvrir</a>` : ""}`;
+  } catch (e) { et.textContent = texteErreurMcp("agenda", e); }
+  finally { b.disabled = false; }
+}
+async function creerPlaylist() {
+  const m = modeleChoisi(), et = $("#cx-seance-etat"), b = $("#cx-playlist");
+  b.disabled = true; et.textContent = "Création de la playlist…";
+  const prompt = `Crée une playlist de ${m.duree} minutes de funk et disco des années 80 et 90, dansante et entraînante, pour ma séance de course « ${m.nom} ».`;
+  try {
+    const p = await appeler("spotify", "generate_playlist", { prompt, language: "fr-FR" });
+    const lien = p?.playlist?.url || p?.url || p?.deep_link || p?.playlist_url || p?.playlist?.external_url;
+    const nom = p?.playlist?.name || p?.name || `Playlist ${m.nom}`;
+    cx.playlists.push({ nom, lien: lien && String(lien).startsWith("https://") ? lien : null, duree_min: m.duree, seance: m.nom });
+    et.innerHTML = lien && String(lien).startsWith("https://") ? `✓ Playlist « ${esc(nom)} » créée. <a href="${esc(lien)}" target="_blank" rel="noopener">Ouvrir dans Spotify</a>` : `✓ ${esc(texteDe(p).slice(0, 300))}`;
+  } catch (e) { et.textContent = texteErreurMcp("spotify", e) + " (La création de playlist demande Spotify Premium.)"; }
+  finally { b.disabled = false; }
+}
+
+function construirePaquet() {
+  return {
+    format: "trailhub-connecteurs", version: 1, cree_le: new Date().toISOString().slice(0, 19), source: "Page Claude — Connecteurs en direct",
+    activites: (cx.strava || []).map(activiteStrava), records: cx.records || [], materiel: cx.materiel || [], charge: cx.charge || undefined,
+    agenda: cx.agenda || [], parcours: cx.parcours.map((p) => ({ ...p })), securite: cx.securite, playlists: cx.playlists,
+    analyses: Object.entries(cx.analyses).map(([id_externe, texte]) => ({ id_externe, source: "strava", texte })),
+  };
+}
+async function telechargerPaquet() {
+  const et = $("#cx-paquet-etat"), p = construirePaquet();
+  const n = p.activites.length + p.records.length + p.materiel.length + p.agenda.length + p.parcours.length + p.securite.length + p.playlists.length;
+  if (!n && !p.charge) { et.textContent = "Rien à mettre dans le paquet pour l'instant : attends que les cartes se remplissent."; return; }
+  const nom = `trailhub-connecteurs-${cleJour(new Date())}-${String(new Date().getHours()).padStart(2, "0")}${String(new Date().getMinutes()).padStart(2, "0")}.json`;
+  const texte = JSON.stringify(p, null, 1);
+  try {
+    if (!telechargements) throw { code: "absent" };
+    await telechargements.save({ filename: nom, data: new Blob([texte], { type: "application/json" }) });
+    et.textContent = `✓ ${nom} : ${p.activites.length} sortie(s), ${p.records.length} record(s), ${p.materiel.length} matériel(s), ${p.agenda.length} événement(s), ${p.parcours.length} parcours. Dans le logiciel : Connecteurs Claude > Pont > Importer un paquet.`;
+  } catch (e) {
+    et.textContent = e?.code === "absent" ? "Le téléchargement n'est pas disponible ici : ouvre la page dans Claude." : "Téléchargement annulé ou refusé.";
+  }
+}
+
+let connecteursCharges = false;
+function brancherConnecteurs() {
+  $("#cx-seance-desc").textContent = modeleChoisi().desc;
+  $("#cx-type-seance").onchange = () => { $("#cx-seance-desc").textContent = modeleChoisi().desc; };
+  $("#cx-montre").onclick = envoyerMontre; $("#cx-agenda").onclick = ajouterAgenda; $("#cx-playlist").onclick = creerPlaylist;
+  $("#cx-chercher").onclick = chercherParcours; $("#cx-controler").onclick = controlerTrajet; $("#cx-telecharger").onclick = telechargerPaquet;
+  if (!mcpPret) return;               // la suite part quand la connexion à Claude est prête
+  if (!mcp) { ["sorties", "analyse", "records", "garmin", "agenda", "mails"].forEach((id) => { poserEtat(id, "neutre", "Indisponible"); poserCorps(id, `<p class="discret">Disponible quand la page est ouverte dans Claude.</p>`); }); return; }
+  if (connecteursCharges) { reafficherConnecteurs(); return; }
+  connecteursCharges = true;
+  relireServeurs().then(() => Promise.allSettled([chargerGarmin(), chargerSorties(), chargerRecordsMateriel(), chargerAgenda(), chargerMails()]));
+}
+/* revenir sur la rubrique sans tout relancer : on relance simplement (les lectures sont rapides et à jour) */
+function reafficherConnecteurs() { connecteursCharges = false; brancherConnecteurs(); }
+
+/* ================================================================
    Assemblage
    ================================================================ */
 function rendreTout() {
   rendreSource(); rendreNav();
   const r = rubriqueCourante(), c = $("#contenu");
-  const vues = { aujourdhui: vueAujourdhui, fil: vueFil, sorties: vueSorties, forme: vueForme, sante: vueSante, courses: vueCourses, blessures: vueBlessures, fractionne: vueFractionne, club: vueClub, annuaire: vueAnnuaire, bibliotheque: vueBibliotheque, calendrier: vueCalendrier, organisation: vueOrganisation, analyse: vueAnalyse, actualites: vueActualites, materiel: vueMateriel, nutrition: vueNutrition, coach: vueCoach, ouvrir: vueOuvrir };
+  const vues = { aujourdhui: vueAujourdhui, fil: vueFil, connecteurs: vueConnecteurs, sorties: vueSorties, forme: vueForme, sante: vueSante, courses: vueCourses, blessures: vueBlessures, fractionne: vueFractionne, club: vueClub, annuaire: vueAnnuaire, bibliotheque: vueBibliotheque, calendrier: vueCalendrier, organisation: vueOrganisation, analyse: vueAnalyse, actualites: vueActualites, materiel: vueMateriel, nutrition: vueNutrition, coach: vueCoach, ouvrir: vueOuvrir };
   c.innerHTML = vues[r]() + `<p class="pied">Trail Hub Center · page de consultation · les données affichées viennent de ${etat.source === "fichier" ? "ta base" : "l'exemple intégré"}.</p>`;
   if (r === "sorties") { dessinerCalendrier(); rendreDetailSortie(); brancherSorties(); }
   if (r === "forme") dessinerForme();
@@ -3001,6 +3444,7 @@ function rendreTout() {
   if (r === "coach") brancherCoach();
   if (r === "ouvrir") brancherDepot();
   if (r === "fil") brancherFil();
+  if (r === "connecteurs") brancherConnecteurs();
   if (r === "nutrition") brancherNutrition();
   if (r === "materiel") brancherMateriel();
   if (r === "fractionne") brancherFractionne();
@@ -3054,6 +3498,10 @@ rendreTout();
 (async () => {
   try { echantillon = window.claude?.use ? await window.claude.use("sample") : null; } catch (e) { echantillon = null; }
   echantillonPret = true;
+  try { mcp = window.claude?.use ? await window.claude.use("mcp") : null; } catch (e) { mcp = null; }
+  try { telechargements = window.claude?.use ? await window.claude.use("downloads") : null; } catch (e) { telechargements = null; }
+  mcpPret = true;
+  if (rubriqueCourante() === "connecteurs") rendreTout();
   brancherLectures();
   if (rubriqueCourante() === "fil") brancherFil();
   if (rubriqueCourante() === "coach") { const etatTxt = $("#coach-etat"), env = $("#envoyer"); if (etatTxt) etatTxt.textContent = echantillon ? "" : "Cette fonction marche quand la page est ouverte dans Claude, connecté à ton compte. Ici, elle n'est pas disponible."; if (env) env.disabled = !echantillon; }

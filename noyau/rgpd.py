@@ -105,6 +105,17 @@ def registre(modules_actifs=None):
                   "destinataires": "l'entraîneur seulement ; rien n'est envoyé à Garmin ni ailleurs par le logiciel",
                   "duree": "lien effacé 30 jours après la fin du suivi ; historique gardé jusqu'à la suppression du coureur",
                   "securite": secu})
+    if "connecteurs" in actifs:
+        t.append({"traitement": "Connecteurs Claude (Strava, Garmin, Google, Spotify, AllTrails, TrailSync)", "finalite":
+                  "rapatrier ses propres sorties, sa récupération, son agenda et ses inscriptions ; envoyer ses séances "
+                  "sur sa montre, son agenda et Spotify", "personnes": "le coureur titulaire des comptes connectés",
+                  "donnees": "sorties, récupération (sommeil, VFC, FC de repos), matériel, records, événements d'agenda, "
+                  "courses trouvées dans les mails (nom, date, lieu), parcours recherchés, trajets contrôlés",
+                  "base_legale": "consentement (le coureur connecte lui-même ses comptes à Claude)",
+                  "destinataires": "le coureur ; Claude (Anthropic) et les services connectés, à sa demande ; le "
+                  "dossier Google Drive partagé du coureur",
+                  "duree": "jusqu'à la suppression par le coureur ; les paquets du dossier partagé peuvent être "
+                  "effacés après import", "securite": secu})
     if "photos_dossard" in actifs:
         t.append({"traitement": "Photos par dossard", "finalite": "rendre à chaque coureur ses photos de course",
                   "personnes": "coureurs photographiés", "donnees": "photos, numéro de dossard lu (pas de "

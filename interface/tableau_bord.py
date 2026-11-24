@@ -147,6 +147,7 @@ class TableauBord(QMainWindow):
                 ("📋  Historique des activités", self.ouvrir_historique_activites, False),
                 ("📡  Suivi en direct", self.ouvrir_suivi_direct, False),
                 ("🔗  LiveTrack coach", self.ouvrir_livetrack_coach, False),
+                ("🔌  Connecteurs Claude", self.ouvrir_connecteurs, False),
                 ("🗺️  Cartes && Traces", self.ouvrir_cartes_et_traces, False),
                 ("📷  Photos", self.ouvrir_photos, False),
                 ("📅  Planification", self.ouvrir_planification, False),
@@ -381,6 +382,9 @@ class TableauBord(QMainWindow):
         if not os.environ.get("TRAILHUB_SANS_ANALYSE_AUTO"):
             from interface.analyse_auto import service as service_analyses
             service_analyses().demarrer()
+            # Connecteurs Claude : lecture du dossier partagé (Google Drive) au démarrage puis toutes les 30 min
+            from interface.connecteurs import service as service_pont
+            service_pont().demarrer()
 
         # =========================
         # STYLE
@@ -1607,6 +1611,10 @@ class TableauBord(QMainWindow):
             "livetrack_coach",
             lambda: LiveTrackCoachFenetre(athlete_id_initial=self.athlete_actif_id),
         )
+    def ouvrir_connecteurs(self):
+        from interface.connecteurs import ConnecteursFenetre
+        self._ouvrir_ou_activer("connecteurs", lambda: ConnecteursFenetre(athlete_id_initial=self.athlete_actif_id))
+
     def ouvrir_personnes(self):
         fenetre = self._ouvrir_ou_activer(
             "compte", lambda: Compte(athlete_id_initial=self.athlete_actif_id)
@@ -1808,6 +1816,8 @@ class TableauBord(QMainWindow):
             ("Historique des activités", "sorties liste", self.ouvrir_historique_activites),
             ("Suivi en direct", "live", self.ouvrir_suivi_direct),
             ("LiveTrack coach", "garmin livetrack lien suivre coureur entraineur direct fc coach", self.ouvrir_livetrack_coach),
+            ("Connecteurs Claude", "strava garmin alltrails trailsync agenda google gmail spotify playlist montre drive pont "
+             "records chaussures charge acwr parcours securite", self.ouvrir_connecteurs),
             ("Cartes & Traces", "carte parcours gpx", self.ouvrir_cartes_et_traces),
             ("Photos", "album images", self.ouvrir_photos),
             ("Planification", "plan calendrier seances", self.ouvrir_planification),
