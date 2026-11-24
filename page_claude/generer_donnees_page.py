@@ -7,6 +7,7 @@ calculer exactement comme lui :
   - fractionné : bibliothèque des séances types ;
   - calendrier : disciplines FFA, régions, statuts des inscriptions ;
   - annuaire : clubs, écoles, magasins et marques de la base livrée ;
+  - bibliothèque : livres et documents de référence ;
   - club : catégories FFA, types de licence, pièces de santé, statuts, vacances
     scolaires et types de séances de l'agenda.
 
@@ -30,7 +31,7 @@ from noyau.entrainement import fractionne as efr                                
 from noyau.club import categories as ccat, adhesions as cadh, agenda as cag              # noqa: E402
 
 PAGE = RACINE / "page_claude" / "trail_hub_center.html"
-REPERES = {"NUTRITION": None, "MATERIEL": None, "FRACTIONNE": None, "CLUB": None, "ANNUAIRE": None, "CALENDRIER": None}
+REPERES = {"NUTRITION": None, "MATERIEL": None, "FRACTIONNE": None, "CLUB": None, "ANNUAIRE": None, "CALENDRIER": None, "BIBLIOTHEQUE": None}
 
 
 def donnees():
@@ -81,6 +82,12 @@ def donnees_annuaire():
             "marques": [[x["nom"], x["pays"], x["categories"], x.get("groupe")] for x in ref["marques"]]}
 
 
+def donnees_bibliotheque():
+    from noyau.bibliotheque import regles as br
+    ref = br.lire_reference()
+    return {"version": ref["version"], "themes": ref["themes"], "livres": ref["livres"]}
+
+
 def donnees_calendrier():
     from noyau.calendrier import regles as cr
     from noyau.organisation import regles as orr
@@ -93,7 +100,7 @@ def donnees_calendrier():
 def bloc(nom):
     contenu = {"NUTRITION": donnees, "MATERIEL": donnees_materiel, "FRACTIONNE": donnees_fractionne,
                "CLUB": donnees_club, "ANNUAIRE": donnees_annuaire,
-               "CALENDRIER": donnees_calendrier}[nom]()
+               "CALENDRIER": donnees_calendrier, "BIBLIOTHEQUE": donnees_bibliotheque}[nom]()
     return f"/*{nom}_DEBUT*/" + json.dumps(contenu, ensure_ascii=False, separators=(",", ":")) + f"/*{nom}_FIN*/"
 
 

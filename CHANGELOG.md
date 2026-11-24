@@ -1,5 +1,14 @@
 # Historique des versions
 
+## Bibliothèque trail — les livres de référence, rattachés aux écrans du logiciel
+- **Nouveau module « Bibliothèque trail »** (espace Coureur, allumé par défaut). Menu Outils > 📚 Bibliothèque trail, 2 onglets :
+  - **📚 Livres** : 46 livres et documents de référence en 11 thèmes (trail et ultra, physiologie et méthode, fréquence cardiaque, charge et puissance, récupération et sommeil, nutrition et poids, renforcement et foulée, blessures, mental, femmes et plus de 50 ans, récits, club et organisation de courses). Filtres par thème, module, langue, « lisible en français », à lire / lu, et recherche sans accents. La fiche donne auteurs, éditeur et année, l'édition française quand elle existe, pourquoi le lire et les écrans du logiciel concernés ; bouton pour trouver le livre (Open Library) ou ouvrir le document officiel ;
+  - **🧭 Par écran du logiciel** : pour chaque écran du menu (Fractionné, Alimentation, Planification, Blessures, Organisation…), les livres qui expliquent ce qu'il calcule.
+- **À lire / lu** : gardés dans les réglages de la base (`bibliotheque_statuts`), donc dans les sauvegardes.
+- **Liste vérifiée** : titres, auteurs, éditeurs et années relevés chez des libraires et des éditeurs ; une case vide veut dire « non vérifiée ». La liste est dans `data/bibliotheque/reference.json` (livrée dans les versions installables).
+- **Page Claude** : rubrique « Bibliothèque trail » (même liste, filtres, et tes « à lire » et « lus » quand ta base est ouverte).
+- **Tests** : `tests/test_bibliotheque.py` (liste, écrans cités présents dans le menu, filtres, statuts, écran).
+
 ## LiveTrack coach — suivre ses coureurs en direct avec le lien Garmin
 - **Nouveau module « LiveTrack coach »** (espace Coureur, allumé par défaut ; à ne pas confondre avec « Trail Live et jour de course », qui reste celui des organisateurs). Menu 🔗 LiveTrack coach, 3 onglets :
   - **📡 Suivi en direct** : fiche coureur (nom, profil du logiciel, montre, objectif, notes), coller le lien LiveTrack (le message entier du coureur convient : le lien est retrouvé), liste des suivis en cours avec la durée qui avance, la page LiveTrack du coureur choisi s'affiche dans la fenêtre (ou « Ouvrir dans le navigateur » si le moteur web manque), plusieurs coureurs en même temps, terminer / annuler, « FC vue sur la page » ;

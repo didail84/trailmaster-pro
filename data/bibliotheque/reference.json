@@ -1,0 +1,1294 @@
+{
+ "version": 1,
+ "mise_a_jour": "2026-11-24",
+ "themes": [
+  {
+   "code": "trail",
+   "nom": "Trail et ultra-trail"
+  },
+  {
+   "code": "methode",
+   "nom": "Physiologie et méthode d'entraînement"
+  },
+  {
+   "code": "charge",
+   "nom": "Fréquence cardiaque, charge et puissance"
+  },
+  {
+   "code": "recup",
+   "nom": "Récupération et sommeil"
+  },
+  {
+   "code": "nutrition",
+   "nom": "Nutrition et poids de forme"
+  },
+  {
+   "code": "renfo",
+   "nom": "Renforcement, technique et foulée"
+  },
+  {
+   "code": "sante",
+   "nom": "Blessures et santé du coureur"
+  },
+  {
+   "code": "mental",
+   "nom": "Mental"
+  },
+  {
+   "code": "publics",
+   "nom": "Femmes et coureurs de plus de 50 ans"
+  },
+  {
+   "code": "recits",
+   "nom": "Récits, histoire et culture du trail"
+  },
+  {
+   "code": "club",
+   "nom": "Club, jeunes et organisation de courses"
+  }
+ ],
+ "livres": [
+  {
+   "id": "uphill",
+   "titre": "Training for the Uphill Athlete",
+   "auteurs": [
+    "Steve House",
+    "Scott Johnston",
+    "Kilian Jornet"
+   ],
+   "editeur": "Patagonia",
+   "annee": 2019,
+   "langue": "en",
+   "titre_fr": "Up ! Manuel d'entraînement pour le trail et le ski-alpinisme",
+   "editeur_fr": "Guérin",
+   "annee_fr": 2020,
+   "type": "Livre",
+   "theme": "trail",
+   "niveau": "Avancé",
+   "modules": [
+    "entrainement",
+    "fractionne",
+    "suivi"
+   ],
+   "ecrans": [
+    "Planification",
+    "Fractionné",
+    "Analyses & Forme"
+   ],
+   "pourquoi": "La référence pour la montée : base aérobie, seuil, force spécifique en côte. Tout ce qui fait progresser dans les montées raides.",
+   "lien": "",
+   "note": ""
+  },
+  {
+   "id": "koop",
+   "titre": "Training Essentials for Ultrarunning",
+   "auteurs": [
+    "Jason Koop",
+    "Jim Rutberg"
+   ],
+   "editeur": "VeloPress",
+   "annee": 2016,
+   "langue": "en",
+   "titre_fr": "",
+   "editeur_fr": "",
+   "annee_fr": null,
+   "type": "Livre",
+   "theme": "trail",
+   "niveau": "Avancé",
+   "modules": [
+    "entrainement",
+    "courses",
+    "nutrition"
+   ],
+   "ecrans": [
+    "Planification",
+    "Courses à venir",
+    "Alimentation"
+   ],
+   "pourquoi": "Méthode d'un entraîneur d'ultra : construire une saison, intervalles longs, gestion de course et ravitaillement.",
+   "lien": "",
+   "note": "2e édition revue, avec Corrine Malcolm."
+  },
+  {
+   "id": "millet",
+   "titre": "Ultra-trail : plaisir, performance et santé",
+   "auteurs": [
+    "Guillaume Millet"
+   ],
+   "editeur": "",
+   "annee": 2012,
+   "langue": "fr",
+   "titre_fr": "",
+   "editeur_fr": "",
+   "annee_fr": null,
+   "type": "Livre",
+   "theme": "trail",
+   "niveau": "Intermédiaire",
+   "modules": [
+    "entrainement",
+    "suivi",
+    "courses"
+   ],
+   "ecrans": [
+    "Planification",
+    "Suivi",
+    "Courses à venir"
+   ],
+   "pourquoi": "Écrit par un chercheur en physiologie qui court l'ultra : fatigue, entraînement, préparation mentale et gestion de course, appuyés sur la science.",
+   "lien": "",
+   "note": "Nouvelle édition parue depuis."
+  },
+  {
+   "id": "bazin",
+   "titre": "Trail running – Préparez vos défis !",
+   "auteurs": [
+    "Sylvain Bazin",
+    "Jean-Marc Delorme"
+   ],
+   "editeur": "Amphora",
+   "annee": 2015,
+   "langue": "fr",
+   "titre_fr": "",
+   "editeur_fr": "",
+   "annee_fr": null,
+   "type": "Livre",
+   "theme": "trail",
+   "niveau": "Débutant à intermédiaire",
+   "modules": [
+    "entrainement",
+    "courses",
+    "nutrition"
+   ],
+   "ecrans": [
+    "Planification",
+    "Courses à venir"
+   ],
+   "pourquoi": "Des courses nature à l'ultra : bases physiologiques, plans d'entraînement par type de course, nutrition, pieds, mental et blessures.",
+   "lien": "",
+   "note": ""
+  },
+  {
+   "id": "paturel",
+   "titre": "Le guide du trail, des premières foulées aux ultras",
+   "auteurs": [
+    "Marie Paturel"
+   ],
+   "editeur": "Glénat",
+   "annee": 2023,
+   "langue": "fr",
+   "titre_fr": "",
+   "editeur_fr": "",
+   "annee_fr": null,
+   "type": "Livre",
+   "theme": "trail",
+   "niveau": "Débutant à intermédiaire",
+   "modules": [
+    "entrainement",
+    "suivi",
+    "nutrition"
+   ],
+   "ecrans": [
+    "Planification",
+    "Renforcement & Mobilité",
+    "Alimentation"
+   ],
+   "pourquoi": "Guide complet et récent : formats de course, matériel, nutrition, méthodes d'entraînement, technique, mental, avec 10 séances types.",
+   "lien": "",
+   "note": ""
+  },
+  {
+   "id": "mauclair",
+   "titre": "Courir !",
+   "auteurs": [
+    "Nathalie Mauclair"
+   ],
+   "editeur": "Vuibert",
+   "annee": 2025,
+   "langue": "fr",
+   "titre_fr": "",
+   "editeur_fr": "",
+   "annee_fr": null,
+   "type": "Livre",
+   "theme": "trail",
+   "niveau": "Débutant à intermédiaire",
+   "modules": [
+    "entrainement",
+    "suivi",
+    "nutrition"
+   ],
+   "ecrans": [
+    "Planification",
+    "Suivi"
+   ],
+   "pourquoi": "Les conseils d'une double championne du monde de trail : préparation physique et mentale, récupération, programmes et recettes.",
+   "lien": "",
+   "note": ""
+  },
+  {
+   "id": "powell",
+   "titre": "Relentless Forward Progress",
+   "auteurs": [
+    "Bryon Powell"
+   ],
+   "editeur": "Breakaway Books",
+   "annee": 2011,
+   "langue": "en",
+   "titre_fr": "",
+   "editeur_fr": "",
+   "annee_fr": null,
+   "type": "Livre",
+   "theme": "trail",
+   "niveau": "Débutant à intermédiaire",
+   "modules": [
+    "entrainement",
+    "courses"
+   ],
+   "ecrans": [
+    "Planification",
+    "Courses à venir"
+   ],
+   "pourquoi": "Le guide pratique pour passer du trail court au premier ultra : plans du 50 km au 100 miles, matériel, gestion de course.",
+   "lien": "",
+   "note": ""
+  },
+  {
+   "id": "koerner",
+   "titre": "Hal Koerner's Field Guide to Ultrarunning",
+   "auteurs": [
+    "Hal Koerner",
+    "Adam W. Chase"
+   ],
+   "editeur": "VeloPress",
+   "annee": 2014,
+   "langue": "en",
+   "titre_fr": "",
+   "editeur_fr": "",
+   "annee_fr": null,
+   "type": "Livre",
+   "theme": "trail",
+   "niveau": "Intermédiaire",
+   "modules": [
+    "entrainement",
+    "courses",
+    "nutrition"
+   ],
+   "ecrans": [
+    "Planification",
+    "Matériel pour une course"
+   ],
+   "pourquoi": "Conseils de terrain d'un double vainqueur de Western States : plans, matériel, ravitaillement, problèmes en course.",
+   "lien": "",
+   "note": ""
+  },
+  {
+   "id": "billat",
+   "titre": "Physiologie de l'entraînement et de la performance sportive",
+   "auteurs": [
+    "Véronique Billat"
+   ],
+   "editeur": "De Boeck Supérieur",
+   "annee": 2024,
+   "langue": "fr",
+   "titre_fr": "",
+   "editeur_fr": "",
+   "annee_fr": null,
+   "type": "Livre",
+   "theme": "methode",
+   "niveau": "Avancé",
+   "modules": [
+    "fractionne",
+    "entrainement"
+   ],
+   "ecrans": [
+    "Fractionné",
+    "Analyses & Forme"
+   ],
+   "pourquoi": "Par la chercheuse qui a fait connaître la VMA et le temps limite à VMA : énergie, cœur, respiration, et comment bâtir l'entraînement.",
+   "lien": "",
+   "note": "6e édition (2024)."
+  },
+  {
+   "id": "daniels",
+   "titre": "Daniels' Running Formula",
+   "auteurs": [
+    "Jack Daniels"
+   ],
+   "editeur": "Human Kinetics",
+   "annee": 1998,
+   "langue": "en",
+   "titre_fr": "",
+   "editeur_fr": "",
+   "annee_fr": null,
+   "type": "Livre",
+   "theme": "methode",
+   "niveau": "Intermédiaire",
+   "modules": [
+    "fractionne",
+    "entrainement"
+   ],
+   "ecrans": [
+    "Fractionné",
+    "Planification"
+   ],
+   "pourquoi": "La méthode des allures (endurance, seuil, intervalles, répétitions) calées sur ton niveau : la base de nombreux plans.",
+   "lien": "",
+   "note": "4e édition (2021)."
+  },
+  {
+   "id": "fitz8020",
+   "titre": "80/20 Running",
+   "auteurs": [
+    "Matt Fitzgerald"
+   ],
+   "editeur": "Penguin",
+   "annee": 2014,
+   "langue": "en",
+   "titre_fr": "",
+   "editeur_fr": "",
+   "annee_fr": null,
+   "type": "Livre",
+   "theme": "methode",
+   "niveau": "Débutant à intermédiaire",
+   "modules": [
+    "entrainement",
+    "suivi"
+   ],
+   "ecrans": [
+    "Analyses & Forme",
+    "Zones d'entraînement"
+   ],
+   "pourquoi": "80 % du temps en intensité facile, 20 % en intensité élevée : pourquoi courir lentement fait progresser, avec des plans.",
+   "lien": "",
+   "note": ""
+  },
+  {
+   "id": "bompa",
+   "titre": "Periodization: Theory and Methodology of Training",
+   "auteurs": [
+    "Tudor O. Bompa",
+    "G. Gregory Haff"
+   ],
+   "editeur": "Human Kinetics",
+   "annee": 2009,
+   "langue": "en",
+   "titre_fr": "",
+   "editeur_fr": "",
+   "annee_fr": null,
+   "type": "Livre",
+   "theme": "methode",
+   "niveau": "Avancé",
+   "modules": [
+    "entrainement"
+   ],
+   "ecrans": [
+    "Planification"
+   ],
+   "pourquoi": "L'ouvrage de référence sur la périodisation : cycles, progression de la charge, affûtage avant une course.",
+   "lien": "",
+   "note": "5e édition."
+  },
+  {
+   "id": "pfitz",
+   "titre": "Advanced Marathoning",
+   "auteurs": [
+    "Pete Pfitzinger",
+    "Scott Douglas"
+   ],
+   "editeur": "Human Kinetics",
+   "annee": 2001,
+   "langue": "en",
+   "titre_fr": "",
+   "editeur_fr": "",
+   "annee_fr": null,
+   "type": "Livre",
+   "theme": "methode",
+   "niveau": "Avancé",
+   "modules": [
+    "entrainement",
+    "fractionne"
+   ],
+   "ecrans": [
+    "Planification",
+    "Fractionné"
+   ],
+   "pourquoi": "Plans et principes pour la route : seuil, sortie longue, récupération entre séances dures. Utile pour les trails roulants.",
+   "lien": "",
+   "note": "3e édition (2019)."
+  },
+  {
+   "id": "napier",
+   "titre": "Science of Running",
+   "auteurs": [
+    "Chris Napier"
+   ],
+   "editeur": "DK",
+   "annee": 2020,
+   "langue": "en",
+   "titre_fr": "La science du running",
+   "editeur_fr": "",
+   "annee_fr": null,
+   "type": "Livre",
+   "theme": "methode",
+   "niveau": "Débutant à intermédiaire",
+   "modules": [
+    "entrainement",
+    "suivi"
+   ],
+   "ecrans": [
+    "Renforcement & Mobilité",
+    "Suivi"
+   ],
+   "pourquoi": "Très illustré : mécanique de la foulée, prévention des blessures, renforcement et plans, expliqués simplement.",
+   "lien": "",
+   "note": ""
+  },
+  {
+   "id": "friel_hr",
+   "titre": "Total Heart Rate Training",
+   "auteurs": [
+    "Joe Friel"
+   ],
+   "editeur": "Ulysses Press",
+   "annee": 2006,
+   "langue": "en",
+   "titre_fr": "",
+   "editeur_fr": "",
+   "annee_fr": null,
+   "type": "Livre",
+   "theme": "charge",
+   "niveau": "Intermédiaire",
+   "modules": [
+    "suivi",
+    "entrainement"
+   ],
+   "ecrans": [
+    "Zones d'entraînement",
+    "Analyses & Forme"
+   ],
+   "pourquoi": "Utiliser la fréquence cardiaque au quotidien : zones, dérive, signes de fatigue.",
+   "lien": "",
+   "note": ""
+  },
+  {
+   "id": "maffetone",
+   "titre": "The Big Book of Endurance Training and Racing",
+   "auteurs": [
+    "Philip Maffetone"
+   ],
+   "editeur": "Skyhorse",
+   "annee": 2010,
+   "langue": "en",
+   "titre_fr": "",
+   "editeur_fr": "",
+   "annee_fr": null,
+   "type": "Livre",
+   "theme": "charge",
+   "niveau": "Intermédiaire",
+   "modules": [
+    "entrainement",
+    "suivi"
+   ],
+   "ecrans": [
+    "Zones d'entraînement",
+    "Suivi"
+   ],
+   "pourquoi": "La méthode MAF : construire une grosse base aérobie à fréquence cardiaque basse, avec l'alimentation et le stress.",
+   "lien": "",
+   "note": ""
+  },
+  {
+   "id": "coggan",
+   "titre": "Training and Racing with a Power Meter",
+   "auteurs": [
+    "Hunter Allen",
+    "Andrew Coggan"
+   ],
+   "editeur": "VeloPress",
+   "annee": 2006,
+   "langue": "en",
+   "titre_fr": "",
+   "editeur_fr": "",
+   "annee_fr": null,
+   "type": "Livre",
+   "theme": "charge",
+   "niveau": "Avancé",
+   "modules": [
+    "entrainement",
+    "analyse"
+   ],
+   "ecrans": [
+    "Analyses & Forme",
+    "Tableau de bord"
+   ],
+   "pourquoi": "À l'origine des notions de charge, forme, fatigue et fraîcheur (CTL, ATL, TSB) qu'utilise le logiciel.",
+   "lien": "",
+   "note": "3e édition (2019), avec Stephen McGregor."
+  },
+  {
+   "id": "vance",
+   "titre": "Run with Power",
+   "auteurs": [
+    "Jim Vance"
+   ],
+   "editeur": "VeloPress",
+   "annee": 2016,
+   "langue": "en",
+   "titre_fr": "",
+   "editeur_fr": "",
+   "annee_fr": null,
+   "type": "Livre",
+   "theme": "charge",
+   "niveau": "Avancé",
+   "modules": [
+    "entrainement",
+    "analyse"
+   ],
+   "ecrans": [
+    "Analyses & Forme",
+    "Performance trail"
+   ],
+   "pourquoi": "Courir avec la puissance (capteur au pied) : zones, tests, suivi de la charge, utile en côte où l'allure ne dit rien.",
+   "lien": "",
+   "note": ""
+  },
+  {
+   "id": "walker",
+   "titre": "Why We Sleep",
+   "auteurs": [
+    "Matthew Walker"
+   ],
+   "editeur": "Scribner",
+   "annee": 2017,
+   "langue": "en",
+   "titre_fr": "Pourquoi nous dormons",
+   "editeur_fr": "La Découverte",
+   "annee_fr": 2018,
+   "type": "Livre",
+   "theme": "recup",
+   "niveau": "Débutant",
+   "modules": [
+    "suivi"
+   ],
+   "ecrans": [
+    "Suivi"
+   ],
+   "pourquoi": "Ce que le sommeil fait pour la récupération, la mémoire et la santé, et comment mieux dormir.",
+   "lien": "",
+   "note": ""
+  },
+  {
+   "id": "aschwanden",
+   "titre": "Good to Go",
+   "auteurs": [
+    "Christie Aschwanden"
+   ],
+   "editeur": "W. W. Norton",
+   "annee": 2019,
+   "langue": "en",
+   "titre_fr": "",
+   "editeur_fr": "",
+   "annee_fr": null,
+   "type": "Livre",
+   "theme": "recup",
+   "niveau": "Débutant",
+   "modules": [
+    "suivi"
+   ],
+   "ecrans": [
+    "Suivi",
+    "Analyses & Forme"
+   ],
+   "pourquoi": "Enquête sur les méthodes de récupération (bains froids, compression, compléments…) : ce qui est prouvé, ce qui ne l'est pas.",
+   "lien": "",
+   "note": ""
+  },
+  {
+   "id": "aubineau",
+   "titre": "Trail – Votre programme nutrition santé",
+   "auteurs": [
+    "Nicolas Aubineau",
+    "Aurélia Truel"
+   ],
+   "editeur": "Mango",
+   "annee": null,
+   "langue": "fr",
+   "titre_fr": "",
+   "editeur_fr": "",
+   "annee_fr": null,
+   "type": "Livre",
+   "theme": "nutrition",
+   "niveau": "Débutant à intermédiaire",
+   "modules": [
+    "nutrition",
+    "suivi"
+   ],
+   "ecrans": [
+    "Alimentation",
+    "Poids & récupération"
+   ],
+   "pourquoi": "Nutrition du trail par un diététicien du sport et une traileuse : au quotidien, avant, pendant et après la course.",
+   "lien": "",
+   "note": "Paru d'abord sous le titre « Trail : coaching nutrition »."
+  },
+  {
+   "id": "riche",
+   "titre": "Guide nutritionnel des sports d'endurance",
+   "auteurs": [
+    "Denis Riché"
+   ],
+   "editeur": "Vigot",
+   "annee": null,
+   "langue": "fr",
+   "titre_fr": "",
+   "editeur_fr": "",
+   "annee_fr": null,
+   "type": "Livre",
+   "theme": "nutrition",
+   "niveau": "Intermédiaire",
+   "modules": [
+    "nutrition"
+   ],
+   "ecrans": [
+    "Alimentation"
+   ],
+   "pourquoi": "Le classique français de la nutrition d'endurance : besoins, hydratation, ravitaillement, récupération.",
+   "lien": "",
+   "note": ""
+  },
+  {
+   "id": "jeukendrup",
+   "titre": "Sport Nutrition",
+   "auteurs": [
+    "Asker Jeukendrup",
+    "Michael Gleeson"
+   ],
+   "editeur": "Human Kinetics",
+   "annee": 2004,
+   "langue": "en",
+   "titre_fr": "",
+   "editeur_fr": "",
+   "annee_fr": null,
+   "type": "Livre",
+   "theme": "nutrition",
+   "niveau": "Avancé",
+   "modules": [
+    "nutrition"
+   ],
+   "ecrans": [
+    "Alimentation"
+   ],
+   "pourquoi": "Le manuel scientifique de référence : glucides à l'effort, hydratation, entraînement de l'intestin, compléments.",
+   "lien": "",
+   "note": ""
+  },
+  {
+   "id": "racingweight",
+   "titre": "Racing Weight",
+   "auteurs": [
+    "Matt Fitzgerald"
+   ],
+   "editeur": "VeloPress",
+   "annee": 2009,
+   "langue": "en",
+   "titre_fr": "",
+   "editeur_fr": "",
+   "annee_fr": null,
+   "type": "Livre",
+   "theme": "nutrition",
+   "niveau": "Intermédiaire",
+   "modules": [
+    "suivi",
+    "nutrition"
+   ],
+   "ecrans": [
+    "Poids & récupération",
+    "Alimentation"
+   ],
+   "pourquoi": "Perdre du poids sans perdre en forme : qualité de l'alimentation, calendrier des repas, suivi régulier du poids.",
+   "lien": "",
+   "note": ""
+  },
+  {
+   "id": "jurek",
+   "titre": "Eat & Run",
+   "auteurs": [
+    "Scott Jurek",
+    "Steve Friedman"
+   ],
+   "editeur": "Houghton Mifflin Harcourt",
+   "annee": 2012,
+   "langue": "en",
+   "titre_fr": "Eat & Run",
+   "editeur_fr": "Guérin",
+   "annee_fr": null,
+   "type": "Livre",
+   "theme": "nutrition",
+   "niveau": "Débutant",
+   "modules": [
+    "nutrition"
+   ],
+   "ecrans": [
+    "Alimentation"
+   ],
+   "pourquoi": "Le parcours d'un grand de l'ultra, avec son alimentation végétale et ses recettes.",
+   "lien": "",
+   "note": ""
+  },
+  {
+   "id": "lanthier",
+   "titre": "Trail, les clés pour performer sans se blesser",
+   "auteurs": [
+    "Chloë Lanthier"
+   ],
+   "editeur": "Glénat",
+   "annee": 2020,
+   "langue": "fr",
+   "titre_fr": "",
+   "editeur_fr": "",
+   "annee_fr": null,
+   "type": "Livre",
+   "theme": "renfo",
+   "niveau": "Débutant à intermédiaire",
+   "modules": [
+    "entrainement",
+    "suivi"
+   ],
+   "ecrans": [
+    "Renforcement & Mobilité",
+    "Blessures"
+   ],
+   "pourquoi": "Foulée, cadence, posture en montée et en descente, renforcement au poids du corps et prévention des blessures fréquentes.",
+   "lien": "",
+   "note": ""
+  },
+  {
+   "id": "dicharry",
+   "titre": "Anatomy for Runners",
+   "auteurs": [
+    "Jay Dicharry"
+   ],
+   "editeur": "Skyhorse",
+   "annee": 2012,
+   "langue": "en",
+   "titre_fr": "",
+   "editeur_fr": "",
+   "annee_fr": null,
+   "type": "Livre",
+   "theme": "renfo",
+   "niveau": "Intermédiaire",
+   "modules": [
+    "entrainement",
+    "suivi"
+   ],
+   "ecrans": [
+    "Renforcement & Mobilité",
+    "Carte du corps"
+   ],
+   "pourquoi": "Comprendre son corps pour courir mieux : mobilité, stabilité, tests simples et exercices correctifs.",
+   "lien": "",
+   "note": ""
+  },
+  {
+   "id": "delavier",
+   "titre": "Guide des mouvements de musculation",
+   "auteurs": [
+    "Frédéric Delavier"
+   ],
+   "editeur": "Vigot",
+   "annee": 1998,
+   "langue": "fr",
+   "titre_fr": "",
+   "editeur_fr": "",
+   "annee_fr": null,
+   "type": "Livre",
+   "theme": "renfo",
+   "niveau": "Débutant à intermédiaire",
+   "modules": [
+    "entrainement"
+   ],
+   "ecrans": [
+    "Renforcement & Mobilité"
+   ],
+   "pourquoi": "Les planches anatomiques de chaque exercice de musculation : quels muscles travaillent et comment bien placer le mouvement.",
+   "lien": "",
+   "note": "Nombreuses rééditions."
+  },
+  {
+   "id": "dubois",
+   "titre": "La clinique du coureur – La santé par la course à pied",
+   "auteurs": [
+    "Blaise Dubois",
+    "Frédéric Berg"
+   ],
+   "editeur": "Éditions Mons",
+   "annee": 2019,
+   "langue": "fr",
+   "titre_fr": "",
+   "editeur_fr": "",
+   "annee_fr": null,
+   "type": "Livre",
+   "theme": "sante",
+   "niveau": "Débutant à intermédiaire",
+   "modules": [
+    "suivi"
+   ],
+   "ecrans": [
+    "Blessures",
+    "Soins",
+    "Matériel"
+   ],
+   "pourquoi": "La référence francophone sur les blessures du coureur : charge, chaussures, reprise, appuyée sur les études et des dizaines d'experts.",
+   "lien": "",
+   "note": ""
+  },
+  {
+   "id": "noakes",
+   "titre": "Lore of Running",
+   "auteurs": [
+    "Tim Noakes"
+   ],
+   "editeur": "Human Kinetics",
+   "annee": 1985,
+   "langue": "en",
+   "titre_fr": "",
+   "editeur_fr": "",
+   "annee_fr": null,
+   "type": "Livre",
+   "theme": "sante",
+   "niveau": "Avancé",
+   "modules": [
+    "suivi",
+    "entrainement"
+   ],
+   "ecrans": [
+    "Blessures",
+    "Analyses & Forme"
+   ],
+   "pourquoi": "Somme de physiologie, d'entraînement et de médecine du coureur, par un médecin chercheur.",
+   "lien": "",
+   "note": "4e édition (2003)."
+  },
+  {
+   "id": "hutchinson",
+   "titre": "Endure",
+   "auteurs": [
+    "Alex Hutchinson"
+   ],
+   "editeur": "William Morrow",
+   "annee": 2018,
+   "langue": "en",
+   "titre_fr": "",
+   "editeur_fr": "",
+   "annee_fr": null,
+   "type": "Livre",
+   "theme": "mental",
+   "niveau": "Intermédiaire",
+   "modules": [
+    "entrainement",
+    "courses"
+   ],
+   "ecrans": [
+    "Courses à venir",
+    "Performance trail"
+   ],
+   "pourquoi": "Ce qui fixe vraiment nos limites (cerveau, douleur, chaleur, carburant) et comment les repousser.",
+   "lien": "",
+   "note": ""
+  },
+  {
+   "id": "stulberg",
+   "titre": "Peak Performance",
+   "auteurs": [
+    "Brad Stulberg",
+    "Steve Magness"
+   ],
+   "editeur": "Rodale",
+   "annee": 2017,
+   "langue": "en",
+   "titre_fr": "",
+   "editeur_fr": "",
+   "annee_fr": null,
+   "type": "Livre",
+   "theme": "mental",
+   "niveau": "Débutant",
+   "modules": [
+    "entrainement",
+    "suivi"
+   ],
+   "ecrans": [
+    "Planification",
+    "Suivi"
+   ],
+   "pourquoi": "Alterner stress et repos pour progresser, en sport comme au travail : une règle qui rejoint la gestion de la fatigue.",
+   "lien": "",
+   "note": ""
+  },
+  {
+   "id": "roche",
+   "titre": "The Happy Runner",
+   "auteurs": [
+    "David Roche",
+    "Megan Roche"
+   ],
+   "editeur": "Human Kinetics",
+   "annee": 2019,
+   "langue": "en",
+   "titre_fr": "",
+   "editeur_fr": "",
+   "annee_fr": null,
+   "type": "Livre",
+   "theme": "mental",
+   "niveau": "Débutant à intermédiaire",
+   "modules": [
+    "entrainement"
+   ],
+   "ecrans": [
+    "Planification"
+   ],
+   "pourquoi": "Deux entraîneurs de trail : progresser durablement en gardant le plaisir, avec des séances concrètes.",
+   "lien": "",
+   "note": ""
+  },
+  {
+   "id": "sims",
+   "titre": "ROAR",
+   "auteurs": [
+    "Stacy T. Sims",
+    "Selene Yeager"
+   ],
+   "editeur": "Rodale",
+   "annee": 2016,
+   "langue": "en",
+   "titre_fr": "",
+   "editeur_fr": "",
+   "annee_fr": null,
+   "type": "Livre",
+   "theme": "publics",
+   "niveau": "Intermédiaire",
+   "modules": [
+    "suivi",
+    "nutrition"
+   ],
+   "ecrans": [
+    "Suivi",
+    "Alimentation"
+   ],
+   "pourquoi": "Physiologie des sportives : cycle menstruel, nutrition et entraînement adaptés. Utile pour le suivi du cycle des coureuses.",
+   "lien": "",
+   "note": "Édition revue en 2023."
+  },
+  {
+   "id": "friel50",
+   "titre": "Fast After 50",
+   "auteurs": [
+    "Joe Friel"
+   ],
+   "editeur": "VeloPress",
+   "annee": 2015,
+   "langue": "en",
+   "titre_fr": "",
+   "editeur_fr": "",
+   "annee_fr": null,
+   "type": "Livre",
+   "theme": "publics",
+   "niveau": "Intermédiaire",
+   "modules": [
+    "entrainement",
+    "suivi"
+   ],
+   "ecrans": [
+    "Planification",
+    "Renforcement & Mobilité",
+    "Suivi"
+   ],
+   "pourquoi": "Rester performant après 50 ans : plus d'intensité bien placée, renforcement, récupération plus longue, poids de forme.",
+   "lien": "",
+   "note": ""
+  },
+  {
+   "id": "jornet_courir",
+   "titre": "Córrer o morir",
+   "auteurs": [
+    "Kilian Jornet"
+   ],
+   "editeur": "",
+   "annee": 2011,
+   "langue": "es",
+   "titre_fr": "Courir ou mourir",
+   "editeur_fr": "Arthaud",
+   "annee_fr": null,
+   "type": "Livre",
+   "theme": "recits",
+   "niveau": "Tous niveaux",
+   "modules": [
+    "actualites"
+   ],
+   "ecrans": [
+    "Actualités du trail"
+   ],
+   "pourquoi": "Le récit de Kilian Jornet : la montagne, les courses, ses doutes.",
+   "lien": "",
+   "note": ""
+  },
+  {
+   "id": "jornet_frontiere",
+   "titre": "La frontera invisible",
+   "auteurs": [
+    "Kilian Jornet"
+   ],
+   "editeur": "",
+   "annee": 2013,
+   "langue": "es",
+   "titre_fr": "La frontière invisible",
+   "editeur_fr": "Arthaud",
+   "annee_fr": null,
+   "type": "Livre",
+   "theme": "recits",
+   "niveau": "Tous niveaux",
+   "modules": [
+    "actualites"
+   ],
+   "ecrans": [
+    "Actualités du trail"
+   ],
+   "pourquoi": "La suite : réflexions sur la montagne, l'engagement et la course.",
+   "lien": "",
+   "note": ""
+  },
+  {
+   "id": "borntorun",
+   "titre": "Born to Run",
+   "auteurs": [
+    "Christopher McDougall"
+   ],
+   "editeur": "Knopf",
+   "annee": 2009,
+   "langue": "en",
+   "titre_fr": "Born to Run",
+   "editeur_fr": "Guérin",
+   "annee_fr": null,
+   "type": "Livre",
+   "theme": "recits",
+   "niveau": "Tous niveaux",
+   "modules": [
+    "actualites"
+   ],
+   "ecrans": [
+    "Actualités du trail"
+   ],
+   "pourquoi": "Le best-seller qui a lancé la vague des ultras et de la course naturelle, chez les Tarahumaras du Mexique.",
+   "lien": "",
+   "note": ""
+  },
+  {
+   "id": "finn",
+   "titre": "The Rise of the Ultra Runners",
+   "auteurs": [
+    "Adharanand Finn"
+   ],
+   "editeur": "Guardian Faber",
+   "annee": 2019,
+   "langue": "en",
+   "titre_fr": "Les ultraterrestres",
+   "editeur_fr": "",
+   "annee_fr": null,
+   "type": "Livre",
+   "theme": "recits",
+   "niveau": "Tous niveaux",
+   "modules": [
+    "actualites",
+    "calendrier"
+   ],
+   "ecrans": [
+    "Actualités du trail",
+    "Calendrier des courses"
+   ],
+   "pourquoi": "Un journaliste découvre le monde de l'ultra jusqu'au départ de l'UTMB.",
+   "lien": "",
+   "note": ""
+  },
+  {
+   "id": "dhaene",
+   "titre": "La vie courante",
+   "auteurs": [
+    "François D'Haene"
+   ],
+   "editeur": "",
+   "annee": null,
+   "langue": "fr",
+   "titre_fr": "",
+   "editeur_fr": "",
+   "annee_fr": null,
+   "type": "Livre",
+   "theme": "recits",
+   "niveau": "Tous niveaux",
+   "modules": [
+    "actualites"
+   ],
+   "ecrans": [
+    "Actualités du trail"
+   ],
+   "pourquoi": "Le quadruple vainqueur de l'UTMB raconte sa carrière et ce que l'ultra lui a appris.",
+   "lien": "",
+   "note": ""
+  },
+  {
+   "id": "blanchard",
+   "titre": "Vivre d'aventures",
+   "auteurs": [
+    "Mathieu Blanchard"
+   ],
+   "editeur": "",
+   "annee": 2023,
+   "langue": "fr",
+   "titre_fr": "",
+   "editeur_fr": "",
+   "annee_fr": null,
+   "type": "Livre",
+   "theme": "recits",
+   "niveau": "Tous niveaux",
+   "modules": [
+    "actualites"
+   ],
+   "ecrans": [
+    "Actualités du trail"
+   ],
+   "pourquoi": "D'ingénieur à traileur professionnel, jusqu'au podium de l'UTMB.",
+   "lien": "",
+   "note": ""
+  },
+  {
+   "id": "lefief",
+   "titre": "La folle histoire du trail",
+   "auteurs": [
+    "Jean-Philippe Lefief"
+   ],
+   "editeur": "Paulsen",
+   "annee": null,
+   "langue": "fr",
+   "titre_fr": "",
+   "editeur_fr": "",
+   "annee_fr": null,
+   "type": "Livre",
+   "theme": "recits",
+   "niveau": "Tous niveaux",
+   "modules": [
+    "actualites",
+    "calendrier"
+   ],
+   "ecrans": [
+    "Actualités du trail",
+    "Calendrier des courses"
+   ],
+   "pourquoi": "Des origines du trail à son essor mondial.",
+   "lien": "",
+   "note": ""
+  },
+  {
+   "id": "corless",
+   "titre": "Ultra trails ultimes – Les plus belles courses du monde",
+   "auteurs": [
+    "Ian Corless"
+   ],
+   "editeur": "Glénat",
+   "annee": null,
+   "langue": "fr",
+   "titre_fr": "",
+   "editeur_fr": "",
+   "annee_fr": null,
+   "type": "Livre",
+   "theme": "recits",
+   "niveau": "Tous niveaux",
+   "modules": [
+    "calendrier",
+    "courses"
+   ],
+   "ecrans": [
+    "Calendrier des courses",
+    "Courses à venir"
+   ],
+   "pourquoi": "Tour du monde des grandes courses d'ultra-trail, pour choisir un futur objectif.",
+   "lien": "",
+   "note": ""
+  },
+  {
+   "id": "ffa_regl",
+   "titre": "Réglementation des manifestations running (hors stade, trail)",
+   "auteurs": [
+    "Fédération française d'athlétisme"
+   ],
+   "editeur": "",
+   "annee": null,
+   "langue": "fr",
+   "titre_fr": "",
+   "editeur_fr": "",
+   "annee_fr": null,
+   "type": "Document officiel",
+   "theme": "club",
+   "niveau": "Organisateur",
+   "modules": [
+    "organisation",
+    "club",
+    "trail_live"
+   ],
+   "ecrans": [
+    "Organisation",
+    "Club"
+   ],
+   "pourquoi": "Le texte officiel : déclaration de la course, certificats et Pass Prévention Santé, distances selon l'âge, sécurité. Mis à jour chaque saison.",
+   "lien": "https://www.athle.fr/contenu/pratique-running-reglementation/7078",
+   "note": ""
+  },
+  {
+   "id": "servicepublic",
+   "titre": "Organisation d'une course à pied ou d'une marche sur la voie publique",
+   "auteurs": [
+    "Service-public.fr"
+   ],
+   "editeur": "",
+   "annee": null,
+   "langue": "fr",
+   "titre_fr": "",
+   "editeur_fr": "",
+   "annee_fr": null,
+   "type": "Document officiel",
+   "theme": "club",
+   "niveau": "Organisateur",
+   "modules": [
+    "organisation"
+   ],
+   "ecrans": [
+    "Organisation"
+   ],
+   "pourquoi": "Les démarches administratives (déclaration en mairie ou en préfecture, délais) pour une course sur la voie publique.",
+   "lien": "https://www.service-public.gouv.fr/particuliers/vosdroits/R18495",
+   "note": ""
+  },
+  {
+   "id": "adeorun",
+   "titre": "Le guide de l'organisateur : trail et course sur route",
+   "auteurs": [
+    "Adeorun"
+   ],
+   "editeur": "",
+   "annee": 2018,
+   "langue": "fr",
+   "titre_fr": "",
+   "editeur_fr": "",
+   "annee_fr": null,
+   "type": "Guide",
+   "theme": "club",
+   "niveau": "Organisateur",
+   "modules": [
+    "organisation",
+    "photos_dossard"
+   ],
+   "ecrans": [
+    "Organisation"
+   ],
+   "pourquoi": "Guide pas à pas : autorisations, balisage, bénévoles, communication, obligations, chronométrage, budget et sponsors. Réglementation de 2018 : à recouper.",
+   "lien": "https://adeorun.com/medias/guide-organisateur-avril2018.pdf",
+   "note": ""
+  }
+ ]
+}

@@ -71,6 +71,7 @@ def pyinstaller():
         "--add-data", f"noyau/relais{SEP}noyau/relais",
         "--add-data", f"data/annuaire{SEP}data/annuaire",
         "--add-data", f"data/actualites{SEP}data/actualites",
+        "--add-data", f"data/bibliotheque{SEP}data/bibliotheque",
         "--hidden-import", "PySide6.QtWebEngineWidgets",
         "--hidden-import", "PySide6.QtWebEngineCore",
         "--hidden-import", "PySide6.QtWebChannel",

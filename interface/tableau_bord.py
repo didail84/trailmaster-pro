@@ -177,6 +177,7 @@ class TableauBord(QMainWindow):
                 ("🌦️  Météo", self.ouvrir_meteo, False),
                 ("🍎  Alimentation", self.ouvrir_alimentation, False),
                 ("📒  Annuaire trail", self.ouvrir_annuaire, False),
+                ("📚  Bibliothèque trail", self.ouvrir_bibliotheque, False),
                 ("📥  Import && Synchro", self.ouvrir_import_et_synchro, False),
                 ("🖧  Serveur && comptes", self.ouvrir_serveur, False),
             ]),
@@ -1567,6 +1568,10 @@ class TableauBord(QMainWindow):
         from interface.annuaire import AnnuaireFenetre
         self._ouvrir_ou_activer("annuaire", lambda: AnnuaireFenetre(athlete_id_initial=self.athlete_actif_id))
 
+    def ouvrir_bibliotheque(self):
+        from interface.bibliotheque import BibliothequeFenetre
+        self._ouvrir_ou_activer("bibliotheque", lambda: BibliothequeFenetre(athlete_id_initial=self.athlete_actif_id))
+
     def ouvrir_mise_en_service(self):
         from interface.mise_en_service import MiseEnServiceFenetre
         self._ouvrir_ou_activer("mise_en_service", lambda: MiseEnServiceFenetre(athlete_id_initial=self.athlete_actif_id))
@@ -1814,6 +1819,8 @@ class TableauBord(QMainWindow):
              self.ouvrir_organisation),
             ("Annuaire trail", "clubs ecoles de trail magasins marques boutiques running chaussures adresse",
              self.ouvrir_annuaire),
+            ("Bibliothèque trail", "livres lecture references bibliographie auteurs physiologie nutrition vma sommeil "
+             "entrainement ultra blessures mental", self.ouvrir_bibliotheque),
             ("Club", "adherents licencies licence ffa cotisation recu groupes helloasso saison categories",
              self.ouvrir_club),
             ("Mise en service et données", "recette essais repetition generale rgpd cnil registre donnees personnelles "

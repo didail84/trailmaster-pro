@@ -82,6 +82,10 @@ MODULES = (
            "Clubs d'athlétisme et de trail, écoles et sections trail, organisateurs, magasins et marques (base "
            "PACA livrée, à compléter) ; marques et magasins proposés dans ton matériel.",
            ("ouvrir_annuaire",)),
+    Module("bibliotheque", "Bibliothèque trail", "Coureur",
+           "Livres et documents de référence (entraînement, VMA, charge, récupération, nutrition, renforcement, "
+           "blessures, mental, récits, organisation de courses), rattachés aux écrans du logiciel ; à lire, lus.",
+           ("ouvrir_bibliotheque",)),
     Module("meteo", "Météo", "Coureur", "Prévisions pour tes sorties (connexion Internet nécessaire).",
            ("ouvrir_meteo",)),
     Module("fractionne", "Fractionné", "Coureur",
