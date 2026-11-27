@@ -62,5 +62,60 @@ def rechercher_partout(texte, athlete_id, nb_max_par_categorie):
     for id_, nom, date in cur.fetchall():
         resultats.append(("Parcours", nom, date or "", id_))
 
+    # v109 — recherche partout : courses à venir, matériel, personnes et coureurs
+    cur.execute(
+        f"SELECT id, nom, date FROM courses_calendrier WHERE (nom LIKE ? OR lieu LIKE ?) "
+        f"{'AND (athlete_id = ? OR athlete_id IS NULL)' if athlete_id else ''} ORDER BY date LIMIT ?",
+        (motif, motif, *parametres_base, nb_max_par_categorie),
+    )
+    for id_, nom, date in cur.fetchall():
+        resultats.append(("Course", nom, date or "", id_))
+
+    cur.execute(
+        f"SELECT id, nom, date_achat FROM materiel WHERE nom LIKE ? {condition_athlete} LIMIT ?",
+        (motif, *parametres_base, nb_max_par_categorie),
+    )
+    for id_, nom, date in cur.fetchall():
+        resultats.append(("Matériel", nom, date or "", id_))
+
+    try:
+        cur.execute(
+            "SELECT id, trim(prenom || ' ' || nom), '' FROM personnes WHERE nom LIKE ? OR prenom LIKE ? "
+            "OR (prenom || ' ' || nom) LIKE ? LIMIT ?", (motif, motif, motif, nb_max_par_categorie))
+        for id_, nom, date in cur.fetchall():
+            resultats.append(("Personne", nom, date, id_))
+    except Exception:                      # base ancienne sans la table personnes
+        pass
     conn.close()
+
+    try:
+        from noyau.bibliotheque import regles as biblio
+        for i, livre in enumerate(biblio.livres(recherche=texte.strip())[:nb_max_par_categorie]):
+            resultats.append(("Livre", biblio.titre_affiche(livre), str(livre.get("annee") or ""), livre.get("id", i)))
+    except Exception:
+        pass
+
+    t = _sans_accents(texte.strip().lower())
+    n = 0
+    for section, mots in SECTIONS_REGLAGES:
+        if n < nb_max_par_categorie and (t in _sans_accents(section.lower()) or any(t in m for m in mots)):
+            resultats.append(("Réglage", section, "", section))
+            n += 1
     return resultats
+
+
+SECTIONS_REGLAGES = [
+    ("Coach et IA", ["ia", "analyse", "gemini", "claude", "ton", "coach", "moteur", "groq"]),
+    ("Montre et connecteurs", ["garmin", "strava", "montre", "connecteur", "pont", "drive", "agenda", "spotify"]),
+    ("Apparence", ["theme", "couleur", "sombre", "clair", "nuit", "soleil", "accent", "icone"]),
+    ("Rythme de vie", ["travail", "trajet", "lever", "fatigue", "rythme"]),
+    ("Notifications", ["alerte", "rappel", "notification", "barre des menus", "materiel", "chaussure"]),
+    ("Données et sauvegarde", ["sauvegarde", "export", "import", "restaurer", "synchro"]),
+    ("Modules", ["module", "club", "organisation", "kids"]),
+    ("Mises à jour", ["version", "mise a jour", "relais", "github"]),
+]
+
+
+def _sans_accents(t):
+    import unicodedata
+    return "".join(c for c in unicodedata.normalize("NFD", t) if unicodedata.category(c) != "Mn")

@@ -37,7 +37,48 @@ def definir_actif(oui):
     definir_parametre(CLE_REGLAGE, "1" if oui else "0")
 
 
+CLE_MOTEUR = "ia_moteur"
+MOTEURS = {"regles": "Règles (hors ligne)", "claude": "Claude (connecteurs)", "tout": "Les deux"}
+CLE_TON = "ia_ton_coach"
+TONS = {"direct": "Direct et court", "encourageant": "Encourageant", "detaille": "Détaillé, avec les chiffres"}
+CONSIGNES_TON = {
+    "direct": "Ton : direct et court, phrases simples, pas de formule de politesse.",
+    "encourageant": "Ton : encourageant et chaleureux, sans exagérer ni cacher un problème.",
+    "detaille": "Ton : détaillé, cite les chiffres utiles et explique le raisonnement.",
+}
+
+
+def moteur():
+    m = obtenir_parametre(CLE_MOTEUR, "tout")
+    return m if m in MOTEURS else "tout"
+
+
+def definir_moteur(m):
+    if m not in MOTEURS:
+        raise ValueError("Moteur inconnu")
+    definir_parametre(CLE_MOTEUR, m)
+
+
+def ton():
+    t = obtenir_parametre(CLE_TON, "direct")
+    return t if t in TONS else "direct"
+
+
+def definir_ton(t):
+    if t not in TONS:
+        raise ValueError("Ton inconnu")
+    definir_parametre(CLE_TON, t)
+
+
+def consigne_ton():
+    return CONSIGNES_TON[ton()]
+
+
 def _ia_disponible():
+    """IA en ligne (Gemini/Groq) utilisable ? Non si le moteur choisi est « Règles » ou « Claude » :
+    dans ce dernier cas, ce sont les analyses écrites par Claude chaque matin qui remplacent les règles."""
+    if moteur() in ("regles", "claude"):
+        return False
     try:
         from noyau.ia.ia_coach import cle_api_configuree, cle_api_groq_configuree
         return bool(cle_api_configuree() or cle_api_groq_configuree())

@@ -57,7 +57,7 @@ def test_la_base_v108_est_en_version_0(base_v108):
 def test_conversion_sans_perte(base_v108):
     avant = {t: contenu(base_v108, t) for t in ("athletes", "activites", "parcours_gpx", "suivi_corporel")}
     bilan = mig.appliquer_migrations(base_v108)
-    assert bilan["avant"] == 0 and bilan["apres"] == mig.VERSION_LOGICIEL and bilan["appliquees"] == [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21]
+    assert bilan["avant"] == 0 and bilan["apres"] == mig.VERSION_LOGICIEL and bilan["appliquees"] == [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22]
     for table, (cols, lignes) in avant.items():
         assert contenu(base_v108, table) == (cols, lignes), table  # toutes les valeurs sont intactes
     c = sqlite3.connect(base_v108)
@@ -84,7 +84,8 @@ def test_conversion_sans_perte(base_v108):
         (18, "Photos par dossard : photos d'une course, dossards lus, codes d'accès, droit à l'image"),
         (19, "Mise en service : recette, demandes et incidents sur les données personnelles"),
         (20, "LiveTrack coach : coureurs suivis, suivis en direct (lien Garmin) et tests de configuration"),
-        (21, "Connecteurs Claude : paquets du pont, records, charge, agenda, parcours, sécurité, playlists, demandes")]
+        (21, "Connecteurs Claude : paquets du pont, records, charge, agenda, parcours, sécurité, playlists, demandes"),
+        (22, "Défis en famille : défis, participants, saisies")]
     c.close()
 
 

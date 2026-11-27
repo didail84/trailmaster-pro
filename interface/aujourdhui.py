@@ -15,7 +15,24 @@ from PySide6.QtWidgets import (
 import noyau.entrainement.metriques as met
 from interface import arriere_plan
 from interface.cockpit import Anneau, JaugeBarre, couleur_score
-from interface.theme import PALETTE, obtenir_couleur_accent
+from interface.theme import PALETTE, obtenir_couleur_accent, eclaircir
+
+def donnees_v109(athlete_id):
+    """Données de l'écran + ce qu'ajoute la v109 : score « Prêt à courir », séance structurée du jour
+    (pour l'envoyer à la montre, l'agenda et Spotify), alerte matériel, défi en famille, jour de course."""
+    d = met.donnees_aujourdhui(athlete_id)
+    for cle, calcul in (("pret", lambda: __import__("noyau.sante.pret_a_courir", fromlist=["x"]).calculer(athlete_id)),
+                        ("alertes_materiel", lambda: __import__("noyau.materiel.alerte", fromlist=["x"]).alertes(athlete_id)),
+                        ("defis", lambda: __import__("noyau.donnees.defis", fromlist=["x"]).lister(en_cours_seulement=True)),
+                        ("seances_struct", lambda: __import__("noyau.donnees.connecteurs", fromlist=["x"]).seances_prevues(athlete_id))):
+        try:
+            d[cle] = calcul()
+        except Exception:
+            d[cle] = None
+    aujourd = date.today().isoformat()
+    d["seance_struct"] = next((s for s in (d.get("seances_struct") or []) if (s.get("date_prevue") or "")[:10] == aujourd), None)
+    return d
+
 
 JOURS = ["lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi", "dimanche"]
 MOIS = ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre", "décembre"]
@@ -91,7 +108,14 @@ class EcranAujourdhui(QWidget):
         b_pal = QPushButton("⌘K  Aller à…")
         b_pal.setObjectName("boutonSecondaire")
         b_pal.clicked.connect(lambda: self.nav["palette"]())
+        b_sem = QPushButton("Préparer ma semaine")
+        b_sem.setObjectName("boutonPrincipal")
+        b_sem.setToolTip("Place les séances des 7 prochains jours dans tes créneaux libres et les envoie à la montre, "
+                         "à l'agenda et à Spotify.")
+        b_sem.clicked.connect(lambda: self.nav["semaine"]())
+        b_nv.setObjectName("boutonSecondaire")
         entete.addWidget(b_nv)
+        entete.addWidget(b_sem)
         entete.addWidget(b_pal)
         self.lay.addLayout(entete)
 
@@ -119,6 +143,14 @@ class EcranAujourdhui(QWidget):
             f"#carteCockpit {{ background:{PALETTE['carte']}; border:1px solid {PALETTE['bordure']}; border-radius:16px; }}"
             f"#carteCockpit:hover {{ border-color:{obtenir_couleur_accent()}; }}"
             f"#ecranAujourdhui, #corpsAujourdhui {{ background:{PALETTE['fond']}; }}"
+            f"QPushButton#boutonPrincipal {{ background:{obtenir_couleur_accent()}; color:#FFFFFF; border:none; "
+            f"border-radius:10px; padding:0 16px; min-height:40px; font-weight:600; }}"
+            f"QPushButton#boutonPrincipal:hover {{ background:{eclaircir(obtenir_couleur_accent())}; }}"
+            f"QPushButton#boutonSecondaire {{ background:{PALETTE['carte']}; color:{PALETTE['texte']}; "
+            f"border:1px solid {PALETTE['bordure']}; border-radius:10px; padding:0 14px; min-height:40px; font-weight:600; }}"
+            f"QPushButton#boutonSecondaire:hover {{ border-color:{obtenir_couleur_accent()}; }}"
+            f"QComboBox {{ min-height:36px; border-radius:9px; padding:0 10px; border:1px solid {PALETTE['bordure']}; "
+            f"background:{PALETTE['carte']}; color:{PALETTE['texte']}; }}"
         )
 
     # ------------------------------------------------------------------
@@ -155,7 +187,7 @@ class EcranAujourdhui(QWidget):
             self.zone.addWidget(_label("Crée ou sélectionne un athlète pour voir ton tableau du jour.", "font-size:15px;", True))
             return
         self.zone.addWidget(_label("Chargement…", "font-size:15px;", True))
-        arriere_plan.executer(met.donnees_aujourdhui, self._recu, self.athlete_id, proprietaire=self)
+        arriere_plan.executer(donnees_v109, self._recu, self.athlete_id, proprietaire=self)
 
     def _vider(self):
         while self.zone.count():
@@ -198,6 +230,12 @@ class EcranAujourdhui(QWidget):
         ligne3.addWidget(self._carte_alertes(d), 7)
         ligne3.addWidget(self._carte_sortie(d), 5)
         self.zone.addLayout(ligne3)
+
+        ligne4 = QHBoxLayout()
+        ligne4.setSpacing(16)
+        ligne4.addWidget(self._carte_materiel(d), 1)
+        ligne4.addWidget(self._carte_defi(d), 1)
+        self.zone.addLayout(ligne4)
         from interface.analyse_ia_widget import CarteAnalyseIA
         from data import analyse_ecran as _ae
         a_id = self.athlete_id
@@ -220,18 +258,20 @@ class EcranAujourdhui(QWidget):
 
     def _carte_dispo(self, d):
         c, lay = self._carte("sante")
-        lay.addWidget(self._titre("Disponibilité du matin"))
+        lay.addWidget(self._titre("Prêt à courir"))
         h = QHBoxLayout()
         h.setSpacing(22)
         anneau = Anneau(taille=190, epaisseur=16)
         anneau.setFixedSize(190, 190)
-        dispo = d["dispo"]
+        dispo = d.get("pret") if (d.get("pret") or {}).get("score") is not None else d["dispo"]
         anneau.definir(dispo["score"], sous_texte="sur 100")
         anneau.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents, True)
         h.addWidget(anneau)
         col = QVBoxLayout()
         col.setSpacing(5)
         col.addWidget(_label(dispo["verdict"], "font-size:19px; font-weight:700;"))
+        if dispo.get("conseil"):
+            col.addWidget(_label(dispo["conseil"], "font-size:13px;", True))
         for f in dispo["facteurs"]:
             ligne = QHBoxLayout()
             nom = _label(f["libelle"], "font-weight:600;", mots=False)
@@ -264,6 +304,17 @@ class EcranAujourdhui(QWidget):
         else:
             lay.addWidget(_label("Jour libre", "font-size:20px; font-weight:700;"))
             lay.addWidget(_label("Aucune séance prévue aujourd'hui.", "", True))
+        st = d.get("seance_struct")
+        if st:
+            rang = QHBoxLayout()
+            for texte, quoi in (("Sur la montre", "montre"), ("Agenda", "agenda"), ("Playlist", "playlist")):
+                b = QPushButton(texte)
+                b.setObjectName("boutonPrincipal" if quoi == "montre" else "boutonSecondaire")
+                b.setCursor(Qt.CursorShape.PointingHandCursor)
+                b.clicked.connect(lambda _c=False, q=quoi, s=st: self._envoyer(q, s))
+                rang.addWidget(b)
+            rang.addStretch(1)
+            lay.addLayout(rang)
         co = d.get("coach")
         if co and co.get("nb_signaux", 0) >= 2:
             pastille = {"vert": "🟢", "orange": "🟠", "rouge": "🔴"}[co["niveau"]]
@@ -299,8 +350,14 @@ class EcranAujourdhui(QWidget):
 
     def _carte_charge(self, d):
         c, lay = self._carte("charge")
-        lay.addWidget(self._titre("Charge (ACWR)"))
-        a = d.get("acwr") or {}
+        lay.addWidget(self._titre("Charge 7 j / 42 j"))
+        a = dict(d.get("acwr") or {})
+        p = d.get("pret") or {}
+        if p.get("acwr") is not None and p.get("source_charge") != "calcul du logiciel":
+            # v109 : la charge de Garmin (connecteurs Claude, ces 2 derniers jours) prime sur le calcul local
+            from noyau.connecteurs.regles import zone_acwr
+            z = zone_acwr(p["acwr"])
+            a = {"acwr": p["acwr"], "interpretation": f"{z[1]} (zone conseillée 0,8 à 1,3). {z[2]} Source : {p['source_charge']}."}
         val = a.get("acwr")
         if val is None:
             lay.addWidget(_label("—", "font-size:28px; font-weight:800;"))
@@ -312,8 +369,66 @@ class EcranAujourdhui(QWidget):
         lay.addStretch(1)
         return c
 
+    def _envoyer(self, quoi, seance):
+        """Une demande pour Claude (connecteurs) : séance sur la montre, dans l'agenda, ou sa playlist."""
+        from noyau.donnees import connecteurs as D
+        from noyau.connecteurs import pont as P
+        from noyau.entrainement.semaine_auto import placer, heure_preferee, _minutes, _hhmm
+        try:
+            if quoi == "montre":
+                D.demander_seance_montre(self.athlete_id, seance)
+            elif quoi == "playlist":
+                D.demander_playlist(self.athlete_id, seance["nom"], seance["duree_min"] or 45)
+            else:
+                jour = date.today().isoformat()
+                f = D.fatigue_par_jour(self.athlete_id, jour, 1)[0]
+                duree = max(20, seance["duree_min"] or 45)
+                h = placer(duree, f["creneaux"], heure_preferee()) or heure_preferee()
+                D.demander_agenda(self.athlete_id, f"🏃 {seance['nom']}", f"{jour}T{h}", f"{jour}T{_hhmm(_minutes(h) + duree)}")
+            envoye = P.ecrire_demandes() if P.dossier() else None
+        except Exception as e:
+            self.afficher_message(f"⚠️ {e}")
+            return
+        self.afficher_message("✓ Demande déposée pour Claude : ce sera fait au prochain passage du pont."
+                              if envoye is not None else
+                              "✓ Demande enregistrée. Choisis le dossier partagé (Connecteurs Claude > Pont) pour qu'elle parte.")
+
+    def _carte_materiel(self, d):
+        c, lay = self._carte("materiel")
+        lay.addWidget(self._titre("Chaussures"))
+        al = d.get("alertes_materiel") or []
+        if al:
+            a = al[0]
+            coul = "#EF5350" if a["niveau"] == "changer" else "#FFA726"
+            lay.addWidget(_label(f"{a['km']} km", f"font-size:24px; font-weight:800; color:{coul};", mots=False))
+            lay.addWidget(_label(f"{a['nom']} : {'à changer' if a['niveau'] == 'changer' else 'bientôt à changer'}. "
+                                 f"À comparer : {', '.join(e['modele'] for e in a['equivalents'][:2])}.", "font-size:12px;", True))
+        else:
+            lay.addWidget(_label("Rien à changer", "font-size:17px; font-weight:700;"))
+            lay.addWidget(_label("Alerte quand une paire approche de sa fin de vie.", "font-size:12px;", True))
+        lay.addStretch(1)
+        return c
+
+    def _carte_defi(self, d):
+        c, lay = self._carte("defis")
+        lay.addWidget(self._titre("Défi en famille"))
+        df = (d.get("defis") or [None])[0]
+        if df:
+            lay.addWidget(_label(f"{df['pct']} %", "font-size:24px; font-weight:800;", mots=False))
+            jauge = JaugeBarre()
+            jauge.definir(df["pct"], couleur=obtenir_couleur_accent())
+            jauge.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents, True)
+            lay.addWidget(jauge)
+            lay.addWidget(_label(f"{df['nom']} · encore {str(df['reste']).replace('.', ',')} "
+                                 f"{'km' if df['mesure'] == 'km' else 'sorties'}", "font-size:12px;", True))
+        else:
+            lay.addWidget(_label("Lance un défi", "font-size:17px; font-weight:700;"))
+            lay.addWidget(_label("Des kilomètres à faire ensemble, avec badges pour les enfants.", "font-size:12px;", True))
+        lay.addStretch(1)
+        return c
+
     def _carte_course(self, d):
-        c, lay = self._carte("courses")
+        c, lay = self._carte("jour_course")
         lay.addWidget(self._titre("Prochaine course"))
         k = d["course"]
         if k:

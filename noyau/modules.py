@@ -50,14 +50,15 @@ MODULES = (
            "analyses, performance trail, bilans.",
            ("ouvrir_aujourdhui", "ouvrir_fil_activite", "ouvrir_tableau_de_bord", "ouvrir_journal",
             "ouvrir_historique_activites", "ouvrir_planification", "ouvrir_renforcement",
-            "ouvrir_analyses_et_forme", "ouvrir_performance_trail", "ouvrir_bilans_objectifs"),
+            "ouvrir_analyses_et_forme", "ouvrir_performance_trail", "ouvrir_bilans_objectifs", "ouvrir_duel"),
            obligatoire=True, blocs=(10,)),
     Module("suivi", "Récupération, santé et matériel", "Coureur",
            "Poids, IMC, sommeil, blessures, carte du corps, soins, matériel, nutrition du quotidien, zones, objectifs.",
            ("ouvrir_suivi",), blocs=(11, 13)),
     Module("courses", "Courses et stratégie", "Coureur",
            "Courses à venir, résultats, roadbook, matériel obligatoire d'une course.",
-           ("ouvrir_courses_calendrier", "ouvrir_resultats_courses", "ouvrir_materiel_course"), blocs=(15,)),
+           ("ouvrir_courses_calendrier", "ouvrir_resultats_courses", "ouvrir_materiel_course", "ouvrir_jour_de_course"),
+           blocs=(15,)),
     Module("parcours", "Cartes, traces et photos", "Coureur",
            "Bibliothèque de traces GPX, cartes, création de parcours, photos des sorties.",
            ("ouvrir_cartes_et_traces", "ouvrir_photos"), blocs=(16,)),
@@ -69,6 +70,10 @@ MODULES = (
            "et affichés dans l'appli, historique des suivis, sortie rattachée (analyse automatique), message "
            "à envoyer au coureur et test de configuration. Ne lit pas les données de la page LiveTrack.",
            ("ouvrir_livetrack_coach",)),
+    Module("defis_famille", "Défis en famille", "Coureur",
+           "Des kilomètres ou des sorties à faire ensemble sur une période, la part de chacun (sorties enregistrées "
+           "ou notées à la main pour les enfants), badges et grand affichage simple.",
+           ("ouvrir_defis_famille",)),
     Module("connecteurs", "Connecteurs Claude", "Coureur",
            "Ce que Claude rapporte de tes connecteurs chaque matin, par un dossier Google Drive partagé : sorties "
            "Strava et Garmin, récupération, records, usure des chaussures, charge de la semaine, agenda (journées "

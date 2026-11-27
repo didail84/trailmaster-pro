@@ -40,6 +40,7 @@ def dossier_racine_ressources():
 
 
 COULEURS_ACCENT = {
+    "Trail": "#E8590C",           # v109 : orange balise, couleur de la suite Trail (par défaut)
     "Vert": "#2E7D32",
     "Bleu": "#1976D2",
     "Violet": "#6A1B9A",
@@ -48,7 +49,10 @@ COULEURS_ACCENT = {
     "Turquoise": "#00838F",
 }
 
-COULEUR_PAR_DEFAUT = COULEURS_ACCENT["Vert"]
+COULEUR_PAR_DEFAUT = COULEURS_ACCENT["Trail"]
+
+# Couleur par espace (icônes et pastilles) : coureur, club, organisation.
+COULEURS_ESPACE = {"Coureur": "#E8590C", "Club": "#2563A8", "Organisation": "#6D4BB8", "Outils": "#3E5A4C"}
 
 
 # ==================================================================
@@ -58,18 +62,18 @@ COULEUR_PAR_DEFAUT = COULEURS_ACCENT["Vert"]
 # soit l'accent choisi) : fond général, fond des cartes/panneaux,
 # bordures et niveaux de gris pour le texte.
 
-PALETTE_SOMBRE = {
-    "fond": "#12151A",
-    "fond_secondaire": "#14181D",
-    "carte": "#1B2126",
-    "carte_haute": "#171C21",
-    "bordure": "#262E34",
-    "bordure_douce": "#232A30",
-    "texte": "#F3F6F7",
-    "texte_att": "#C9D2D6",
-    "texte_secondaire": "#9AA7AE",
-    "texte_discret": "#6B767D",
-    "bleu": "#4C8DFF",
+PALETTE_SOMBRE = {               # v109 « Nuit » : noir vert de la suite Trail
+    "fond": "#101613",
+    "fond_secondaire": "#131A16",
+    "carte": "#1B241F",
+    "carte_haute": "#18211D",
+    "bordure": "#2A3730",
+    "bordure_douce": "#24302A",
+    "texte": "#F1F4F1",
+    "texte_att": "#D2DBD5",
+    "texte_secondaire": "#A3B3A9",
+    "texte_discret": "#73837A",
+    "bleu": "#5B9BE0",
     "orange": "#FF8A3D",
 }
 
@@ -77,20 +81,24 @@ PALETTE_SOMBRE = {
 # inversées en luminosité, pensées pour rester lisibles en plein
 # soleil/en extérieur. Les couleurs d'accent (choisies séparément par
 # l'utilisateur) restent inchangées entre les deux modes.
-PALETTE_CLAIRE = {
-    "fond": "#F4F6F7",
-    "fond_secondaire": "#ECEFF1",
+PALETTE_CLAIRE = {               # v109 « Clair » : papier chaud, encre vert-noir
+    "fond": "#F4F3EF",
+    "fond_secondaire": "#FBFAF7",
     "carte": "#FFFFFF",
-    "carte_haute": "#F8F9FA",
-    "bordure": "#D7DCE0",
-    "bordure_douce": "#E2E6E9",
-    "texte": "#161A1E",
-    "texte_att": "#2B3238",
-    "texte_secondaire": "#5B656C",
-    "texte_discret": "#8A939A",
-    "bleu": "#1976D2",
-    "orange": "#E65100",
+    "carte_haute": "#F8F7F3",
+    "bordure": "#DAD7CE",
+    "bordure_douce": "#E6E3DB",
+    "texte": "#17201C",
+    "texte_att": "#2C3530",
+    "texte_secondaire": "#5D675F",
+    "texte_discret": "#7C857F",
+    "bleu": "#2563A8",
+    "orange": "#C2410C",
 }
+
+# Modes proposés dans Réglages > Apparence. « Soleil » : clair le jour, nuit dès le coucher du soleil.
+MODES_COULEUR = ("Clair", "Sombre", "Soleil")
+LIBELLES_MODE = {"Clair": "Clair", "Sombre": "Nuit", "Soleil": "Selon le soleil"}
 
 # PALETTE reste l'objet importé partout ailleurs (`from interface.theme
 # import PALETTE`) — un dict MUTABLE dont le contenu est remplacé en
@@ -175,10 +183,36 @@ def definir_mode_couleur(mode):
     ancienne apparence ; seules les nouvelles fenêtres utilisent le
     nouveau mode."""
 
-    source = PALETTE_CLAIRE if mode == "Clair" else PALETTE_SOMBRE
+    source = PALETTE_CLAIRE if mode_effectif(mode) == "Clair" else PALETTE_SOMBRE
     PALETTE.clear()
     PALETTE.update(source)
     definir_parametre("mode_couleur", mode)
+
+
+def lieu_soleil():
+    """(lat, lon) du lieu utilisé par le mode « Selon le soleil » (Réglages > Apparence)."""
+    from noyau.outils.soleil import LIEU_PAR_DEFAUT
+    try:
+        return float(obtenir_parametre("soleil_lat", str(LIEU_PAR_DEFAUT[0]))), \
+            float(obtenir_parametre("soleil_lon", str(LIEU_PAR_DEFAUT[1])))
+    except (TypeError, ValueError):
+        return LIEU_PAR_DEFAUT
+
+
+def mode_effectif(mode=None, maintenant=None):
+    """« Clair » ou « Sombre » : le mode « Soleil » se résout selon l'heure du lever et du coucher."""
+    mode = mode or obtenir_mode_couleur()
+    if mode != "Soleil":
+        return "Clair" if mode == "Clair" else "Sombre"
+    from noyau.outils.soleil import fait_jour
+    lat, lon = lieu_soleil()
+    return "Clair" if fait_jour(maintenant, lat, lon) else "Sombre"
+
+
+def palette_a_jour():
+    """True si PALETTE correspond déjà au mode effectif (sinon le mode « Soleil » vient de basculer)."""
+    attendu = PALETTE_CLAIRE if mode_effectif() == "Clair" else PALETTE_SOMBRE
+    return PALETTE.get("fond") == attendu["fond"]
 
 
 def appliquer_mode_couleur_enregistre():

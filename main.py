@@ -54,6 +54,12 @@ def demarrer():
     # d'ouvrir la moindre fenêtre — sinon le logiciel démarrerait toujours
     # en sombre puis basculerait au premier changement d'écran.
     appliquer_mode_couleur_enregistre()
+    try:                                     # v109 : icône de l'application (montagne + balise orange)
+        from interface.icones import icone_appli
+        app.setWindowIcon(icone_appli())
+        app.setApplicationDisplayName("Trail Master Hub Pro")
+    except Exception:
+        pass
 
     # Une erreur plus tard (ouverture d'un écran…) est aussi notée dans le fichier d'erreur.
     precedent = sys.excepthook

@@ -417,6 +417,9 @@ class FilActivite(_EcranAthlete):
             self.actualiser()       # une nouvelle sortie vient d'arriver : elle prend sa place en haut du fil
 
     def _ouvrir(self, activite_id):
+        from interface.panneau_detail import ouvrir_dans_panneau
+        if ouvrir_dans_panneau(self, activite_id):        # v109 : détail à droite, sans quitter la page
+            return
         from interface.detail_sortie import DialogueDetailSortie
         DialogueDetailSortie(activite_id, self.athlete_id, parent=self, au_enregistrement=self.actualiser).exec()
 

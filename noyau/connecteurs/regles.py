@@ -293,13 +293,27 @@ def charge_agenda_par_jour(evenements):
     return {k: round(v, 1) for k, v in par_jour.items()}
 
 
-def fatigue_agenda(heures):
+CLE_JOURNEE_CHARGEE = "agenda_journee_chargee_h"
+
+
+def seuil_journee_chargee():
+    """Heures d'agenda à partir desquelles la journée compte comme chargée (Réglages > Coach et IA)."""
+    try:
+        from data.database import obtenir_parametre
+        v = float(obtenir_parametre(CLE_JOURNEE_CHARGEE, str(JOURNEE_CHARGEE_H)))
+        return v if 4 <= v <= 16 else JOURNEE_CHARGEE_H
+    except Exception:
+        return JOURNEE_CHARGEE_H
+
+
+def fatigue_agenda(heures, seuil=None):
     """Bonus de fatigue (0 à 2 sur 10) d'une journée selon les heures prises dans l'agenda."""
     if not heures:
         return 0
-    if heures >= JOURNEE_CHARGEE_H + 2:
+    s = seuil_journee_chargee() if seuil is None else seuil
+    if heures >= s + 2:
         return 2
-    if heures >= JOURNEE_CHARGEE_H:
+    if heures >= s:
         return 1
     return 0
 

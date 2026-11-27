@@ -130,7 +130,22 @@ class Reglages(QMainWindow):
         conteneur_scroll.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
         conteneur_scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
         conteneur_scroll.setFrameShape(QFrame.Shape.NoFrame)
-        self.setCentralWidget(conteneur_scroll)
+        # v109 — interface commune : sections à gauche, contenu à droite
+        enveloppe = QWidget()
+        rangee = QHBoxLayout(enveloppe)
+        rangee.setContentsMargins(0, 0, 0, 0)
+        rangee.setSpacing(0)
+        self.nav_reglages = QFrame()
+        self.nav_reglages.setObjectName("navReglages")
+        self.nav_reglages.setFixedWidth(230)
+        self._nav_lay = QVBoxLayout(self.nav_reglages)
+        self._nav_lay.setContentsMargins(14, 22, 14, 22)
+        self._nav_lay.setSpacing(4)
+        rangee.addWidget(self.nav_reglages)
+        rangee.addWidget(conteneur_scroll, 1)
+        self.setCentralWidget(enveloppe)
+        self._scroll_reglages = conteneur_scroll
+        self._sections = []
 
         central = QWidget()
         conteneur_scroll.setWidget(central)
@@ -139,9 +154,9 @@ class Reglages(QMainWindow):
         principal.setContentsMargins(25, 20, 25, 20)
         principal.setSpacing(15)
 
-        titre = QLabel("⚙️  Réglages")
+        titre = QLabel("Réglages")
         titre.setObjectName("titrePage")
-        sous_titre = QLabel("Apparence, sauvegarde et préférences générales")
+        sous_titre = QLabel("Coach et IA, connecteurs, apparence, notifications, données et mises à jour")
         sous_titre.setObjectName("sousTitrePage")
         principal.addWidget(titre)
         principal.addWidget(sous_titre)
@@ -149,7 +164,14 @@ class Reglages(QMainWindow):
         # ------------------------------------------------------------
         # MODULES (Trail Hub Center, étape 2.3)
         # ------------------------------------------------------------
-        principal.addWidget(self._construire_cadre_modules())
+        cadre_coach = self._construire_cadre_coach_ia()
+        principal.addWidget(cadre_coach)
+        cadre_connecteurs = self._construire_cadre_connecteurs()
+        principal.addWidget(cadre_connecteurs)
+        cadre_notifs = self._construire_cadre_notifications()
+        principal.addWidget(cadre_notifs)
+        cadre_modules = self._construire_cadre_modules()
+        principal.addWidget(cadre_modules)
 
         # ------------------------------------------------------------
         # APPARENCE
@@ -203,8 +225,9 @@ class Reglages(QMainWindow):
         barre_mode = QHBoxLayout()
         self.boutons_mode = {}
         mode_actuel = obtenir_mode_couleur()
-        for nom in ("Sombre", "Clair"):
-            bouton = QPushButton(nom)
+        from interface.theme import MODES_COULEUR, LIBELLES_MODE
+        for nom in MODES_COULEUR:
+            bouton = QPushButton(LIBELLES_MODE[nom])
             bouton.setCursor(Qt.CursorShape.PointingHandCursor)
             bouton.setMinimumHeight(38)
             bouton.setCheckable(True)
@@ -213,6 +236,27 @@ class Reglages(QMainWindow):
             self.boutons_mode[nom] = bouton
             barre_mode.addWidget(bouton)
         apparence_layout.addLayout(barre_mode)
+        from interface.theme import lieu_soleil
+        from noyau.outils.soleil import lever_coucher, texte_heure
+        lat, lon = lieu_soleil()
+        lever, coucher = lever_coucher(None, lat, lon)
+        ligne_soleil = QHBoxLayout()
+        ligne_soleil.addWidget(QLabel("Lieu pour « Selon le soleil » :"))
+        self.champ_lat = QDoubleSpinBox()
+        self.champ_lat.setRange(-66, 66)
+        self.champ_lat.setDecimals(4)
+        self.champ_lat.setValue(lat)
+        self.champ_lon = QDoubleSpinBox()
+        self.champ_lon.setRange(-180, 180)
+        self.champ_lon.setDecimals(4)
+        self.champ_lon.setValue(lon)
+        for w in (self.champ_lat, self.champ_lon):
+            w.valueChanged.connect(self._enregistrer_lieu_soleil)
+            ligne_soleil.addWidget(w)
+        self.label_soleil = QLabel(f"aujourd'hui : lever {texte_heure(lever)}, coucher {texte_heure(coucher)}")
+        self.label_soleil.setObjectName("texteSecondaire")
+        ligne_soleil.addWidget(self.label_soleil, 1)
+        apparence_layout.addLayout(ligne_soleil)
 
         principal.addWidget(cadre_apparence)
 
@@ -893,7 +937,15 @@ class Reglages(QMainWindow):
 
         principal.addWidget(cadre_affichage)
 
-        principal.addWidget(self._construire_cadre_relais())
+        cadre_relais = self._construire_cadre_relais()
+        principal.addWidget(cadre_relais)
+        for nom, cadre in (("Coach et IA", cadre_coach), ("Montre et connecteurs", cadre_connecteurs),
+                           ("Notifications", cadre_notifs), ("Apparence", cadre_apparence),
+                           ("Clés d'IA", cadre_ia), ("Rythme de vie", cadre_rythme), ("Alertes et objectifs", cadre_alertes),
+                           ("Données et sauvegarde", cadre_sauvegarde), ("Synchronisation", cadre_sync),
+                           ("Modules", cadre_modules), ("Mises à jour", cadre_relais)):
+            self._ajouter_section(nom, cadre)
+        self._nav_lay.addStretch(1)
 
         label_version = QLabel(f"Version installée : {obtenir_version_installee()}")
         label_version.setObjectName("texteSecondaire")
@@ -902,7 +954,13 @@ class Reglages(QMainWindow):
 
         principal.addStretch()
 
-        self.setStyleSheet(obtenir_style_ecran())
+        from interface.theme import PALETTE as _P, obtenir_couleur_accent as _acc
+        self.setStyleSheet(obtenir_style_ecran() +
+                           f"#navReglages {{ background: {_P['fond_secondaire']}; border-right: 1px solid {_P['bordure']}; }}"
+                           f"#boutonNavReglages {{ text-align: left; padding: 0 12px; border: none; border-radius: 9px; "
+                           f"background: transparent; color: {_P['texte_att']}; font-size: 13px; }}"
+                           f"#boutonNavReglages:hover {{ background: {_P['carte']}; }}"
+                           f"#boutonNavReglages[actif=\"true\"] {{ background: #18211D; color: #FFFFFF; font-weight: 600; }}")
 
     # ------------------------------------------------------------
     # MISES À JOUR PAR RELAIS (étape 8)
@@ -1008,14 +1066,176 @@ class Reglages(QMainWindow):
         )
 
     def choisir_mode_couleur(self, nom):
+        from interface.theme import LIBELLES_MODE
         definir_mode_couleur(nom)
         for autre_nom, bouton in self.boutons_mode.items():
             bouton.setChecked(autre_nom == nom)
         QMessageBox.information(
             self, "Mode appliqué",
-            f"Mode « {nom} » enregistré. Il s'appliquera aux prochaines fenêtres "
+            f"Mode « {LIBELLES_MODE.get(nom, nom)} » enregistré. Il s'appliquera aux prochaines fenêtres "
             "que tu ouvriras (ferme et rouvre les écrans déjà affichés pour le voir)."
+            + (" Le logiciel passe tout seul en mode nuit au coucher du soleil." if nom == "Soleil" else "")
         )
+
+    # ------------------------------------------------------------
+    # v109 : sections, coach et IA, connecteurs, notifications
+    # ------------------------------------------------------------
+    def _ajouter_section(self, nom, cadre):
+        b = QPushButton(nom)
+        b.setObjectName("boutonNavReglages")
+        b.setCursor(Qt.CursorShape.PointingHandCursor)
+        b.setMinimumHeight(40)
+        b.clicked.connect(lambda _c=False, w=cadre, bb=b: self._aller_section(w, bb))
+        self._nav_lay.addWidget(b)
+        self._sections.append((nom, cadre, b))
+
+    def _aller_section(self, cadre, bouton=None):
+        self._scroll_reglages.verticalScrollBar().setValue(max(0, cadre.y() - 12))
+        for _n, _c, b in self._sections:
+            b.setProperty("actif", b is bouton)
+            b.style().unpolish(b)
+            b.style().polish(b)
+
+    def aller_a_section(self, nom):
+        for n, c, b in self._sections:
+            if n == nom or nom in n:
+                self._aller_section(c, b)
+                return True
+        return False
+
+    def _enregistrer_lieu_soleil(self, *_):
+        from data.database import definir_parametre
+        from noyau.outils.soleil import lever_coucher, texte_heure
+        definir_parametre("soleil_lat", str(self.champ_lat.value()))
+        definir_parametre("soleil_lon", str(self.champ_lon.value()))
+        lever, coucher = lever_coucher(None, self.champ_lat.value(), self.champ_lon.value())
+        self.label_soleil.setText(f"aujourd'hui : lever {texte_heure(lever)}, coucher {texte_heure(coucher)}")
+
+    def _cadre_v109(self, titre, note=None):
+        cadre = QFrame()
+        cadre.setObjectName("carteForm")
+        lay = QVBoxLayout(cadre)
+        t = QLabel(titre)
+        t.setObjectName("titreCarte")
+        lay.addWidget(t)
+        if note:
+            n = QLabel(note)
+            n.setObjectName("texteSecondaire")
+            n.setWordWrap(True)
+            lay.addWidget(n)
+        return cadre, lay
+
+    def _ligne_reglage(self, lay, libelle, widget, aide=None):
+        """Libellé, aide, puis le contrôle juste en dessous (lisible même dans une fenêtre étroite)."""
+        l = QLabel(libelle)
+        l.setStyleSheet("font-weight: 600; background: transparent; margin-top: 8px;")
+        lay.addWidget(l)
+        if aide:
+            a = QLabel(aide)
+            a.setObjectName("texteSecondaire")
+            a.setWordWrap(True)
+            lay.addWidget(a)
+        widget.setMinimumHeight(36)
+        h = QHBoxLayout()
+        h.addWidget(widget)
+        h.addStretch(1)
+        lay.addLayout(h)
+
+    def _construire_cadre_coach_ia(self):
+        from noyau.ia import analyse_auto as AA
+        from noyau.connecteurs import regles as RC
+        from noyau.entrainement import semaine_auto as SA
+        cadre, lay = self._cadre_v109("Coach et intelligence artificielle",
+                                      "Ce que l'IA analyse toute seule, sur quel ton, et ce qui compte dans ta fatigue.")
+        self.case_analyse_auto = QCheckBox("Activée")
+        self.case_analyse_auto.setChecked(AA.actif())
+        self.case_analyse_auto.toggled.connect(AA.definir_actif)
+        self._ligne_reglage(lay, "Analyse automatique", self.case_analyse_auto,
+                            "À chaque sortie reçue et à l'ouverture d'une page, sans bouton.")
+        self.combo_moteur = QComboBox()
+        for code, lib in AA.MOTEURS.items():
+            self.combo_moteur.addItem(lib, code)
+        self.combo_moteur.setCurrentIndex(self.combo_moteur.findData(AA.moteur()))
+        self.combo_moteur.currentIndexChanged.connect(lambda _i: AA.definir_moteur(self.combo_moteur.currentData()))
+        self._ligne_reglage(lay, "Moteur d'analyse", self.combo_moteur,
+                            "Les règles marchent hors ligne ; Claude écrit les analyses du matin (connecteurs) ; "
+                            "« Les deux » ajoute Gemini ou Groq si une clé est enregistrée.")
+        self.combo_ton = QComboBox()
+        for code, lib in AA.TONS.items():
+            self.combo_ton.addItem(lib, code)
+        self.combo_ton.setCurrentIndex(self.combo_ton.findData(AA.ton()))
+        self.combo_ton.currentIndexChanged.connect(lambda _i: AA.definir_ton(self.combo_ton.currentData()))
+        self._ligne_reglage(lay, "Ton du coach", self.combo_ton, "Les chiffres restent les mêmes, seul le ton change.")
+        self.champ_journee = QSpinBox()
+        self.champ_journee.setRange(4, 16)
+        self.champ_journee.setSuffix(" h")
+        self.champ_journee.setValue(int(RC.seuil_journee_chargee()))
+        self.champ_journee.valueChanged.connect(
+            lambda v: __import__("data.database", fromlist=["x"]).definir_parametre(RC.CLE_JOURNEE_CHARGEE, str(v)))
+        self._ligne_reglage(lay, "Journée chargée à partir de", self.champ_journee,
+                            "Heures prises dans Google Agenda qui ajoutent de la fatigue.")
+        self.champ_heure_seance = QTimeEdit(QTime.fromString(SA.heure_preferee(), "HH:mm"))
+        self.champ_heure_seance.setDisplayFormat("HH:mm")
+        self.champ_heure_seance.timeChanged.connect(lambda tm: SA.definir_heure_preferee(tm.toString("HH:mm")))
+        self._ligne_reglage(lay, "Heure préférée des séances", self.champ_heure_seance,
+                            "« Préparer ma semaine » place les séances au plus près de cette heure.")
+        return cadre
+
+    def _construire_cadre_connecteurs(self):
+        from noyau.connecteurs import pont as P
+        from noyau.donnees import connecteurs as D
+        cadre, lay = self._cadre_v109("Montre et connecteurs",
+                                      "Chaque matin à 5 h 56, Claude lit Strava, Garmin (Running Workout), Google Agenda, "
+                                      "Gmail, AllTrails, TrailSync et Spotify, et dépose un paquet dans Google Drive. "
+                                      "Le détail est dans l'écran Connecteurs Claude.")
+        d = P.dossier()
+        dp = P.dernier_passage()
+        n = len(D.demandes_en_attente())
+        for lib, val in (("Dossier du pont", str(d) if d else "pas encore choisi (Connecteurs Claude > Pont)"),
+                         ("Dernier passage", str(dp).replace("T", " ")[:16] if dp else "—"),
+                         ("Demandes en attente", str(n)),
+                         ("Garmin Fenix", "sorties et séances : oui · sommeil et VFC : à autoriser dans Running Workout")):
+            l = QLabel(f"<b>{lib}</b> : {val}")
+            l.setTextFormat(Qt.TextFormat.RichText)
+            l.setWordWrap(True)
+            l.setStyleSheet("background: transparent;")
+            lay.addWidget(l)
+        return cadre
+
+    def _construire_cadre_notifications(self):
+        from interface import barre_menus as BM
+        from noyau.materiel import alerte as AM
+        from noyau.outils import rapport_auto as RA
+        cadre, lay = self._cadre_v109("Notifications et rapports")
+        self.case_barre_menus = QCheckBox("Affichée")
+        self.case_barre_menus.setChecked(BM.active())
+        self.case_barre_menus.toggled.connect(BM.definir_active)
+        self._ligne_reglage(lay, "Mini-fenêtre dans la barre des menus", self.case_barre_menus,
+                            "Score du jour, prochaine séance et envoi sur la montre sans ouvrir le logiciel "
+                            "(au prochain démarrage).")
+        self.champ_seuil_chaussures = QSpinBox()
+        self.champ_seuil_chaussures.setRange(200, 2000)
+        self.champ_seuil_chaussures.setSingleStep(50)
+        self.champ_seuil_chaussures.setSuffix(" km")
+        self.champ_seuil_chaussures.setValue(AM.seuil())
+        self.champ_seuil_chaussures.valueChanged.connect(AM.definir_seuil)
+        self._ligne_reglage(lay, "Alerte chaussures à partir de", self.champ_seuil_chaussures,
+                            "Avec des modèles équivalents à comparer et des liens de prix.")
+        self.case_rapport = QCheckBox("Automatique")
+        self.case_rapport.setChecked(RA.actif())
+        self.case_rapport.toggled.connect(RA.definir_actif)
+        self._ligne_reglage(lay, "Rapport du mois en PDF", self.case_rapport,
+                            f"Écrit le 1er du mois dans « {RA.dossier()} ».")
+        b = QPushButton("Choisir le dossier des rapports…")
+        b.clicked.connect(self._choisir_dossier_rapports)
+        lay.addWidget(b, 0, Qt.AlignmentFlag.AlignLeft)
+        return cadre
+
+    def _choisir_dossier_rapports(self):
+        from noyau.outils import rapport_auto as RA
+        d = QFileDialog.getExistingDirectory(self, "Dossier des rapports du mois", str(RA.dossier()))
+        if d:
+            RA.definir_dossier(d)
 
     def choisir_sensibilite_alertes(self, nom):
         for autre_nom, bouton in self.boutons_sensibilite.items():

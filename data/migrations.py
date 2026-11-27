@@ -1424,6 +1424,40 @@ def _m021_connecteurs_claude(cur):
         _ajouter_uuid(cur, t)
 
 
+def _m022_defis_famille(cur):
+    """Défis en famille : objectifs de kilomètres (ou de sorties) partagés, participants, saisies."""
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS defis_famille (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            nom TEXT NOT NULL,
+            mesure TEXT NOT NULL DEFAULT 'km',
+            objectif REAL NOT NULL,
+            debut TEXT NOT NULL,
+            fin TEXT NOT NULL,
+            icone TEXT DEFAULT 'montagne',
+            cree_le TEXT
+        )""")
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS defis_participants (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            defi_id INTEGER NOT NULL REFERENCES defis_famille(id) ON DELETE CASCADE,
+            prenom TEXT NOT NULL,
+            athlete_id INTEGER REFERENCES athletes(id) ON DELETE SET NULL,
+            personne_id INTEGER,
+            UNIQUE (defi_id, prenom)
+        )""")
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS defis_saisies (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            participant_id INTEGER NOT NULL REFERENCES defis_participants(id) ON DELETE CASCADE,
+            date TEXT NOT NULL,
+            valeur REAL NOT NULL,
+            note TEXT
+        )""")
+    for t in ("defis_famille", "defis_participants", "defis_saisies"):
+        _ajouter_uuid(cur, t)
+
+
 MIGRATIONS = [
     (1, "Identifiant universel (UUID) pour chaque donnée", _m001_identifiants_universels),
     (2, "Fiche Personne unique et rôles", _m002_personnes_et_roles),
@@ -1451,6 +1485,7 @@ MIGRATIONS = [
      _m020_livetrack_coach),
     (21, "Connecteurs Claude : paquets du pont, records, charge, agenda, parcours, sécurité, playlists, demandes",
      _m021_connecteurs_claude),
+    (22, "Défis en famille : défis, participants, saisies", _m022_defis_famille),
 ]
 VERSION_LOGICIEL = MIGRATIONS[-1][0]
 

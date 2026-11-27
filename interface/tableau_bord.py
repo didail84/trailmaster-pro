@@ -14,7 +14,7 @@ from PySide6.QtWidgets import (
     QApplication,
 )
 
-from PySide6.QtCore import Qt, QTimer, QEvent
+from PySide6.QtCore import Qt, QTimer, QEvent, QSize
 from PySide6.QtGui import QPixmap
 
 from interface.resultats_courses import ResultatsCourses
@@ -41,7 +41,10 @@ from interface.theme import (
     obtenir_couleur_accent, eclaircir, obtenir_couleur_accent_douce, charger_polices,
     PALETTE, POLICE_TITRE, POLICE_TITRE_DEMI, POLICE_TEXTE, couleur_pour_pourcentage,
 )
-from interface.logo_widget import LogoMontagne
+from interface.logo_widget import LogoMontagne  # noqa: F401 (gardé pour les autres écrans)
+from interface.icones import icone, icone_ecran, pixmap_appli, sans_emoji
+
+MENU_ICONE = "#C9D4CD"      # icônes du menu latéral (barre sombre dans les deux modes)
 from interface.aujourdhui import EcranAujourdhui
 from interface.verification_maj import texte_version, VerificationMajThread, proposer_mise_a_jour
 from interface.outils_ui import notifier, PaletteCommandes, installer_raccourcis, AIDE_RACCOURCIS
@@ -114,14 +117,16 @@ class TableauBord(QMainWindow):
 
         entete_logo = QHBoxLayout()
         entete_logo.setSpacing(9)
-        entete_logo.addWidget(LogoMontagne(26))
-        logo = QLabel("TRAILMASTER")
+        image_logo = QLabel()
+        image_logo.setPixmap(pixmap_appli(30))
+        entete_logo.addWidget(image_logo)
+        logo = QLabel("Trail Master")
         logo.setObjectName("logo")
         entete_logo.addWidget(logo)
         entete_logo.addStretch()
         menu_layout.addLayout(entete_logo)
 
-        sous_logo = QLabel("PRO")
+        sous_logo = QLabel("Hub Pro · suite Trail")
         sous_logo.setObjectName("sousLogo")
         menu_layout.addWidget(sous_logo)
         menu_layout.addSpacing(20)
@@ -129,7 +134,9 @@ class TableauBord(QMainWindow):
         # Recherche globale — accessible en permanence en haut du menu,
         # en dehors des groupes (elle cherche à travers toutes les
         # catégories, elle n'appartient à aucune en particulier).
-        bouton_recherche = QPushButton("🔎  Rechercher partout…")
+        bouton_recherche = QPushButton("Rechercher partout…   ⌘K")
+        bouton_recherche.setIcon(icone("recherche", "#9DB0A5"))
+        bouton_recherche.setIconSize(QSize(16, 16))
         bouton_recherche.setObjectName("boutonRechercheGlobale")
         bouton_recherche.setCursor(Qt.CursorShape.PointingHandCursor)
         bouton_recherche.clicked.connect(self.ouvrir_recherche_globale)
@@ -157,15 +164,18 @@ class TableauBord(QMainWindow):
             ("ANALYSE", [
                 ("📊  Analyses && Forme", self.ouvrir_analyses_et_forme, False),
                 ("🏔️  Performance trail", self.ouvrir_performance_trail, False),
+                ("⚔️  Duel sur un parcours", self.ouvrir_duel, False),
                 ("📆  Bilans && objectifs", self.ouvrir_bilans_objectifs, False),
                 ("📋  Suivi", self.ouvrir_suivi, False),
                 ("🏆  Résultats de courses", self.ouvrir_resultats_courses, False),
                 ("🏁  Courses à venir", self.ouvrir_courses_calendrier, False),
                 ("🗓️  Calendrier des courses", self.ouvrir_calendrier_competitions, False),
+                ("⏳  Jour de course", self.ouvrir_jour_de_course, False),
                 ("🎒  Matériel pour une course", self.ouvrir_materiel_course, False),
             ]),
             ("CLUB", [
                 ("🏟️  Club", self.ouvrir_club, False),
+                ("⭐  Défis en famille", self.ouvrir_defis_famille, False),
             ]),
             ("ORGANISATION", [
                 ("🏁  Organisation", self.ouvrir_organisation, False),
@@ -218,7 +228,10 @@ class TableauBord(QMainWindow):
 
             boutons_du_groupe = []
             for texte, gestionnaire, actif in items:
-                bouton = QPushButton(texte)
+                bouton = QPushButton(sans_emoji(texte))          # v109 : vraies icônes à la place des émojis
+                if gestionnaire is not None:
+                    bouton.setIcon(icone_ecran(gestionnaire.__name__, "#FFFFFF" if actif else MENU_ICONE))
+                    bouton.setIconSize(QSize(18, 18))
                 boutons_du_groupe.append(bouton)
                 if gestionnaire is not None:
                     self._ecran_du_bouton[bouton] = gestionnaire.__name__
@@ -259,7 +272,7 @@ class TableauBord(QMainWindow):
         self._rafraichir_bouton_mode()
 
         # U10 — vraie version + mise à jour en un clic
-        version = QLabel(f"TrailMaster Pro · {texte_version()}")
+        version = QLabel(f"Trail Master Hub Pro · {texte_version()}")
         version.setObjectName("version")
         carte_athlete_menu_layout.addWidget(version)
         self.bouton_maj = QPushButton("Vérifier les mises à jour")
@@ -375,7 +388,26 @@ class TableauBord(QMainWindow):
         self.pile.setCurrentWidget(self.page_aujourdhui)
 
         layout_principal.addWidget(menu_scroll)
-        layout_principal.addWidget(self.pile, 1)
+        # v109 — interface commune : page + panneau de détail à droite, barre d'état en bas
+        from interface.panneau_detail import PanneauDetail, BarreEtat
+        droite = QVBoxLayout()
+        droite.setContentsMargins(0, 0, 0, 0)
+        droite.setSpacing(0)
+        rangee = QHBoxLayout()
+        rangee.setContentsMargins(0, 0, 0, 0)
+        rangee.setSpacing(0)
+        self.panneau_detail = PanneauDetail()
+        self.panneau_detail.fiche_complete.connect(self._ouvrir_fiche_complete)
+        rangee.addWidget(self.pile, 1)
+        rangee.addWidget(self.panneau_detail)
+        droite.addLayout(rangee, 1)
+        self.barre_etat = BarreEtat(texte_version())
+        droite.addWidget(self.barre_etat)
+        layout_principal.addLayout(droite, 1)
+        self._minuterie_etat = QTimer(self)
+        self._minuterie_etat.setInterval(60000)
+        self._minuterie_etat.timeout.connect(lambda: self.barre_etat.actualiser())
+        self._minuterie_etat.start()
         QTimer.singleShot(1200, self._ajustement_matin)
         QTimer.singleShot(7000, self._synchro_garmin_auto)
         # Trail Hub Center : les sorties reçues sont analysées sans clic (interface/analyse_auto.py)
@@ -385,6 +417,21 @@ class TableauBord(QMainWindow):
             # Connecteurs Claude : lecture du dossier partagé (Google Drive) au démarrage puis toutes les 30 min
             from interface.connecteurs import service as service_pont
             service_pont().demarrer()
+            service_pont().passage_fait.connect(lambda texte: self.barre_etat.actualiser(texte))
+            # v109 : mini-fenêtre de la barre des menus, rapport du mois, thème « Selon le soleil »
+            from interface.barre_menus import BarreMenus, ServicesFond
+            from interface.icones import icone_appli
+            self.barre_menus = BarreMenus(self, icone_appli())
+            self.barre_menus.demarrer()
+
+            def _notif(titre, texte):
+                if self.barre_menus.tray.isVisible():
+                    self.barre_menus.tray.showMessage(titre, texte)
+                else:
+                    from interface.outils_ui import notifier
+                    notifier(texte, "ok", self, 6000)
+            self.services_fond = ServicesFond(self, _notif)
+            self.services_fond.demarrer()
 
         # =========================
         # STYLE
@@ -400,14 +447,14 @@ class TableauBord(QMainWindow):
             }
 
             #menu {
-                background-color: PALETTE_FOND_SECONDAIRE;
-                border-right: 1px solid PALETTE_BORDURE;
+                background-color: #18211D;
+                border-right: 1px solid #18211D;
             }
 
             #menuScroll {
-                background-color: PALETTE_FOND_SECONDAIRE;
+                background-color: #18211D;
                 border: none;
-                border-right: 1px solid PALETTE_BORDURE;
+                border-right: 1px solid #18211D;
             }
 
             #contenu {
@@ -449,18 +496,18 @@ class TableauBord(QMainWindow):
             }
 
             #logo {
-                color: PALETTE_TEXTE;
+                color: #FFFFFF;
                 font-family: 'POLICE_TITRE_EXTRA';
                 font-size: 15.5px;
                 font-weight: 800;
             }
 
             #sousLogo {
-                color: ACCENT_COLOR;
+                color: #9DB0A5;
                 font-family: 'POLICE_TITRE';
                 font-size: 11px;
-                font-weight: 700;
-                letter-spacing: 2px;
+                font-weight: 600;
+                letter-spacing: 0px;
                 padding-left: 2px;
             }
 
@@ -472,9 +519,9 @@ class TableauBord(QMainWindow):
             }
 
             #boutonRechercheGlobale {
-                background-color: PALETTE_CARTE;
-                color: PALETTE_TEXTE_SECONDAIRE;
-                border: 1px solid PALETTE_BORDURE;
+                background-color: #212C27;
+                color: #AFC0B6;
+                border: 1px solid #33423B;
                 border-radius: 9px;
                 text-align: left;
                 padding: 9px 10px;
@@ -482,13 +529,13 @@ class TableauBord(QMainWindow):
             }
 
             #boutonRechercheGlobale:hover {
-                color: PALETTE_TEXTE;
+                color: #FFFFFF;
                 border-color: ACCENT_DOUCE;
             }
 
             #boutonGroupeMenu {
                 background-color: transparent;
-                color: #4A535A;
+                color: #8FA398;
                 border: none;
                 text-align: left;
                 font-size: 10.5px;
@@ -497,12 +544,12 @@ class TableauBord(QMainWindow):
             }
 
             #boutonGroupeMenu:hover {
-                color: PALETTE_TEXTE_SECONDAIRE;
+                color: #D9E0DA;
             }
 
             #boutonMenu {
                 background-color: transparent;
-                color: PALETTE_TEXTE_SECONDAIRE;
+                color: #D9E0DA;
                 border: none;
                 border-radius: 9px;
                 text-align: left;
@@ -511,13 +558,13 @@ class TableauBord(QMainWindow):
             }
 
             #boutonMenu:hover {
-                background-color: PALETTE_CARTE;
-                color: PALETTE_TEXTE;
+                background-color: #24302A;
+                color: #FFFFFF;
             }
 
             #boutonMenuActif {
-                background-color: ACCENT_DOUCE;
-                color: PALETTE_TEXTE;
+                background-color: ACCENT_COLOR;
+                color: #FFFFFF;
                 border: none;
                 border-radius: 9px;
                 text-align: left;
@@ -527,9 +574,9 @@ class TableauBord(QMainWindow):
             }
 
             #boutonModeAffichage {
-                background-color: PALETTE_FOND;
-                color: PALETTE_TEXTE;
-                border: 1px solid PALETTE_BORDURE;
+                background-color: #18211D;
+                color: #FFFFFF;
+                border: 1px solid #33423B;
                 border-radius: 8px;
                 padding: 7px 8px;
                 font-size: 12px;
@@ -542,7 +589,7 @@ class TableauBord(QMainWindow):
 
             #boutonMajMenu {
                 background: transparent;
-                color: PALETTE_TEXTE_SECONDAIRE;
+                color: #AFC0B6;
                 border: none;
                 text-align: left;
                 padding: 4px 2px;
@@ -554,8 +601,8 @@ class TableauBord(QMainWindow):
             }
 
             #carteAthleteMenu {
-                background-color: PALETTE_CARTE;
-                border: 1px solid PALETTE_BORDURE_DOUCE;
+                background-color: #212C27;
+                border: 1px solid #33423B;
                 border-radius: 12px;
                 margin-top: 8px;
             }
@@ -642,7 +689,7 @@ class TableauBord(QMainWindow):
             }
 
             #version {
-                color: #4A535A;
+                color: #8FA398;
                 font-size: 11px;
             }
         """
@@ -746,6 +793,13 @@ class TableauBord(QMainWindow):
         return self.apercu_dernieres_sorties
 
     def _ouvrir_fiche_sortie(self, activite_id):
+        """v109 : la sortie s'ouvre d'abord dans le panneau de détail à droite (sans quitter la page)."""
+        panneau = getattr(self, "panneau_detail", None)
+        if panneau is not None and panneau.montrer_sortie(activite_id):
+            return
+        self._ouvrir_fiche_complete(activite_id)
+
+    def _ouvrir_fiche_complete(self, activite_id):
         dialogue = DialogueDetailSortie(
             activite_id, self.athlete_actif_id, self,
             au_enregistrement=self.actualiser_dashboard,
@@ -1455,6 +1509,9 @@ class TableauBord(QMainWindow):
                 b.setObjectName(nom)
                 b.style().unpolish(b)
                 b.style().polish(b)
+                methode = self._ecran_du_bouton.get(b)
+                if methode:
+                    b.setIcon(icone_ecran(methode, "#FFFFFF" if b is bouton else MENU_ICONE))
 
     def _navigation_aujourdhui(self):
         """Actions des blocs cliquables de l'écran Aujourd'hui (U5)."""
@@ -1488,6 +1545,10 @@ class TableauBord(QMainWindow):
             "coach": onglet(self.ouvrir_analyses_et_forme, 1),
             "bilans": self.ouvrir_bilans_objectifs,
             "courses": self.ouvrir_courses_calendrier,
+            "jour_course": self.ouvrir_jour_de_course,
+            "semaine": self.ouvrir_preparer_semaine,
+            "materiel": self.ouvrir_alerte_materiel,
+            "defis": self.ouvrir_defis_famille,
             "sortie": sortie,
             "ressenti": ressenti,
             "athlete_change": athlete_change,
@@ -1611,6 +1672,32 @@ class TableauBord(QMainWindow):
             "livetrack_coach",
             lambda: LiveTrackCoachFenetre(athlete_id_initial=self.athlete_actif_id),
         )
+    def ouvrir_jour_de_course(self):
+        from interface.jour_de_course import JourDeCourseFenetre
+        self._ouvrir_ou_activer("jour_de_course", lambda: JourDeCourseFenetre(athlete_id_initial=self.athlete_actif_id))
+
+    def ouvrir_duel(self):
+        from interface.duel import DuelFenetre
+        self._ouvrir_ou_activer("duel", lambda: DuelFenetre(athlete_id_initial=self.athlete_actif_id))
+
+    def ouvrir_defis_famille(self):
+        from interface.defis_famille import DefisFamilleFenetre
+        self._ouvrir_ou_activer("defis_famille", lambda: DefisFamilleFenetre(athlete_id_initial=self.athlete_actif_id))
+
+    def ouvrir_preparer_semaine(self):
+        from interface.preparer_semaine import DialoguePreparerSemaine
+        if self.athlete_actif_id is None:
+            return
+        DialoguePreparerSemaine(self.athlete_actif_id, parent=self).exec()
+        if getattr(self, "page_aujourdhui", None) is not None:
+            self.page_aujourdhui.actualiser()
+
+    def ouvrir_alerte_materiel(self):
+        from interface.alerte_materiel import DialogueAlerteMateriel
+        if self.athlete_actif_id is None:
+            return
+        DialogueAlerteMateriel(self.athlete_actif_id, parent=self).exec()
+
     def ouvrir_connecteurs(self):
         from interface.connecteurs import ConnecteursFenetre
         self._ouvrir_ou_activer("connecteurs", lambda: ConnecteursFenetre(athlete_id_initial=self.athlete_actif_id))
@@ -1816,6 +1903,10 @@ class TableauBord(QMainWindow):
             ("Historique des activités", "sorties liste", self.ouvrir_historique_activites),
             ("Suivi en direct", "live", self.ouvrir_suivi_direct),
             ("LiveTrack coach", "garmin livetrack lien suivre coureur entraineur direct fc coach", self.ouvrir_livetrack_coach),
+            ("Jour de course", "course compte a rebours sac ravitaillement roadbook depart playlist", self.ouvrir_jour_de_course),
+            ("Duel sur un parcours", "comparer deux sorties meme parcours boucle portion", self.ouvrir_duel),
+            ("Défis en famille", "defi famille enfants kids badges kilometres ensemble", self.ouvrir_defis_famille),
+            ("Préparer ma semaine", "semaine planifier creneaux agenda montre playlist", self.ouvrir_preparer_semaine),
             ("Connecteurs Claude", "strava garmin alltrails trailsync agenda google gmail spotify playlist montre drive pont "
              "records chaussures charge acwr parcours securite", self.ouvrir_connecteurs),
             ("Cartes & Traces", "carte parcours gpx", self.ouvrir_cartes_et_traces),

@@ -408,6 +408,11 @@ def _appeler_gemini(prompt):
             "(clé gratuite à récupérer sur https://aistudio.google.com/apikey)."
         )
 
+    try:
+        from noyau.ia.analyse_auto import consigne_ton
+        prompt = f"{prompt}\n\n{consigne_ton()}"
+    except Exception:
+        pass
     derniere_erreur_modele = None
     au_moins_une_surcharge = False
 

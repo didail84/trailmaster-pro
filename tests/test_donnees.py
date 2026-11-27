@@ -259,9 +259,10 @@ def test_supprimer_un_athlete_sans_sortie(remplie):
 
 def test_recherche_globale(remplie):
     assert rechercher_partout("", 1, 10) == []
-    tous = rechercher_partout("col", None, 100)
-    seulement_1 = rechercher_partout("col", 1, 100)
-    assert {r[0] for r in tous} == {"Activité"}
+    # v109 : la recherche couvre aussi livres, réglages, courses… ; on vérifie ici les sorties
+    tous = [r for r in rechercher_partout("col", None, 100) if r[0] == "Activité"]
+    seulement_1 = [r for r in rechercher_partout("col", 1, 100) if r[0] == "Activité"]
+    assert tous
     assert 0 < len(seulement_1) < len(tous)
     assert len(rechercher_partout("Trace", 1, 2)) == 2  # limite par catégorie
 
