@@ -1,5 +1,20 @@
 # Historique des versions
 
+## Version 109 — nouveau design et 10 nouvelles fonctions
+- **Nouveau design** : thème « Trail » (orange #E8590C) par défaut, nuit verte en sombre, clair chaud ; menu latéral sombre avec **icônes SVG** (trait 1,8, grille 24) et rubrique active en plein accent ; logo orange (montagne et soleil) ; **panneau de détail** à droite (clic sur une sortie) ; **barre d'état** en bas ; **Réglages** rangés par sections (Coach et IA, Montre et connecteurs, Notifications et rapports) ; thème **« Selon le soleil »** (clair du lever au coucher, calcul hors ligne pour L'Isle-sur-la-Sorgue ou le lieu choisi).
+- **Prêt à courir** : score sur 100 chaque matin (récupération Garmin 50 %, charge ACWR 20 %, ressenti du matin 20 %, agenda 10 %) avec un verdict et un conseil.
+- **Préparer ma semaine** : les séances des 7 jours placées dans les créneaux libres de Google Agenda autour de l'heure préférée, envoyées en une fois sur la montre, dans l'agenda et en playlists Spotify.
+- **Jour de course** : compte à rebours, durée visée, plan de ravitaillement heure par heure, sac à préparer (cases gardées), météo et playlist de la durée de la course.
+- **Recherche partout** (Ctrl K / ⌘ K) : sorties, courses, matériel, personnes, livres, rubriques et réglages.
+- **Duel de sorties** : deux passages sur le même parcours (départ à moins de 300 m, distance à 12 % près) comparés portion par portion.
+- **Barre des menus / zone de notification** (réglable) et **rapport du mois automatique** en PDF dans Documents/Trail Master Hub Pro/Rapports.
+- **Défis en famille** : objectif commun en km ou en sorties, part de chacun (sorties comptées toutes seules, vélo au tiers, saisies à la main), badges 25/50/75/100 %, grand affichage pour les enfants.
+- **Alerte matériel** : chaussures au-delà de 600 km (réglable) ou de 90 % du conseillé, modèles équivalents et liens de prix (idealo, i-run, Alltricks).
+- **IA** : choix du moteur (règles hors ligne, Claude, tout) et du ton du coach.
+- **Page Claude** : même design (palette, icônes, menu), nouvelles rubriques **Jour de course**, **Duel de sorties**, **Défis en famille** ; cartes Prêt à courir, chaussures à surveiller, défi en cours et **rapport du mois téléchargeable** sur Aujourd'hui ; **tiroir de détail** au clic sur une sortie ; **recherche ⌘K** ; **Préparer ma semaine** dans Connecteurs en direct ; bouton thème sombre → clair → selon le soleil.
+- **Base de données version 22** : défis en famille (défis, participants, saisies).
+- **Tests** : `tests/test_v109_fonctions.py` (13 tests).
+
 ## Connecteurs Claude — Strava, Garmin, AllTrails, TrailSync, Google Agenda, Gmail, Spotify, Google Drive
 - **Nouveau module « Connecteurs Claude »** (espace Coureur, allumé par défaut). Le logiciel n'appelle pas les connecteurs lui-même : chaque matin (5 h 56), une **tâche programmée de Claude** les interroge et dépose un **paquet** JSON dans le dossier Google Drive « Trail Hub Center - Pont » ; le logiciel lit ce dossier au démarrage puis toutes les 30 minutes, **sans doublon**, et y écrit ses **demandes** (`trailhub-demandes.json`) que Claude exécute au passage suivant. Menu 🔌 Connecteurs Claude, 4 onglets :
   - **🔌 Pont** : dossier partagé (dossiers Google Drive de l'ordinateur proposés), coureur qui reçoit, « Lire le dossier maintenant », « Importer un paquet… » (sans Google Drive : paquet téléchargé depuis Drive ou la page Claude), journal des imports, **bilan de la semaine** écrit par Claude (le lundi, aussi envoyé par mail) ;

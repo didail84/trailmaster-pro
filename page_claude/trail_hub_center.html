@@ -6,17 +6,17 @@
 /* Mise en page : bandeau du haut + barre des rubriques (à gauche sur ordinateur, en ruban sur téléphone)
    + contenu en cartes, comme le logiciel de bureau. Sombre par défaut, clair au choix. */
 :root {
-  --fond: #12151A;
-  --fond-2: #14181D;
-  --carte: #1B2126;
-  --carte-haute: #212930;
-  --bordure: #262E34;
-  --texte: #F3F6F7;
-  --texte-2: #9AA7AE;
-  --texte-3: #6B767D;
-  --accent: #2E7D32;
-  --accent-texte: #66BB6A;
-  --accent-doux: rgba(102, 187, 106, .14);
+  --fond: #0E1814;
+  --fond-2: #0B1410;
+  --carte: #15231D;
+  --carte-haute: #1B2D25;
+  --bordure: #23382E;
+  --texte: #F2F5F1;
+  --texte-2: #9DB0A6;
+  --texte-3: #6E8278;
+  --accent: #E8590C;
+  --accent-texte: #FF8A4C;
+  --accent-doux: rgba(232, 89, 12, .16);
   --bleu: #4C8DFF;
   --orange: #DD6B26;
   --vert: #43A047;
@@ -32,9 +32,9 @@
 }
 @media (prefers-color-scheme: light) {
   :root:not([data-theme="dark"]) {
-    --fond: #F4F6F7; --fond-2: #ECEFF1; --carte: #FFFFFF; --carte-haute: #F3F5F6; --bordure: #D7DCE0;
-    --texte: #161A1E; --texte-2: #5B656C; --texte-3: #7F8990;
-    --accent: #2E7D32; --accent-texte: #2E7D32; --accent-doux: rgba(46, 125, 50, .10);
+    --fond: #F7F2EB; --fond-2: #EFE8DE; --carte: #FFFDF9; --carte-haute: #F6F0E7; --bordure: #E2D8CA;
+    --texte: #1E1A15; --texte-2: #665B4E; --texte-3: #8D8172;
+    --accent: #D9480F; --accent-texte: #C2410C; --accent-doux: rgba(217, 72, 15, .10);
     --bleu: #1976D2; --orange: #E65100; --vert: #2E7D32; --jaune: #B7860B; --rouge: #C62828;
     --grille: rgba(91, 101, 108, .16); --ombre: 0 1px 2px rgba(22,26,30,.06);
     --z1: #DDEFDD; --z2: #A9D7AB; --z3: #6DBB72; --z4: #3E9447; --z5: #1F5E25;
@@ -42,9 +42,9 @@
   }
 }
 :root[data-theme="light"] {
-  --fond: #F4F6F7; --fond-2: #ECEFF1; --carte: #FFFFFF; --carte-haute: #F3F5F6; --bordure: #D7DCE0;
-  --texte: #161A1E; --texte-2: #5B656C; --texte-3: #7F8990;
-  --accent: #2E7D32; --accent-texte: #2E7D32; --accent-doux: rgba(46, 125, 50, .10);
+  --fond: #F7F2EB; --fond-2: #EFE8DE; --carte: #FFFDF9; --carte-haute: #F6F0E7; --bordure: #E2D8CA;
+  --texte: #1E1A15; --texte-2: #665B4E; --texte-3: #8D8172;
+  --accent: #D9480F; --accent-texte: #C2410C; --accent-doux: rgba(217, 72, 15, .10);
   --bleu: #1976D2; --orange: #E65100; --vert: #2E7D32; --jaune: #B7860B; --rouge: #C62828;
   --grille: rgba(91, 101, 108, .16); --ombre: 0 1px 2px rgba(22,26,30,.06);
   --z1: #DDEFDD; --z2: #A9D7AB; --z3: #6DBB72; --z4: #3E9447; --z5: #1F5E25;
@@ -93,7 +93,8 @@ select.choix { border: 1px solid var(--bordure); background: var(--carte); paddi
 nav.rubriques { border-right: 1px solid var(--bordure); padding: 16px 10px; display: flex; flex-direction: column; gap: 2px; position: sticky; top: calc(env(safe-area-inset-top, 0px) + 58px); align-self: start; }
 nav.rubriques a { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-radius: 8px; color: var(--texte-2); text-decoration: none; font-weight: 500; white-space: nowrap; }
 nav.rubriques a:hover { background: var(--carte); color: var(--texte); }
-nav.rubriques a[aria-current="page"] { background: var(--accent-doux); color: var(--accent-texte); }
+nav.rubriques a[aria-current="page"] { background: var(--accent); color: #fff; font-weight: 600; }
+nav.rubriques a[aria-current="page"] svg { opacity: 1; }
 nav.rubriques svg { flex: none; opacity: .9; }
 nav.rubriques .lib-court { display: none; }
 main { padding-block: 22px 60px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); min-width: 0; }
@@ -267,17 +268,51 @@ ol.etapes b { color: var(--texte); font-weight: 600; }
 .lecture { border-color: var(--bleu); }
 .lecture .md { color: var(--texte); }
 .attente { display: inline-flex; gap: 8px; align-items: center; color: var(--texte-2); font-size: .9rem; }
+
+/* ---------- v109 : nouveau design et nouvelles fonctions ---------- */
+kbd { font-family: var(--police-chiffres); border: 1px solid var(--bordure); border-radius: 4px; padding: 0 4px; }
+.pret { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 18px; align-items: center; }
+.anneau { position: relative; width: 112px; height: 112px; }
+.anneau svg { transform: rotate(-90deg); }
+.anneau .score { position: absolute; inset: 0; display: grid; place-items: center; font-family: var(--police-titre); font-weight: 700; font-size: 2rem; font-variant-numeric: tabular-nums; }
+.anneau .score small { display: block; font-size: .7rem; font-weight: 600; color: var(--texte-2); text-align: center; margin-top: -6px; }
+.composantes { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 8px; }
+.composante { background: var(--carte-haute); border-radius: 8px; padding: 6px 10px; font-size: .84rem; color: var(--texte-2); }
+.composante b { color: var(--texte); font-variant-numeric: tabular-nums; }
+.barre { height: 8px; border-radius: 4px; background: var(--carte-haute); overflow: hidden; }
+.barre > span { display: block; height: 100%; background: var(--accent); border-radius: 4px; }
+.badges { display: flex; flex-wrap: wrap; gap: 6px; }
+.badge { font-size: .76rem; padding: 2px 8px; border-radius: 999px; border: 1px solid var(--bordure); color: var(--texte-3); }
+.badge.gagne { background: var(--accent-doux); color: var(--accent-texte); border-color: transparent; font-weight: 600; }
+.rebours { font-family: var(--police-titre); font-weight: 700; font-size: 3rem; line-height: 1; color: var(--accent-texte); font-variant-numeric: tabular-nums; }
+.coche { display: flex; gap: 8px; align-items: center; padding: 4px 0; cursor: pointer; }
+.coche input { accent-color: var(--accent); width: 18px; height: 18px; }
+.coche.fait span { text-decoration: line-through; color: var(--texte-3); }
+.ecart-plus { color: var(--vert); } .ecart-moins { color: var(--rouge); }
+#voile { position: fixed; inset: 0; background: rgba(0,0,0,.45); z-index: 40; display: none; }
+#voile.ouvert { display: block; }
+#tiroir { position: fixed; top: 0; right: 0; bottom: 0; width: min(380px, 100vw); background: var(--carte); border-left: 1px solid var(--bordure); z-index: 41; transform: translateX(105%); transition: transform .18s ease; display: flex; flex-direction: column; gap: 12px; padding: 18px; overflow-y: auto; }
+#tiroir.ouvert { transform: none; }
+@media (prefers-reduced-motion: reduce) { #tiroir { transition: none; } }
+#tiroir .fermer { align-self: flex-end; }
+#palette { position: fixed; z-index: 42; top: 12vh; left: 50%; transform: translateX(-50%); width: min(620px, calc(100vw - 24px)); background: var(--carte); border: 1px solid var(--bordure); border-radius: 14px; box-shadow: 0 20px 60px rgba(0,0,0,.4); display: none; flex-direction: column; max-height: 70vh; }
+#palette.ouvert { display: flex; }
+#palette input { border: 0; border-bottom: 1px solid var(--bordure); background: transparent; color: var(--texte); font-size: 1.05rem; padding: 14px 16px; outline: none; }
+#palette .resultats { overflow-y: auto; padding: 6px; }
+#palette .res { display: flex; justify-content: space-between; gap: 10px; width: 100%; text-align: left; background: none; border: 0; color: var(--texte); padding: 8px 10px; border-radius: 8px; cursor: pointer; font: inherit; }
+#palette .res:hover, #palette .res.actif { background: var(--accent-doux); }
+#palette .res .cat { font-size: .74rem; color: var(--texte-3); text-transform: uppercase; letter-spacing: .06em; }
 </style>
 
 <header class="bandeau">
   <div class="bandeau-int">
     <div class="marque">
       <svg width="30" height="30" viewBox="0 0 30 30" aria-hidden="true">
-        <rect width="30" height="30" rx="8" fill="var(--accent)"/>
-        <path d="M4 22 L11 11 L15 16 L19 8 L26 22 Z" fill="none" stroke="#fff" stroke-width="2.2" stroke-linejoin="round"/>
-        <circle cx="19" cy="8" r="1.8" fill="#fff"/>
+        <rect width="30" height="30" rx="8" fill="#E8590C"/>
+        <circle cx="21" cy="9" r="3.2" fill="#FFE8D6"/>
+        <path d="M3 24 L11 12 L15 17 L19 11 L27 24 Z" fill="#1A1410"/>
       </svg>
-      <span class="marque-nom">Trail Hub Center</span>
+      <span class="marque-nom">Trail Hub Center</span><span class="marque-mode">Hub Pro · suite Trail</span>
       <span class="marque-mode">Consultation</span>
     </div>
     <div class="commandes">
@@ -288,7 +323,8 @@ ol.etapes b { color: var(--texte); font-weight: 600; }
         Ouvrir ma base
       </button>
       <input type="file" id="fichier" accept=".db,.sqlite,.sqlite3,application/octet-stream,application/x-sqlite3" hidden>
-      <button class="bouton bouton-icone" id="bouton-theme" type="button" aria-label="Changer de thème" title="Thème clair ou sombre">
+ <button class="bouton" id="bouton-recherche" type="button" title="Rechercher partout (Ctrl K ou ⌘ K)"><svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></g></svg><span class="lib-long">Rechercher</span> <kbd class="petit tres-discret">⌘K</kbd></button>
+      <button class="bouton bouton-icone" id="bouton-theme" type="button" aria-label="Changer de thème" title="Thème : sombre, clair ou selon le soleil">
         <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1.5a6.5 6.5 0 1 0 0 13z" fill="currentColor"/><circle cx="8" cy="8" r="6.5" fill="none" stroke="currentColor" stroke-width="1.4"/></svg>
       </button>
     </div>
@@ -296,6 +332,8 @@ ol.etapes b { color: var(--texte); font-weight: 600; }
 </header>
 <div class="source" id="source"></div>
 
+<div id="voile"></div><aside id="tiroir" aria-label="Détail" aria-hidden="true"></aside>
+<div id="palette" role="dialog" aria-label="Recherche"><input id="palette-saisie" placeholder="Sortie, course, matériel, rubrique, réglage…" autocomplete="off"><div class="resultats" id="palette-res"></div></div>
 <div class="ossature">
   <nav class="rubriques" id="rubriques" aria-label="Rubriques"></nav>
   <main id="contenu"></main>
@@ -489,7 +527,10 @@ function donneesExemple() {
   ];
   const traces = new Map(activites.filter((a) => a.type !== "Randonnée").map((a) => [a.id, { id: a.id, activite_id: a.id }]));
   return { athletes: [athlete], athleteId: 1, tables: { athlete, activites, suivi, sommeil, recup, garmin: [], blessures, soins, courses, resultats, objectifs, materiel, seances, plans: [], musculation: [], traces, analyses: new Map(),
-    produits: [], essais: [], recettes: [], materielObligatoire: [], fractionnes: [],
+    produits: [], essais: [], recettes: [], materielObligatoire: [], fractionnes: [], chargeC: [],
+    defis: [{ id: 1, nom: "Défi de l'hiver en famille", mesure: "km", objectif: 300, debut: cleJour(ajouterJours(auj, -20)), fin: cleJour(ajouterJours(auj, 25)), icone: "montagne",
+      participants: [{ id: 1, prenom: "Papa", athlete_id: 1 }, { id: 2, prenom: "Maman", athlete_id: null }, { id: 3, prenom: "Les garçons", athlete_id: null }],
+      saisies: [{ participant_id: 2, valeur: 38 }, { participant_id: 3, valeur: 21.5 }, { participant_id: 2, valeur: 12 }] }],
     index: [{ organisme: "ITRA", categorie: "Général", valeur: 512, date_releve: cleJour(ajouterJours(auj, -30)), source: "Exemple" }, { organisme: "UTMB Index", categorie: "Général", valeur: 498, date_releve: cleJour(ajouterJours(auj, -30)), source: "Exemple" }] } };
 }
 function traceExemple(a) {
@@ -564,7 +605,7 @@ function lireAthlete(idAth) {
     soins: t("soins", "date DESC"), courses: t("courses_calendrier", "date"), resultats: t("resultats_courses", "date DESC"),
     objectifs: t("objectifs", "date_cible"), materiel: t("materiel", "id"), seances: t("seances_structurees", "date_prevue"),
     plans: t("plans_entrainement", "date_debut DESC"), musculation: t("musculation_suivi", "date"), traces,
-    materielObligatoire: t("materiel_obligatoire", "course_id, ordre, id"),
+    materielObligatoire: t("materiel_obligatoire", "course_id, ordre, id"), chargeC: t("connecteurs_charge", "date"), defis: lireDefis(),
     fractionnes: t("fractionnes_realises", "date DESC, id DESC"),
     produits: t("produits_nutrition", "nom"), essais: t("tolerances_nutrition", "date DESC, id DESC"), recettes: t("recettes_nutrition", "nom"),
     index: Base.tablesPresentes.has("index_performance") && Base.cols("athletes").includes("personne_id")
@@ -769,34 +810,37 @@ function nomAthlete(a) { return [a?.prenom, a?.nom].filter(Boolean).join(" ") ||
 /* ================================================================
    Rubriques
    ================================================================ */
-const ICONES = {
-  aujourdhui: '<path d="M8 1.5v2M8 12.5v2M1.5 8h2M12.5 8h2M3.4 3.4l1.4 1.4M11.2 11.2l1.4 1.4M3.4 12.6l1.4-1.4M11.2 4.8l1.4-1.4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><circle cx="8" cy="8" r="2.6" fill="none" stroke="currentColor" stroke-width="1.4"/>',
-  fil: '<rect x="2.5" y="2" width="11" height="4.5" rx="1.2" fill="none" stroke="currentColor" stroke-width="1.4"/><rect x="2.5" y="9.5" width="11" height="4.5" rx="1.2" fill="none" stroke="currentColor" stroke-width="1.4"/>',
-  sorties: '<path d="M2 13 L6 6 L9 10 L11 7 L14 13 Z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/>',
-  forme: '<path d="M1.5 11 L5 7.5 L8 9.5 L14.5 3" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M10.5 3h4v4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>',
-  sante: '<path d="M8 14s-5.5-3.4-5.5-7.3A3 3 0 0 1 8 4.6a3 3 0 0 1 5.5 2.1C13.5 10.6 8 14 8 14z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/>',
-  courses: '<path d="M3 14V2.5M3 3h8.5l-1.8 2.6L11.5 8H3" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round"/>',
-  blessures: '<rect x="2" y="5.5" width="12" height="5" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.4" transform="rotate(-35 8 8)"/><circle cx="8" cy="8" r=".9" fill="currentColor"/>',
-  materiel: '<path d="M2 11.5c2.5 0 3.5-1 4.5-3l1-2 2 1.5c1 .8 2.5 1.3 4.5 1.5v2.5H2z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/>',
-  fractionne: '<circle cx="8" cy="9" r="5.2" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M8 9V6.2M6.5 1.8h3M12.2 4.4l1-1" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>',
-  nutrition: '<path d="M6 2.5h4M6.5 2.5v2.2L4.6 7.4A3 3 0 0 0 4 9.2V12a1.5 1.5 0 0 0 1.5 1.5h5A1.5 1.5 0 0 0 12 12V9.2a3 3 0 0 0-.6-1.8L9.5 4.7V2.5" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round"/><path d="M4.3 9.5h7.4" stroke="currentColor" stroke-width="1.3"/>',
-  calendrier: '<rect x="2" y="3" width="12" height="11" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M2 6.5h12M5.5 1.5v3M10.5 1.5v3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><path d="M5 9.5h2M9 9.5h2M5 12h2" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>',
-  organisation: '<path d="M3.5 14.5V2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><path d="M3.5 2.5h9l-1.8 2.8 1.8 2.8h-9" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/>',
-  annuaire: '<rect x="3" y="1.8" width="10" height="12.4" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M6 5.2h4.5M6 8h4.5M6 10.8h2.8" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><path d="M3 4.5H1.8M3 8H1.8M3 11.5H1.8" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>',
-  club: '<path d="M2 13.5h12M3.5 13.5V7l4.5-3.5L12.5 7v6.5" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="M6.5 13.5v-3h3v3" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="M8 3.5V1.5h2.5" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>',
-  analyse: '<path d="M2 14h12" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><rect x="3" y="8" width="2.4" height="5" rx=".6" fill="currentColor"/><rect x="6.8" y="5" width="2.4" height="8" rx=".6" fill="currentColor"/><rect x="10.6" y="2.5" width="2.4" height="10.5" rx=".6" fill="currentColor"/>',
-  bibliotheque: '<path d="M2.5 3h3.2v10.5H2.5zM6.5 3h3.2v10.5H6.5z" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><path d="M10.6 3.6l2.9-.8 2 9.9-2.9.8z" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/>',
-  actualites: '<rect x="1.8" y="2.5" width="12.4" height="11" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M4.5 5.5h7M4.5 8h7M4.5 10.5h4.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>',
-  connecteurs: '<path d="M5.5 1.8v3M10.5 1.8v3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><path d="M3.5 4.8h9v2.7a4.5 4.5 0 0 1-9 0z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="M8 12v2.4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>',
-  coach: '<path d="M2.5 3.5h11v7h-6l-3 2.5v-2.5h-2z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="M5.5 6.5h5M5.5 8.5h3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>',
+const ICONES = {   /* jeu d'icônes v109 : trait 1,8 sur grille 24, comme le logiciel de bureau */
+  aujourdhui: '<circle cx="12" cy="12" r="4"/><path d="M12 2.5v2.5M12 19v2.5M2.5 12H5M19 12h2.5M5.3 5.3l1.8 1.8M16.9 16.9l1.8 1.8M5.3 18.7l1.8-1.8M16.9 7.1l1.8-1.8"/>',
+  fil: '<path d="M4 6h16M4 12h10M4 18h13"/><circle cx="19" cy="12" r="1.5"/>',
+  connecteurs: '<path d="M9 3v4M15 3v4"/><path d="M6 7h12v4a6 6 0 0 1-12 0z"/><path d="M12 17v4"/>',
+  sorties: '<path d="M2.5 20 9 9l4 6 3-4 5.5 9z"/><circle cx="17" cy="5" r="2"/>',
+  forme: '<path d="M3 17l5-5 4 3 9-9"/><path d="M15 6h6v6"/>',
+  sante: '<path d="M12 20s-7.5-4.6-7.5-10A4.2 4.2 0 0 1 12 7.3a4.2 4.2 0 0 1 7.5 2.7c0 5.4-7.5 10-7.5 10z"/><path d="M7 12.5h2.5l1.5-2.5 2 4 1.3-1.5H17"/>',
+  courses: '<path d="M5 21V3.5"/><path d="M5 4h12l-2.5 3.5L17 11H5"/>',
+  jourcourse: '<circle cx="12" cy="13" r="7.5"/><path d="M12 9v4l2.5 2.5M9.5 2.5h5M18.5 6.5l1.5-1.5"/>',
+  blessures: '<rect x="3" y="8.5" width="18" height="7" rx="3.5" transform="rotate(-40 12 12)"/><path d="M11 11h.01M13 13h.01M13 11h.01M11 13h.01"/>',
+  fractionne: '<path d="M3 18h3V9h3v9h3V5h3v13h3v-6h3"/>',
+  duel: '<path d="M4 18c3-8 6-8 8-4s5 4 8-4"/><path d="M4 12c3-6 6-6 8-3s5 3 8-3" opacity=".55"/>',
+  materiel: '<path d="M3 16.5c3.5 0 5-1.5 6.5-4.5l1.3-2.5 3 2c1.5 1 3.5 1.7 7.2 2v3H3z"/><path d="M3 19.5h18"/>',
+  nutrition: '<path d="M9 3h6M9.5 3v3.3l-2.8 4A4.5 4.5 0 0 0 6 12.8V18a2.5 2.5 0 0 0 2.5 2.5h7A2.5 2.5 0 0 0 18 18v-5.2a4.5 4.5 0 0 0-.7-2.5l-2.8-4V3"/><path d="M6.3 13.5h11.4"/>',
+  defis: '<path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M7 6H4a3 3 0 0 0 3 4M17 6h3a3 3 0 0 1-3 4"/>',
+  club: '<path d="M3 20.5h18M5 20.5v-10l7-5.5 7 5.5v10"/><path d="M10 20.5v-5h4v5"/>',
+  calendrier: '<rect x="3" y="4.5" width="18" height="16.5" rx="2.5"/><path d="M3 9.5h18M8 2.5v4M16 2.5v4M7.5 13.5h2M11 13.5h2M14.5 13.5h2M7.5 17h2"/>',
+  organisation: '<path d="M5 21.5V3"/><path d="M5 3.5h13l-2.5 4 2.5 4H5"/>',
+  annuaire: '<rect x="4.5" y="2.5" width="15" height="19" rx="2"/><path d="M8.5 7.5h7M8.5 11.5h7M8.5 15.5h4"/>',
+  bibliotheque: '<path d="M4 4h4.5v16H4zM10 4h4.5v16H10z"/><path d="M16.2 4.9l4.2-1 2.6 15.3-4.2 1z"/>',
+  analyse: '<path d="M3 21h18"/><path d="M6 17v-5M10.5 17V8M15 17v-7M19.5 17V4"/>',
+  actualites: '<rect x="2.5" y="4" width="19" height="16" rx="2.5"/><path d="M6.5 8.5h11M6.5 12h11M6.5 15.5h7"/>',
+  coach: '<path d="M4 5h16v10.5h-9l-4.5 4v-4H4z"/><path d="M8 9h8M8 12h5"/>',
 };
 const RUBRIQUES = [
   ["aujourdhui", "Aujourd'hui", "Aujourd'hui"], ["fil", "Fil d'activité", "Fil"], ["connecteurs", "Connecteurs en direct", "Connect."], ["sorties", "Sorties", "Sorties"], ["forme", "Forme et charge", "Forme"],
-  ["sante", "Poids et sommeil", "Santé"], ["courses", "Courses et objectifs", "Courses"], ["blessures", "Blessures et soins", "Blessures"],
-  ["fractionne", "Fractionné", "Fractionné"], ["materiel", "Matériel", "Matériel"], ["nutrition", "Nutrition de course", "Nutrition"], ["club", "Club", "Club"], ["calendrier", "Calendrier des courses", "Calendrier"], ["organisation", "Organisation", "Organisation"], ["annuaire", "Annuaire trail", "Annuaire"], ["bibliotheque", "Bibliothèque trail", "Livres"], ["analyse", "Analyse", "Analyse"], ["actualites", "Actualités du trail", "Actus"], ["coach", "Demander à Claude", "Claude"],
+  ["sante", "Poids et sommeil", "Santé"], ["courses", "Courses et objectifs", "Courses"], ["jourcourse", "Jour de course", "Jour J"], ["blessures", "Blessures et soins", "Blessures"],
+  ["fractionne", "Fractionné", "Fractionné"], ["duel", "Duel de sorties", "Duel"], ["materiel", "Matériel", "Matériel"], ["nutrition", "Nutrition de course", "Nutrition"], ["defis", "Défis en famille", "Défis"], ["club", "Club", "Club"], ["calendrier", "Calendrier des courses", "Calendrier"], ["organisation", "Organisation", "Organisation"], ["annuaire", "Annuaire trail", "Annuaire"], ["bibliotheque", "Bibliothèque trail", "Livres"], ["analyse", "Analyse", "Analyse"], ["actualites", "Actualités du trail", "Actus"], ["coach", "Demander à Claude", "Claude"],
 ];
-const icone = (k) => `<svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">${ICONES[k]}</svg>`;
-const MODULE_DE_RUBRIQUE = { connecteurs: "connecteurs", sante: "suivi", blessures: "suivi", materiel: "suivi", courses: "courses", nutrition: "nutrition", fractionne: "fractionne", club: "club", annuaire: "annuaire", bibliotheque: "bibliotheque", calendrier: "calendrier", organisation: "organisation", analyse: "analyse", actualites: "actualites" };
+const icone = (k, t = 18) => `<svg width="${t}" height="${t}" viewBox="0 0 24 24" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${ICONES[k] || ""}</g></svg>`;
+const MODULE_DE_RUBRIQUE = { connecteurs: "connecteurs", defis: "defis_famille", duel: "entrainement", jourcourse: "courses", sante: "suivi", blessures: "suivi", materiel: "suivi", courses: "courses", nutrition: "nutrition", fractionne: "fractionne", club: "club", annuaire: "annuaire", bibliotheque: "bibliotheque", calendrier: "calendrier", organisation: "organisation", analyse: "analyse", actualites: "actualites" };
 /* le club est éteint par défaut : visible sur l'exemple, ou si le module est allumé dans le logiciel */
 function rubriqueVisible(k) { const m = MODULE_DE_RUBRIQUE[k]; if (m === "club" || m === "organisation") return etat.source === "exemple" || etat.modules[m] === true; if (m === "club") return etat.source === "exemple" || etat.modules.club === true; return !m || etat.modules[m] !== false; }
 function rubriqueCourante() { const h = location.hash.replace("#", ""); return RUBRIQUES.some((r) => r[0] === h) && rubriqueVisible(h) ? h : (h === "ouvrir" ? "ouvrir" : "aujourdhui"); }
@@ -843,6 +887,7 @@ function vueAujourdhui() {
     <div class="entete-vue"><h2>${esc(fmtJourLong(new Date()).replace(/^./, (c) => c.toUpperCase()))}</h2><p>${esc(nomAthlete(d.athlete))}${der ? ` · dernière sortie ${ilYa <= 0 ? "aujourd'hui" : ilYa === 1 ? "hier" : `il y a ${ilYa} jours`}` : ""}</p></div>
     ${saut}
     ${carteLecture("aujourdhui")}
+    <div class="grille g2">${[cartePret(d), carteMateriel(d), carteDefi(d), carteRapport()].filter(Boolean).join("")}</div>
     <div class="grille g4">
       ${carteMesure("Fraîcheur", (f.forme > 0 ? "+" : "") + virgule(f.forme), "", "forme moins fatigue", `<span class="etat ${coul}">${lib}</span>`)}
       ${carteMesure("Forme (fitness)", virgule(f.fitness), "", "moyenne sur 42 jours")}
@@ -3119,6 +3164,7 @@ function vueConnecteurs() {
       ${carteConnecteur("records", "Records et matériel", "strava")}
       ${carteConnecteur("garmin", "Récupération et séances prévues", "garmin")}
     </div>
+    ${carteSemaine()}
     <div class="carte" id="cx-seance"><header><h3>Séance vers la montre, l'agenda et Spotify</h3><span class="etat neutre">Garmin · Google Agenda · Spotify</span></header>
       <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center">
         <select id="cx-type-seance" style="${sel}" aria-label="Séance">${MODELES_SEANCE.map((m, i) => `<option value="${i}">${esc(m.nom)} (${m.duree} min)</option>`).join("")}</select>
@@ -3290,7 +3336,7 @@ async function chargerAgenda() {
     const h = heuresParJour(evts), demain = cleJour(ajouterJours(new Date(), 1)), hd = h[demain] || 0;
     $("#cx-demain").textContent = `${virgule(hd, hd % 1 ? 1 : 0)} h`;
     $("#cx-demain-detail").textContent = hd >= 9 ? "Journée chargée : prévois une séance facile ou un jour de repos." : "Journée normale dans l'agenda.";
-    poserEtat("agenda", "vert", "Google Agenda");
+    poserEtat("agenda", "vert", "Google Agenda"); rendreSemaine();
     poserCorps("agenda", cx.agenda.length ? cx.agenda.map((e) => `<div class="ligne"><span><span class="titre">${esc(e.titre)}</span><br><span class="sous petit discret">${esc(e.journee ? fmtJourLong(parseDate(e.debut)) + " · journée" : fmtJourLong(new Date(e.debut)) + " · " + new Date(e.debut).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }))}</span></span><span class="droite petit discret">${esc(e.lieu || "")}</span></div>`).join("") : `<p class="vide">Rien dans l'agenda ces 7 prochains jours.</p>`);
   } catch (e) { erreurCarte("agenda", "agenda", e); }
 }
@@ -3420,6 +3466,7 @@ function brancherConnecteurs() {
   $("#cx-seance-desc").textContent = modeleChoisi().desc;
   $("#cx-type-seance").onchange = () => { $("#cx-seance-desc").textContent = modeleChoisi().desc; };
   $("#cx-montre").onclick = envoyerMontre; $("#cx-agenda").onclick = ajouterAgenda; $("#cx-playlist").onclick = creerPlaylist;
+  brancherSemaine();
   $("#cx-chercher").onclick = chercherParcours; $("#cx-controler").onclick = controlerTrajet; $("#cx-telecharger").onclick = telechargerPaquet;
   if (!mcpPret) return;               // la suite part quand la connexion à Claude est prête
   if (!mcp) { ["sorties", "analyse", "records", "garmin", "agenda", "mails"].forEach((id) => { poserEtat(id, "neutre", "Indisponible"); poserCorps(id, `<p class="discret">Disponible quand la page est ouverte dans Claude.</p>`); }); return; }
@@ -3431,12 +3478,448 @@ function brancherConnecteurs() {
 function reafficherConnecteurs() { connecteursCharges = false; brancherConnecteurs(); }
 
 /* ================================================================
+   v109 — Prêt à courir, alertes, Jour de course, Duel, Défis,
+   recherche ⌘K, tiroir de détail, Préparer ma semaine, rapport du mois,
+   thème selon le soleil
+   ================================================================ */
+const borne = (v, a, b) => Math.max(a, Math.min(b, v));
+
+/* ---------- Prêt à courir ---------- */
+function scoreAcwr(r) {
+  if (r == null || !isFinite(r)) return null;
+  if (r < 0.8) return 75;
+  if (r <= 1.3) return 95;
+  return Math.max(10, Math.round(80 - (r - 1.3) * 200));
+}
+function chargeDuJour(d) {
+  const c = (d.chargeC || []).filter((l) => l.date && ecartJours(new Date(), parseDate(l.date)) <= 2).slice(-1)[0];
+  if (c && nb(c.acwr)) return { acwr: nb(c.acwr), source: "Garmin (Running Workout)" };
+  if (cx.charge?.acwr) return { acwr: cx.charge.acwr, source: "Garmin (Running Workout), lu à l'instant" };
+  const f = d.forme[d.forme.length - 1];
+  return f && f.fitness > 1 ? { acwr: f.fatigue / f.fitness, source: "calculée sur tes sorties" } : { acwr: null, source: "" };
+}
+function pretACourir(d) {
+  const auj = jour0(new Date()), recent = (l) => l && l.date && ecartJours(auj, parseDate(l.date)) <= 1;
+  const comp = [];
+  /* disponibilité du matin (poids 0,5) : récupération Garmin, sinon la fraîcheur */
+  const rc = (d.recup || []).slice(-1)[0], f = d.forme[d.forme.length - 1];
+  let dispo = null, dispoTxt = "";
+  if (recent(rc) && nb(rc.body_battery_max)) { dispo = borne(nb(rc.body_battery_max), 0, 100); dispoTxt = `Body Battery ${entier(dispo)}`; }
+  else if (f) { dispo = borne(Math.round(65 + f.forme * 2.5), 5, 100); dispoTxt = `fraîcheur ${(f.forme > 0 ? "+" : "") + virgule(f.forme)}`; }
+  if (dispo != null) comp.push(["Disponibilité", dispo, 0.5, dispoTxt]);
+  /* charge (0,2) */
+  const ch = chargeDuJour(d), sa = scoreAcwr(ch.acwr);
+  if (sa != null) comp.push(["Charge", sa, 0.2, `ACWR ${virgule(ch.acwr, 2)}`]);
+  /* ressenti du matin (0,2) */
+  const sv = (d.suivi || []).filter((l) => nb(l.fatigue_generale) || nb(l.fatigue_jambes)).slice(-1)[0];
+  if (recent(sv)) { const fat = Math.max(nb(sv.fatigue_generale) || 0, nb(sv.fatigue_jambes) || 0); comp.push(["Ressenti", borne(Math.round(100 - fat * 10), 0, 100), 0.2, `fatigue ${entier(fat)}/10`]); }
+  /* sommeil (0,1) — la page n'a pas l'agenda hors connecteurs */
+  const so = (d.sommeil || []).slice(-1)[0];
+  if (recent(so) && nb(so.duree_heures)) comp.push(["Sommeil", borne(Math.round(nb(so.duree_heures) / 8 * 100), 0, 100), 0.1, `${virgule(nb(so.duree_heures), 1)} h`]);
+  if (!comp.length) return null;
+  const poids = comp.reduce((s, c) => s + c[2], 0), score = Math.round(comp.reduce((s, c) => s + c[1] * c[2], 0) / poids);
+  const [verdict, coul, conseil] = score >= 75 ? ["Prêt à courir", "vert", "Bonne journée pour une séance de qualité ou une sortie longue."]
+    : score >= 55 ? ["Séance normale possible", "bleu", "Garde l'intensité prévue mais écoute tes sensations."]
+    : score >= 35 ? ["Récupération en cours", "orange", "Préfère un footing facile en zone 2, ou du renforcement."]
+    : ["Repos conseillé", "rouge", "Le corps a besoin de récupérer : repos ou marche tranquille."];
+  return { score, verdict, coul, conseil, comp, sourceCharge: ch.source };
+}
+function anneauHtml(score, coul) {
+  const r = 48, c = 2 * Math.PI * r, v = borne(score, 0, 100);
+  return `<div class="anneau"><svg width="112" height="112" viewBox="0 0 112 112" aria-hidden="true"><circle cx="56" cy="56" r="${r}" fill="none" stroke="var(--carte-haute)" stroke-width="10"/><circle cx="56" cy="56" r="${r}" fill="none" stroke="var(--${coul === "bleu" ? "bleu" : coul === "vert" ? "vert" : coul === "rouge" ? "rouge" : "orange"})" stroke-width="10" stroke-linecap="round" stroke-dasharray="${(c * v / 100).toFixed(1)} ${c.toFixed(1)}"/></svg><div class="score"><span>${v}<small>sur 100</small></span></div></div>`;
+}
+function cartePret(d) {
+  const p = pretACourir(d);
+  if (!p) return `<div class="carte"><header><h3>Prêt à courir ?</h3></header><p class="vide">Pas assez de données du jour : synchronise ta montre ou note ton ressenti du matin dans le logiciel.</p></div>`;
+  return `<div class="carte"><header><h3>Prêt à courir ?</h3><span class="etat ${p.coul}">${esc(p.verdict)}</span></header>
+    <div class="pret">${anneauHtml(p.score, p.coul)}<div style="display:flex;flex-direction:column;gap:8px"><p style="margin:0">${esc(p.conseil)}</p>
+      <div class="composantes">${p.comp.map(([n, v, , t]) => `<div class="composante">${esc(n)} <b>${v}</b><br><span class="petit">${esc(t)}</span></div>`).join("")}</div>
+      <span class="petit tres-discret">Score indicatif : récupération 50 %, charge 20 %, ressenti 20 %, sommeil 10 %${p.sourceCharge ? ` · charge ${esc(p.sourceCharge)}` : ""}.</span></div></div></div>`;
+}
+
+/* ---------- Alerte matériel ---------- */
+function seuilChaussures() { const v = +lireStockage("thc-seuil-chaussures"); return v > 100 ? v : 600; }
+function liensPrix(nom) {
+  const q = encodeURIComponent(String(nom || "").replace(/\(.*?\)/g, "").trim());
+  return [["idealo", `https://www.idealo.fr/prechcat.html?q=${q}`], ["i-run", `https://www.i-run.fr/recherche/?q=${q}`], ["Alltricks", `https://www.alltricks.fr/Acheter/${q}`]];
+}
+function alertesMateriel(d) {
+  const s = seuilChaussures();
+  return (d.materiel || []).filter((m) => /chauss/i.test(m.type || m.nom || "") && (m.statut || "Actif") !== "Retiré").map((m) => {
+    const km = nb(m.km_actuels) || 0, max = nb(m.km_max_recommande);
+    const pc = max ? km / max : null;
+    return { m, km, max, pc, alerte: km >= s || (pc != null && pc >= 0.9) };
+  }).filter((x) => x.alerte).sort((a, b) => b.km - a.km);
+}
+function carteMateriel(d) {
+  const al = alertesMateriel(d);
+  if (!al.length) return "";
+  return `<div class="carte"><header><h3>Chaussures à surveiller</h3><a class="petit" style="color:var(--accent-texte)" href="#materiel">Matériel</a></header>
+    ${al.slice(0, 2).map((x) => `<div><b>${esc(x.m.nom)}</b> <span class="etat orange">${entier(x.km)} km${x.max ? ` sur ${entier(x.max)}` : ""}</span>
+      <div class="barre" style="margin:6px 0"><span style="width:${borne(Math.round((x.pc ?? x.km / 800) * 100), 4, 100)}%"></span></div>
+      <span class="petit discret">Pense à la remplaçante · prix : ${liensPrix(x.m.nom).map(([n, u]) => `<a href="${u}" target="_blank" rel="noopener" style="color:var(--accent-texte)">${n}</a>`).join(" · ")}</span></div>`).join("")}
+    <span class="petit tres-discret">Alerte à partir de ${entier(seuilChaussures())} km ou 90 % du kilométrage conseillé.</span></div>`;
+}
+
+/* ---------- Défis en famille ---------- */
+const BADGES = [[25, "Premiers pas"], [50, "Mi-chemin"], [75, "Dernière montée"], [100, "Sommet atteint"]];
+const COMPTE_TYPE = { Course: 1, Trail: 1, Randonnée: 1, Marche: 1, "Vélo": 1 / 3, VTT: 1 / 3 };
+function partActivites(acts, debut, fin, mesure) {
+  let t = 0;
+  for (const a of acts) {
+    const j = cleJour(a._date || parseDate(a.date));
+    if (j < debut || j > fin) continue;
+    const k = COMPTE_TYPE[a.type] ?? (/v[ée]lo|vtt/i.test(a.type || "") ? 1 / 3 : /course|trail|rando|marche/i.test(a.type || "") ? 1 : 0);
+    if (!k) continue;
+    t += mesure === "sorties" ? 1 : (nb(a.distance) || 0) * k;
+  }
+  return t;
+}
+function etatDefi(df) {
+  const parts = df.participants.map((p) => {
+    let acts = [];
+    if (p.athlete_id != null) {
+      if (etat.source === "exemple" || p.athlete_id === etat.athleteId) acts = etat.donnees.activites;
+      else try { acts = Base.tous("SELECT date, type, distance FROM activites WHERE athlete_id = ?", [p.athlete_id]); } catch (e) { acts = []; }
+    }
+    const auto = partActivites(acts, df.debut, df.fin, df.mesure);
+    const main = df.saisies.filter((s) => s.participant_id === p.id).reduce((s, x) => s + (nb(x.valeur) || 0), 0);
+    return { ...p, valeur: auto + main };
+  }).sort((a, b) => b.valeur - a.valeur);
+  const total = parts.reduce((s, p) => s + p.valeur, 0), pc = df.objectif ? total / df.objectif * 100 : 0;
+  const reste = Math.max(0, ecartJours(parseDate(df.fin), new Date()));
+  return { parts, total, pc, reste, badges: BADGES.map(([s, n]) => ({ s, n, gagne: pc >= s })) };
+}
+function lireDefis() {
+  if (!Base.tablesPresentes.has("defis_famille")) return [];
+  try {
+    const defis = Base.tous("SELECT * FROM defis_famille ORDER BY fin DESC");
+    const parts = Base.tablesPresentes.has("defis_participants") ? Base.tous("SELECT * FROM defis_participants") : [];
+    const sais = Base.tablesPresentes.has("defis_saisies") ? Base.tous("SELECT s.* FROM defis_saisies s") : [];
+    return defis.map((d) => { const pp = parts.filter((p) => p.defi_id === d.id), ids = new Set(pp.map((p) => p.id)); return { ...d, participants: pp, saisies: sais.filter((s) => ids.has(s.participant_id)) }; });
+  } catch (e) { return []; }
+}
+function defisEnCours(d) { const j = cleJour(new Date()); return (d.defis || []).filter((x) => x.debut <= j && x.fin >= j); }
+function carteDefi(d) {
+  const df = defisEnCours(d)[0];
+  if (!df) return "";
+  const e = etatDefi(df);
+  return `<div class="carte"><header><h3>${esc(df.nom)}</h3><a class="petit" style="color:var(--accent-texte)" href="#defis">Défis</a></header>
+    <div class="mesure"><span class="valeur">${virgule(e.total, df.mesure === "km" ? 0 : 0)}<small>/ ${entier(df.objectif)} ${df.mesure === "km" ? "km" : "sorties"}</small></span></div>
+    <div class="barre"><span style="width:${borne(e.pc, 2, 100)}%"></span></div>
+    <span class="petit discret">${entier(e.pc)} % · ${e.reste} jour${e.reste > 1 ? "s" : ""} restant${e.reste > 1 ? "s" : ""} · en tête : ${esc(e.parts[0]?.prenom || "—")}</span></div>`;
+}
+function vueDefis() {
+  const d = etat.donnees, defis = d.defis || [];
+  return `<section class="vue">
+    <div class="entete-vue"><h2>Défis en famille</h2><p>Un objectif commun en kilomètres ou en sorties. Les sorties des coureurs reliés comptent toutes seules (le vélo au tiers) ; le reste se note dans le logiciel de bureau, qui a aussi un grand affichage pour les enfants.</p></div>
+    ${defis.length ? defis.map((df) => { const e = etatDefi(df), u = df.mesure === "km" ? "km" : "sorties", max = Math.max(1, ...e.parts.map((p) => p.valeur)); return `<div class="carte"><header><h3>${esc(df.nom)}</h3><span class="etat ${e.pc >= 100 ? "vert" : cleJour(new Date()) > df.fin ? "neutre" : "bleu"}">${e.pc >= 100 ? "Réussi" : cleJour(new Date()) > df.fin ? "Terminé" : "En cours"}</span></header>
+      <p class="petit discret">Du ${esc(fmtJour(parseDate(df.debut)))} au ${esc(fmtJour(parseDate(df.fin)))} · objectif ${entier(df.objectif)} ${u}</p>
+      <div class="mesure"><span class="valeur">${virgule(e.total, 0)}<small>${u} · ${entier(e.pc)} %</small></span></div>
+      <div class="barre"><span style="width:${borne(e.pc, 2, 100)}%"></span></div>
+      <div class="badges">${e.badges.map((b) => `<span class="badge ${b.gagne ? "gagne" : ""}">${b.gagne ? "★ " : ""}${esc(b.n)} · ${b.s} %</span>`).join("")}</div>
+      <div class="liste">${e.parts.map((p, i) => `<div class="ligne"><span><span class="titre">${i === 0 && p.valeur > 0 ? "🏆 " : ""}${esc(p.prenom)}</span><span class="sous">${p.athlete_id != null ? "sorties comptées automatiquement" : "saisies à la main"}</span></span><span class="droite" style="min-width:40%"><span class="chiffre">${virgule(p.valeur, 1)} ${u}</span><div class="barre" style="margin-top:4px"><span style="width:${borne(p.valeur / max * 100, 2, 100)}%"></span></div></span></div>`).join("") || `<p class="vide">Aucun participant.</p>`}</div>
+    </div>`; }).join("") : `<div class="carte"><p class="vide">Aucun défi dans cette base. Crée-le dans le logiciel de bureau (menu Défis en famille), puis rouvre ta sauvegarde ici.</p></div>`}
+  </section>`;
+}
+
+/* ---------- Jour de course ---------- */
+const SAC_DEFAUT = (km, dp) => [
+  ["Obligatoire", "Réserve d'eau 1 L minimum"], ["Obligatoire", "Couverture de survie"], ["Obligatoire", "Sifflet"], ["Obligatoire", "Téléphone chargé"],
+  ...(km >= 30 || dp >= 1500 ? [["Obligatoire", "Veste imperméable"], ["Obligatoire", "Lampe frontale et piles de rechange"], ["Conseillé", "Collant ou pantalon long"]] : [["Conseillé", "Coupe-vent léger"]]),
+  ["Conseillé", "Bâtons"], ["Conseillé", "Casquette ou buff"], ["Nutrition", "Gels et barres pour la course"], ["Nutrition", "Pastilles de sel"], ["Avant le départ", "Dossard et épingles"], ["Avant le départ", "Montre chargée, parcours chargé"],
+];
+function sacDeCourse(c) {
+  const d = etat.donnees;
+  if (etat.source === "fichier" && Base.tablesPresentes.has("parametres_app")) {
+    try { const l = Base.tous("SELECT valeur FROM parametres_app WHERE cle = ?", [`sac_course:${String(c.date).slice(0, 10)}:${c.nom || ""}`])[0]; const v = JSON.parse(l?.valeur || "[]"); if (v.length) return v.map((x) => [x.section || "", x.texte, !!x.coche]); } catch (e) {}
+    if (c.roadbook_id && Base.tablesPresentes.has("roadbooks")) try { const l = Base.tous("SELECT checklist_json FROM roadbooks WHERE id = ?", [c.roadbook_id])[0]; const v = JSON.parse(l?.checklist_json || "[]"); if (v.length) return v.map((x) => [x.section || "", x.texte, !!x.coche]); } catch (e) {}
+  }
+  const off = (d.materielObligatoire || []).filter((m) => m.course_id === c.id);
+  if (off.length) return off.map((m) => [m.niveau === "conseille" ? "Conseillé" : "Obligatoire", m.libelle || m.equipement || "", false]);
+  return SAC_DEFAUT(nb(c.distance_km) || 10, nb(c.denivele_m) || 0).map(([s, t]) => [s, t, false]);
+}
+function dureeViseeH(c) {
+  const km = nb(c.distance_km) || 0, dp = nb(c.denivele_m) || 0;
+  if (!km) return [null, ""];
+  const trails = etat.donnees.activites.filter((a) => /trail/i.test(a.type || "") && nb(a.distance) > 8 && nb(a.duree)).slice(0, 10);
+  if (trails.length >= 3) {
+    const kmEff = trails.reduce((s, a) => s + nb(a.distance) + (nb(a.denivele) || 0) / 100, 0), sec = trails.reduce((s, a) => s + nb(a.duree), 0);
+    const ralenti = 1 + Math.max(0, km - 25) * 0.006;   /* on ralentit sur les longues distances */
+    return [(km + dp / 100) * (sec / kmEff) * ralenti / 3600, `d'après tes ${trails.length} derniers trails (allure par km-effort)`];
+  }
+  return [(km + dp / 100) * 6 / 60, "estimation simple (6 min par km-effort)"];
+}
+function planRavito(h) {
+  const heures = Math.max(1, Math.ceil(h));
+  return Array.from({ length: heures }, (_, i) => ({ h: i + 1, eau: 500, glucides: h > 2.5 ? 60 : 45, sel: h > 3 && (i + 1) % 2 === 0 }));
+}
+function vueJourCourse() {
+  const d = etat.donnees, cr = prochainesCourses(d), c = cr[0];
+  if (!c) return `<section class="vue"><div class="entete-vue"><h2>Jour de course</h2></div><div class="carte"><p class="vide">Aucune course à venir dans le calendrier.</p></div></section>`;
+  const j = ecartJours(c._date, new Date()), [h, orig] = dureeViseeH(c), plan = h ? planRavito(h) : [];
+  const cleSac = `thc-sac-${cleJour(c._date)}-${c.nom}`, coches = new Set(JSON.parse(lireStockage(cleSac) || "[]"));
+  const sac = sacDeCourse(c), sections = [...new Set(sac.map((x) => x[0]))];
+  const fait = sac.filter((x, i) => x[2] || coches.has(i)).length;
+  return `<section class="vue">
+    <div class="entete-vue"><h2>Jour de course</h2><p>${esc(c.nom)} · ${esc(fmtJourLong(c._date))}${c.lieu ? " · " + esc(c.lieu) : ""}</p></div>
+    <div class="grille g3">
+      <div class="carte mesure"><span class="etiquette">Compte à rebours</span><span class="rebours">${j <= 0 ? "C'est aujourd'hui" : `J−${j}`}</span><span class="detail">${j > 0 ? `${Math.floor(j / 7)} semaine${j >= 14 ? "s" : ""} et ${j % 7} jour${j % 7 > 1 ? "s" : ""}` : "Bonne course !"}</span></div>
+      <div class="carte mesure"><span class="etiquette">Parcours</span><span class="valeur">${virgule(nb(c.distance_km), 0)}<small>km</small> +${entier(c.denivele_m)}<small>m</small></span><span class="detail">${esc(c.type_terrain || "")}</span></div>
+      <div class="carte mesure"><span class="etiquette">Durée visée</span><span class="valeur">${h ? duree(h * 3600) : "—"}</span><span class="detail">${esc(orig)}</span></div>
+    </div>
+    <div class="grille g2">
+      <div class="carte"><header><h3>Sac à préparer</h3><span class="etat ${fait === sac.length ? "vert" : "neutre"}" id="sac-compte">${fait}/${sac.length}</span></header>
+        ${sections.map((s) => `<div><span class="etiquette">${esc(s)}</span>${sac.map((x, i) => x[0] === s ? `<label class="coche ${x[2] || coches.has(i) ? "fait" : ""}"><input type="checkbox" data-sac="${i}" ${x[2] || coches.has(i) ? "checked" : ""}><span>${esc(x[1])}</span></label>` : "").join("")}</div>`).join("")}
+        <span class="petit tres-discret">Les cases cochées ici restent dans ce navigateur ; celles du logiciel viennent de ta sauvegarde.</span></div>
+      <div class="carte"><header><h3>Ravitaillement heure par heure</h3></header>
+        ${plan.length ? `<div class="tableau-cadre"><table><thead><tr><th>Heure</th><th class="num">Eau</th><th class="num">Glucides</th><th>Sel</th></tr></thead><tbody>${plan.map((p) => `<tr><td>${p.h}<sup>e</sup> heure</td><td class="num">${p.eau} ml</td><td class="num">${p.glucides} g</td><td>${p.sel ? "1 pastille" : "—"}</td></tr>`).join("")}</tbody></table></div><span class="petit tres-discret">Repère général : à ajuster avec tes essais de la rubrique Nutrition et la chaleur du jour.</span>` : `<p class="vide">Distance inconnue.</p>`}
+      </div>
+    </div>
+    <div class="carte"><header><h3>Playlist de course</h3><span class="etat neutre">Spotify</span></header>
+      <p class="petit discret">Une playlist funk et disco 80-90 de la durée visée${h ? ` (${duree(h * 3600)})` : ""}, créée sur ton compte Spotify (Premium nécessaire).</p>
+      <div><button class="bouton principal" type="button" id="jc-playlist" ${h ? "" : "disabled"}>🎵 Créer la playlist</button></div><p class="petit" id="jc-etat" aria-live="polite"></p></div>
+  </section>`;
+}
+function brancherJourCourse() {
+  const c = prochainesCourses(etat.donnees)[0];
+  if (!c) return;
+  const cleSac = `thc-sac-${cleJour(c._date)}-${c.nom}`;
+  document.querySelectorAll("input[data-sac]").forEach((cb) => cb.onchange = () => {
+    const s = new Set(JSON.parse(lireStockage(cleSac) || "[]")), i = +cb.dataset.sac;
+    cb.checked ? s.add(i) : s.delete(i); ecrireStockage(cleSac, JSON.stringify([...s]));
+    cb.closest(".coche").classList.toggle("fait", cb.checked);
+    const tot = document.querySelectorAll("input[data-sac]").length, ok = document.querySelectorAll("input[data-sac]:checked").length;
+    const e = $("#sac-compte"); e.textContent = `${ok}/${tot}`; e.className = `etat ${ok === tot ? "vert" : "neutre"}`;
+  });
+  const b = $("#jc-playlist");
+  if (b) b.onclick = async () => {
+    const [h] = dureeViseeH(c), et = $("#jc-etat"), min = Math.round(h * 60);
+    if (!mcp) { et.textContent = "Disponible quand la page est ouverte dans Claude, avec Spotify connecté."; return; }
+    b.disabled = true; et.textContent = "Création de la playlist…";
+    try {
+      await relireServeurs();
+      const p = await appeler("spotify", "generate_playlist", { prompt: `Crée une playlist de ${min} minutes de funk et disco des années 80 et 90, dansante et motivante, pour ma course « ${c.nom} » (${virgule(nb(c.distance_km), 0)} km).`, language: "fr-FR" });
+      const lien = p?.playlist?.url || p?.url || p?.deep_link || p?.playlist_url || p?.playlist?.external_url;
+      cx.playlists.push({ nom: p?.playlist?.name || p?.name || `Course ${c.nom}`, lien: lien && String(lien).startsWith("https://") ? lien : null, duree_min: min, seance: c.nom });
+      et.innerHTML = lien && String(lien).startsWith("https://") ? `✓ Playlist créée. <a href="${esc(lien)}" target="_blank" rel="noopener">Ouvrir dans Spotify</a>` : `✓ ${esc(texteDe(p).slice(0, 300))}`;
+    } catch (e) { et.textContent = texteErreurMcp("spotify", e) + " (La création de playlist demande Spotify Premium.)"; }
+    finally { b.disabled = false; }
+  };
+}
+
+/* ---------- Duel de sorties ---------- */
+function distM(a, b) { const R = 6371000, r = Math.PI / 180, dl = (b[0] - a[0]) * r, dn = (b[1] - a[1]) * r; const x = Math.sin(dl / 2) ** 2 + Math.cos(a[0] * r) * Math.cos(b[0] * r) * Math.sin(dn / 2) ** 2; return 2 * R * Math.asin(Math.sqrt(x)); }
+function cumuls(pts) { const c = [0]; for (let i = 1; i < pts.length; i++) c.push(c[i - 1] + distM(pts[i - 1], pts[i])); return c; }
+function memeParcours(a, b, ta, tb) {
+  if (!ta || !tb) return false;
+  const da = nb(a.distance) || 0, db = nb(b.distance) || 0;
+  return distM(ta[0], tb[0]) <= 300 && da && db && Math.abs(da - db) / Math.max(da, db) <= 0.12;
+}
+function tempsA(pts, cum, d) {
+  let i = cum.findIndex((x) => x >= d); if (i < 0) i = cum.length - 1; if (i === 0) return pts[0][3] || 0;
+  const f = (d - cum[i - 1]) / ((cum[i] - cum[i - 1]) || 1), t0 = pts[i - 1][3], t1 = pts[i][3];
+  return t0 != null && t1 != null ? t0 + (t1 - t0) * f : null;
+}
+function comparerSorties(a, b, n = 8) {
+  const ta = traceDe(a), tb = traceDe(b);
+  if (!ta || !tb || ta[0].length < 4 || tb[0].length < 4) return null;
+  const ca = cumuls(ta), cb = cumuls(tb), L = Math.min(ca[ca.length - 1], cb[cb.length - 1]);
+  const rows = []; let pa = 0, pb = 0;
+  for (let k = 1; k <= n; k++) {
+    const dk = L * k / n, xa = tempsA(ta, ca, dk), xb = tempsA(tb, cb, dk);
+    if (xa == null || xb == null) return null;
+    rows.push({ km: dk / 1000, a: xa - pa, b: xb - pb, cumA: xa, cumB: xb }); pa = xa; pb = xb;
+  }
+  return { rows, L, meme: memeParcours(a, b, ta, tb) };
+}
+function vueDuel() {
+  const d = etat.donnees, avec = d.activites.filter((a) => (etat.source === "exemple" ? d.traces.has(a.id) : d.traces.has(a.id))).slice(0, 150);
+  const paires = [];
+  const cache = new Map(), tr = (a) => { if (!cache.has(a.id)) cache.set(a.id, traceDe(a)); return cache.get(a.id); };
+  for (let i = 0; i < Math.min(avec.length, 40) && paires.length < 6; i++) for (let j = i + 1; j < Math.min(avec.length, 40) && paires.length < 6; j++) if (memeParcours(avec[i], avec[j], tr(avec[i]), tr(avec[j]))) paires.push([avec[i], avec[j]]);
+  etat.duel = etat.duel || {};
+  if (!etat.duel.a && paires[0]) { etat.duel.a = paires[0][0].id; etat.duel.b = paires[0][1].id; }
+  if (!etat.duel.a && avec[1]) { etat.duel.a = avec[0].id; etat.duel.b = avec[1].id; }
+  const A = avec.find((x) => x.id === etat.duel.a), B = avec.find((x) => x.id === etat.duel.b);
+  const cmp = A && B && A.id !== B.id ? comparerSorties(A, B) : null;
+  const opt = (sel) => avec.map((a) => `<option value="${a.id}" ${a.id === sel ? "selected" : ""}>${esc(fmtJour(a._date))} · ${esc(a.nom || a.type || "Sortie")} · ${virgule(nb(a.distance), 1)} km</option>`).join("");
+  const s = "border:1px solid var(--bordure);background:var(--carte);color:var(--texte);border-radius:8px;padding:6px 8px;max-width:100%";
+  return `<section class="vue">
+    <div class="entete-vue"><h2>Duel de sorties</h2><p>Deux passages sur le même parcours, comparés portion par portion : où tu as gagné ou perdu du temps.</p></div>
+    ${paires.length ? `<div class="carte"><header><h3>Même parcours trouvés</h3></header><div class="puces">${paires.map(([x, y]) => `<button type="button" class="puce" data-paire="${x.id},${y.id}" aria-pressed="${x.id === etat.duel.a && y.id === etat.duel.b}">${esc(x.nom || "Sortie")} · ${esc(fmtJourCourt(y._date))} / ${esc(fmtJourCourt(x._date))}</button>`).join("")}</div></div>` : ""}
+    <div class="carte"><div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center"><span class="etiquette">A</span><select id="duel-a" style="${s}">${opt(etat.duel.a)}</select><span class="etiquette">B</span><select id="duel-b" style="${s}">${opt(etat.duel.b)}</select></div>
+      ${!avec.length ? `<p class="vide">Aucune sortie avec tracé GPS dans cette base.</p>` : !cmp ? `<p class="vide">Ces deux sorties n'ont pas de temps de passage exploitable.</p>` : `
+      ${cmp.meme ? "" : `<p class="petit"><span class="etat orange">Parcours différents</span> Le départ ou la distance ne correspondent pas : la comparaison reste indicative.</p>`}
+      ${(() => { const e = cmp.rows[cmp.rows.length - 1].cumA - cmp.rows[cmp.rows.length - 1].cumB; return `<p style="margin:0"><b>${e < 0 ? "A" : "B"}</b> est plus rapide de <b class="chiffre">${dureeCourte(Math.abs(e))}</b> sur ${virgule(cmp.L / 1000, 1)} km.</p>`; })()}
+      <div class="tableau-cadre"><table><thead><tr><th>Portion</th><th class="num">A</th><th class="num">B</th><th class="num">Écart (B − A)</th><th class="num">Cumul</th></tr></thead><tbody>
+      ${cmp.rows.map((r, i) => { const e = r.b - r.a, c = r.cumB - r.cumA; return `<tr><td>${virgule(i ? cmp.rows[i - 1].km : 0, 1)} → ${virgule(r.km, 1)} km</td><td class="num">${dureeCourte(r.a)}</td><td class="num">${dureeCourte(r.b)}</td><td class="num ${e > 0 ? "ecart-plus" : e < 0 ? "ecart-moins" : ""}">${e > 0 ? "A +" : e < 0 ? "B +" : ""}${dureeCourte(Math.abs(e))}</td><td class="num">${c >= 0 ? "A" : "B"} ${dureeCourte(Math.abs(c))}</td></tr>`; }).join("")}
+      </tbody></table></div>`}
+    </div>
+  </section>`;
+}
+function brancherDuel() {
+  const go = () => { etat.duel = { a: +$("#duel-a").value, b: +$("#duel-b").value }; rendreTout(); };
+  const a = $("#duel-a"), b = $("#duel-b"); if (a) a.onchange = go; if (b) b.onchange = go;
+  document.querySelectorAll("[data-paire]").forEach((x) => x.onclick = () => { const [p, q] = x.dataset.paire.split(",").map(Number); etat.duel = { a: p, b: q }; rendreTout(); });
+}
+
+/* ---------- Tiroir de détail (clic sur une sortie) ---------- */
+function ouvrirTiroir(html) { const t = $("#tiroir"); t.innerHTML = `<button class="bouton bouton-icone fermer" type="button" id="tiroir-fermer" aria-label="Fermer">✕</button>` + html; t.classList.add("ouvert"); t.setAttribute("aria-hidden", "false"); $("#voile").classList.add("ouvert"); $("#tiroir-fermer").onclick = fermerTiroir; $("#tiroir-fermer").focus(); }
+function fermerTiroir() { $("#tiroir").classList.remove("ouvert"); $("#tiroir").setAttribute("aria-hidden", "true"); $("#voile").classList.remove("ouvert"); }
+function tiroirSortie(id) {
+  const a = etat.donnees.activites.find((x) => x.id === id);
+  if (!a) return;
+  const t = traceDe(a), alt = t ? t.map((p) => p[2]).filter((v) => isFinite(v)) : [];
+  let prof = "";
+  if (alt.length > 3) { const mn = Math.min(...alt), mx = Math.max(...alt), w = 340, h = 70, pas = Math.max(1, Math.floor(alt.length / 120)); const pts = alt.filter((_, i) => i % pas === 0).map((v, i, arr) => `${(i / (arr.length - 1) * w).toFixed(1)},${(h - (v - mn) / ((mx - mn) || 1) * (h - 6) - 3).toFixed(1)}`).join(" "); prof = `<svg viewBox="0 0 ${w} ${h}" width="100%" height="${h}" aria-label="Profil"><polyline points="${pts}" fill="none" stroke="var(--accent)" stroke-width="2"/></svg><span class="petit tres-discret">Profil : ${entier(mn)} à ${entier(mx)} m</span>`; }
+  const an = etat.donnees.analyses?.get?.(a.id);
+  ouvrirTiroir(`<div><span class="etiquette">${esc(fmtJourLong(a._date))}</span><h3 style="font-size:1.2rem">${esc(a.nom || a.type || "Sortie")}</h3><span class="etat neutre">${esc(a.type || "")}</span></div>
+    <div class="grille g2" style="grid-template-columns:1fr 1fr">${[["Distance", virgule(nb(a.distance), 1) + " km"], ["Dénivelé", nb(a.denivele) ? "+" + entier(a.denivele) + " m" : "—"], ["Durée", duree(a.duree)], ["Allure", allure(nb(a.duree), nb(a.distance))], ["FC moyenne", nb(a.frequence_cardiaque_moyenne) ? entier(a.frequence_cardiaque_moyenne) + " bpm" : "—"], ["Calories", nb(a.calories) ? entier(a.calories) : "—"]].map(([e, v]) => `<div class="composante">${e}<br><b>${v}</b></div>`).join("")}</div>
+    ${prof}
+    ${an ? `<div class="carte" style="padding:10px"><span class="etiquette">Analyse</span><p class="petit" style="margin:0">${esc(String(an).slice(0, 600))}${String(an).length > 600 ? "…" : ""}</p></div>` : ""}
+    <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="bouton principal" type="button" id="tiroir-fiche">Fiche complète</button>${t ? `<button class="bouton" type="button" id="tiroir-duel">Comparer (duel)</button>` : ""}</div>`);
+  $("#tiroir-fiche").onclick = () => { fermerTiroir(); etat.sortieChoisie = id; if (location.hash === "#sorties") rendreTout(); else location.hash = "sorties"; };
+  const du = $("#tiroir-duel"); if (du) du.onclick = () => { fermerTiroir(); etat.duel = { a: id, b: (etat.duel?.b && etat.duel.b !== id) ? etat.duel.b : etat.donnees.activites.find((x) => x.id !== id && etat.donnees.traces.has(x.id))?.id }; if (location.hash === "#duel") rendreTout(); else location.hash = "duel"; };
+}
+
+/* ---------- Recherche ⌘K ---------- */
+const REGLAGES_PAGE = [["Thème : sombre, clair ou selon le soleil", "theme"], ["Seuil d'alerte des chaussures", "seuil"], ["Ouvrir ma base", "ouvrir"]];
+function resultatsRecherche(q) {
+  q = q.trim().toLowerCase(); const d = etat.donnees, r = [];
+  const ok = (t) => !q || String(t || "").toLowerCase().includes(q);
+  RUBRIQUES.filter(([k, l]) => rubriqueVisible(k) && ok(l)).forEach(([k, l]) => r.push({ cat: "Rubrique", titre: l, sous: "", go: () => { location.hash = k; } }));
+  if (q) {
+    d.activites.filter((a) => ok(`${a.nom} ${a.type} ${a.notes || ""}`)).slice(0, 8).forEach((a) => r.push({ cat: "Sortie", titre: a.nom || a.type, sous: `${fmtJour(a._date)} · ${virgule(nb(a.distance), 1)} km`, go: () => tiroirSortie(a.id) }));
+    d.courses.filter((c) => ok(`${c.nom} ${c.lieu || ""}`)).slice(0, 5).forEach((c) => r.push({ cat: "Course", titre: c.nom, sous: `${c.date || ""}${c.lieu ? " · " + c.lieu : ""}`, go: () => { location.hash = "courses"; } }));
+    d.materiel.filter((m) => ok(`${m.nom} ${m.type || ""}`)).slice(0, 5).forEach((m) => r.push({ cat: "Matériel", titre: m.nom, sous: `${entier(m.km_actuels)} km`, go: () => { location.hash = "materiel"; } }));
+    REGLAGES_PAGE.filter(([t]) => ok(t)).forEach(([t, k]) => r.push({ cat: "Réglage", titre: t, sous: "", go: () => { if (k === "theme") $("#bouton-theme").click(); else if (k === "ouvrir") $("#fichier").click(); else { const v = prompt("Alerte chaussures à partir de combien de km ?", String(seuilChaussures())); if (v && +v > 100) { ecrireStockage("thc-seuil-chaussures", String(Math.round(+v))); rendreTout(); } } } }));
+  }
+  return r.slice(0, 30);
+}
+let resPalette = [], actifPalette = 0;
+function rendrePalette() {
+  resPalette = resultatsRecherche($("#palette-saisie").value); actifPalette = Math.min(actifPalette, Math.max(0, resPalette.length - 1));
+  $("#palette-res").innerHTML = resPalette.map((x, i) => `<button type="button" class="res ${i === actifPalette ? "actif" : ""}" data-i="${i}"><span><span class="cat">${esc(x.cat)}</span><br>${esc(x.titre)}</span><span class="petit discret">${esc(x.sous)}</span></button>`).join("") || `<p class="vide" style="padding:10px">Rien ne correspond.</p>`;
+  document.querySelectorAll("#palette .res").forEach((b) => b.onclick = () => choisirPalette(+b.dataset.i));
+}
+function choisirPalette(i) { const x = resPalette[i]; fermerPalette(); if (x) x.go(); }
+function ouvrirPalette() { $("#palette").classList.add("ouvert"); $("#voile").classList.add("ouvert"); const s = $("#palette-saisie"); s.value = ""; actifPalette = 0; rendrePalette(); s.focus(); }
+function fermerPalette() { $("#palette").classList.remove("ouvert"); if (!$("#tiroir").classList.contains("ouvert")) $("#voile").classList.remove("ouvert"); }
+
+/* ---------- Préparer ma semaine (connecteurs) ---------- */
+function modelePour(s) {
+  const t = `${s.type_seance || ""} ${s.nom || ""}`.toLowerCase();
+  const i = /c[ôo]te/.test(t) ? 3 : /seuil/.test(t) ? 2 : /fraction|30\/30|vma/.test(t) ? 1 : /longue/.test(t) ? 4 : 0;
+  return MODELES_SEANCE[i];
+}
+function propositionSemaine() {
+  const d = etat.donnees, pref = lireStockage("thc-heure-preferee") || "18:00";
+  let base = seancesAVenir(d, 7).map((s) => ({ nom: s.nom || s.type_seance, jour: s._date, modele: modelePour(s) }));
+  if (!base.length) {
+    const auj = jour0(new Date()), prochain = (js) => { for (let k = 1; k <= 7; k++) { const x = ajouterJours(auj, k); if (x.getDay() === js) return x; } };
+    base = [[2, 0], [4, 1], [6, 4]].map(([js, m]) => ({ nom: MODELES_SEANCE[m].nom, jour: prochain(js), modele: MODELES_SEANCE[m] }));
+  }
+  const occ = (cx.agenda || []).filter((e) => !e.journee && e.debut && e.fin).map((e) => [new Date(e.debut), new Date(e.fin)]);
+  return base.map((s) => {
+    const [hh, mm] = pref.split(":").map(Number), essais = [hh, hh + 1, hh + 2, hh - 1, 7, 12, 6];
+    let debut = null;
+    for (const hcand of essais) {
+      if (hcand < 6 || hcand > 21) continue;
+      const deb = new Date(s.jour); deb.setHours(hcand, hcand === hh ? mm : 0, 0, 0);
+      const fin = new Date(deb.getTime() + s.modele.duree * 60000);
+      if (!occ.some(([a, b]) => deb < b && fin > a)) { debut = deb; break; }
+    }
+    return { ...s, debut, libre: !!debut };
+  });
+}
+function carteSemaine() {
+  return `<div class="carte" id="cx-semaine"><header><h3>Préparer ma semaine</h3><span class="etat neutre">Garmin · Google Agenda · Spotify</span></header>
+    <p class="petit discret">Les séances prévues des 7 prochains jours (ou une semaine type footing, fractionné, sortie longue), placées dans les créneaux libres de ton agenda autour de ton heure préférée.</p>
+    <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center"><label class="petit">Heure préférée <input type="time" id="sem-heure" value="${esc(lireStockage("thc-heure-preferee") || "18:00")}" style="border:1px solid var(--bordure);background:var(--carte);color:var(--texte);border-radius:8px;padding:4px 6px"></label>
+      <label class="coche"><input type="checkbox" id="sem-montre" checked><span>Montre</span></label><label class="coche"><input type="checkbox" id="sem-agenda" checked><span>Agenda</span></label><label class="coche"><input type="checkbox" id="sem-playlist"><span>Playlists</span></label></div>
+    <div id="sem-liste"></div>
+    <div><button class="bouton principal" type="button" id="sem-go">Tout envoyer</button></div><p class="petit" id="sem-etat" aria-live="polite"></p>
+    <p class="petit tres-discret">Running Workout gratuit : 4 séances par mois sur la montre. Spotify : Premium nécessaire.</p></div>`;
+}
+function rendreSemaine() {
+  const l = $("#sem-liste"); if (!l) return;
+  etat.semaine = propositionSemaine();
+  l.innerHTML = `<div class="liste">${etat.semaine.map((s) => `<div class="ligne"><span><span class="titre">${esc(s.nom)}</span><span class="sous">${esc(s.modele.desc)}</span></span><span class="droite sous">${esc(fmtJourLong(s.jour))}<br>${s.debut ? `${String(s.debut.getHours()).padStart(2, "0")}:${String(s.debut.getMinutes()).padStart(2, "0")}` : `<span class="etat orange">aucun créneau libre</span>`}</span></div>`).join("")}</div>${cx.agenda ? "" : `<span class="petit tres-discret">L'agenda n'est pas encore lu : les créneaux ne tiennent pas compte de tes rendez-vous.</span>`}`;
+}
+async function envoyerSemaine() {
+  const et = $("#sem-etat"), b = $("#sem-go"), m = $("#sem-montre").checked, ag = $("#sem-agenda").checked, pl = $("#sem-playlist").checked;
+  if (!mcp) { et.textContent = "Disponible quand la page est ouverte dans Claude."; return; }
+  b.disabled = true; const bilan = [];
+  const loc = (d) => `${cleJour(d)}T${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}:00`;
+  for (const s of etat.semaine || []) {
+    et.textContent = `${s.nom}…`;
+    if (m) try { await appeler("garmin", "create_workout", { workout: { workoutName: s.modele.nom, sport: "RUNNING", description: s.modele.desc, segments: [{ segmentOrder: 1, steps: s.modele.pas }] }, scheduledDate: cleJour(s.jour) }); bilan.push(`⌚ ${s.nom}`); cx.seancesMontre.push({ nom: s.modele.nom, date: cleJour(s.jour) }); } catch (e) { bilan.push(`⌚ ${s.nom} : ${texteErreurMcp("garmin", e)}`); }
+    if (ag && s.debut) try { await appeler("agenda", "create_event", { summary: `🏃 ${s.nom}`, startTime: loc(s.debut), endTime: loc(new Date(s.debut.getTime() + s.modele.duree * 60000)), description: `${s.modele.desc}\nSéance placée par Trail Hub Center.`, overrideReminders: [{ method: "popup", minutes: 60 }] }); bilan.push(`📅 ${s.nom}`); } catch (e) { bilan.push(`📅 ${s.nom} : ${texteErreurMcp("agenda", e)}`); }
+    if (pl) try { const p = await appeler("spotify", "generate_playlist", { prompt: `Crée une playlist de ${s.modele.duree} minutes de funk et disco des années 80 et 90 pour ma séance « ${s.nom} ».`, language: "fr-FR" }); const lien = p?.playlist?.url || p?.url; cx.playlists.push({ nom: p?.playlist?.name || s.nom, lien: lien && String(lien).startsWith("https://") ? lien : null, duree_min: s.modele.duree, seance: s.nom }); bilan.push(`🎵 ${s.nom}`); } catch (e) { bilan.push(`🎵 ${s.nom} : ${texteErreurMcp("spotify", e)}`); }
+  }
+  et.innerHTML = bilan.map(esc).join("<br>") || "Rien à envoyer.";
+  b.disabled = false;
+}
+function brancherSemaine() {
+  if (!$("#cx-semaine")) return;
+  rendreSemaine();
+  $("#sem-heure").onchange = (e) => { ecrireStockage("thc-heure-preferee", e.target.value || "18:00"); rendreSemaine(); };
+  $("#sem-go").onclick = envoyerSemaine;
+}
+
+/* ---------- Rapport du mois (téléchargement) ---------- */
+function rapportMois(decalage = 1) {
+  const d = etat.donnees, ref = new Date(); ref.setDate(1); ref.setMonth(ref.getMonth() - decalage);
+  const an = ref.getFullYear(), mo = ref.getMonth(), nom = ref.toLocaleDateString("fr-FR", { month: "long", year: "numeric" });
+  const acts = d.activites.filter((a) => a._date.getFullYear() === an && a._date.getMonth() === mo);
+  const tot = acts.reduce((s, a) => ({ km: s.km + (nb(a.distance) || 0), dp: s.dp + (nb(a.denivele) || 0), sec: s.sec + (nb(a.duree) || 0) }), { km: 0, dp: 0, sec: 0 });
+  const parType = {}; acts.forEach((a) => { const t = a.type || "Autre"; parType[t] = (parType[t] || 0) + (nb(a.distance) || 0); });
+  const longue = acts.reduce((m, a) => (nb(a.distance) > (nb(m?.distance) || 0) ? a : m), null);
+  const fin = d.forme.filter((f) => { const x = f.date instanceof Date ? f.date : parseDate(f.date); return x && x.getMonth() === mo && x.getFullYear() === an; }).slice(-1)[0] || d.forme[d.forme.length - 1];
+  const html = `<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><title>Rapport ${nom}</title><style>body{font-family:system-ui,sans-serif;max-width:760px;margin:30px auto;color:#1E1A15;padding:0 16px}h1{color:#D9480F}table{border-collapse:collapse;width:100%}td,th{border-bottom:1px solid #E2D8CA;padding:6px;text-align:left}.k{display:inline-block;margin:0 18px 12px 0}.k b{display:block;font-size:1.6rem}</style></head><body>
+<h1>Rapport du mois · ${esc(nom)}</h1><p>${esc(nomAthlete(d.athlete))} · créé par Trail Hub Center le ${esc(fmtJour(new Date()))}</p>
+<div><span class="k"><b>${virgule(tot.km, 1)} km</b>distance</span><span class="k"><b>+${entier(tot.dp)} m</b>dénivelé</span><span class="k"><b>${duree(tot.sec)}</b>temps</span><span class="k"><b>${acts.length}</b>sorties</span></div>
+<h2>Par type</h2><table>${Object.entries(parType).map(([t, k]) => `<tr><td>${esc(t)}</td><td>${virgule(k, 1)} km</td></tr>`).join("") || "<tr><td>Aucune sortie</td></tr>"}</table>
+${longue ? `<h2>Plus longue sortie</h2><p>${esc(longue.nom || "")} · ${esc(fmtJour(longue._date))} · ${virgule(nb(longue.distance), 1)} km · +${entier(longue.denivele)} m</p>` : ""}
+${fin ? `<h2>Forme en fin de mois</h2><p>Forme ${virgule(fin.fitness)} · fatigue ${virgule(fin.fatigue)} · fraîcheur ${virgule(fin.forme)}</p>` : ""}
+<h2>Sorties</h2><table><tr><th>Date</th><th>Sortie</th><th>km</th><th>D+</th><th>Durée</th></tr>${acts.slice().reverse().map((a) => `<tr><td>${esc(fmtJour(a._date))}</td><td>${esc(a.nom || a.type || "")}</td><td>${virgule(nb(a.distance), 1)}</td><td>${entier(a.denivele)}</td><td>${duree(a.duree)}</td></tr>`).join("")}</table>
+<p style="color:#8D8172;font-size:.85rem">Pour un PDF : ouvre ce fichier dans ton navigateur puis Imprimer &gt; Enregistrer en PDF. Le logiciel de bureau écrit lui-même le PDF chaque début de mois.</p></body></html>`;
+  return { nom: `Rapport-trail-${an}-${String(mo + 1).padStart(2, "0")}.html`, html, libelle: nom };
+}
+async function telechargerRapport() {
+  const r = rapportMois(+($("#rapport-mois")?.value || 1)), et = $("#rapport-etat");
+  try {
+    if (!telechargements) throw { code: "absent" };
+    await telechargements.save({ filename: r.nom, data: new Blob([r.html], { type: "text/html" }) });
+    et.textContent = `✓ ${r.nom} téléchargé.`;
+  } catch (e) { et.textContent = e?.code === "absent" ? "Le téléchargement marche quand la page est ouverte dans Claude." : "Téléchargement annulé ou refusé."; }
+}
+function carteRapport() {
+  const opts = [0, 1, 2, 3].map((k) => { const x = new Date(); x.setDate(1); x.setMonth(x.getMonth() - k); return `<option value="${k}" ${k === 1 ? "selected" : ""}>${esc(x.toLocaleDateString("fr-FR", { month: "long", year: "numeric" }))}</option>`; }).join("");
+  return `<div class="carte"><header><h3>Rapport du mois</h3></header><p class="petit discret">Bilan d'un mois (distance, dénivelé, forme, sorties) à garder ou imprimer en PDF.</p>
+    <div style="display:flex;gap:8px;flex-wrap:wrap"><select class="choix" id="rapport-mois" aria-label="Mois">${opts}</select><button class="bouton" type="button" id="rapport-go">⬇︎ Télécharger</button></div><p class="petit" id="rapport-etat" aria-live="polite"></p></div>`;
+}
+
+/* ---------- Thème selon le soleil ---------- */
+function leverCoucher(jour, lat = LIEU_DEFAUT.lat, lon = LIEU_DEFAUT.lon) {
+  const r = Math.PI / 180, debutAn = new Date(jour.getFullYear(), 0, 0), n = Math.floor((jour0(jour) - debutAn) / JOUR_MS);
+  const g = 2 * Math.PI / 365 * (n - 1);
+  const eq = 229.18 * (0.000075 + 0.001868 * Math.cos(g) - 0.032077 * Math.sin(g) - 0.014615 * Math.cos(2 * g) - 0.040849 * Math.sin(2 * g));
+  const decl = 0.006918 - 0.399912 * Math.cos(g) + 0.070257 * Math.sin(g) - 0.006758 * Math.cos(2 * g) + 0.000907 * Math.sin(2 * g) - 0.002697 * Math.cos(3 * g) + 0.00148 * Math.sin(3 * g);
+  const ha = Math.acos(Math.cos(90.833 * r) / (Math.cos(lat * r) * Math.cos(decl)) - Math.tan(lat * r) * Math.tan(decl)) / r;
+  const enDate = (minUtc) => { const x = new Date(Date.UTC(jour.getFullYear(), jour.getMonth(), jour.getDate())); x.setUTCMinutes(Math.round(minUtc)); return x; };
+  return [enDate(720 - 4 * (lon + ha) - eq), enDate(720 - 4 * (lon - ha) - eq)];
+}
+function themeSoleil() { const [l, c] = leverCoucher(new Date()), m = new Date(); return m >= l && m < c ? "light" : "dark"; }
+
+/* ================================================================
    Assemblage
    ================================================================ */
 function rendreTout() {
   rendreSource(); rendreNav();
   const r = rubriqueCourante(), c = $("#contenu");
-  const vues = { aujourdhui: vueAujourdhui, fil: vueFil, connecteurs: vueConnecteurs, sorties: vueSorties, forme: vueForme, sante: vueSante, courses: vueCourses, blessures: vueBlessures, fractionne: vueFractionne, club: vueClub, annuaire: vueAnnuaire, bibliotheque: vueBibliotheque, calendrier: vueCalendrier, organisation: vueOrganisation, analyse: vueAnalyse, actualites: vueActualites, materiel: vueMateriel, nutrition: vueNutrition, coach: vueCoach, ouvrir: vueOuvrir };
+  const vues = { aujourdhui: vueAujourdhui, fil: vueFil, connecteurs: vueConnecteurs, sorties: vueSorties, forme: vueForme, sante: vueSante, courses: vueCourses, blessures: vueBlessures, fractionne: vueFractionne, club: vueClub, annuaire: vueAnnuaire, bibliotheque: vueBibliotheque, calendrier: vueCalendrier, organisation: vueOrganisation, analyse: vueAnalyse, actualites: vueActualites, materiel: vueMateriel, nutrition: vueNutrition, coach: vueCoach, ouvrir: vueOuvrir, jourcourse: vueJourCourse, duel: vueDuel, defis: vueDefis };
   c.innerHTML = vues[r]() + `<p class="pied">Trail Hub Center · page de consultation · les données affichées viennent de ${etat.source === "fichier" ? "ta base" : "l'exemple intégré"}.</p>`;
   if (r === "sorties") { dessinerCalendrier(); rendreDetailSortie(); brancherSorties(); }
   if (r === "forme") dessinerForme();
@@ -3454,8 +3937,11 @@ function rendreTout() {
   if (r === "actualites") brancherActualites();
   if (r === "calendrier") brancherCalendrier();
   if (r === "organisation") brancherOrganisation();
+  if (r === "jourcourse") brancherJourCourse();
+  if (r === "duel") brancherDuel();
+  const rg = $("#rapport-go"); if (rg) rg.onclick = telechargerRapport;
   brancherLectures();
-  c.querySelectorAll("button.ligne[data-sortie]").forEach((b) => b.onclick = () => { etat.sortieChoisie = +b.dataset.sortie; location.hash = "sorties"; if (rubriqueCourante() === "sorties") rendreTout(); });
+  c.querySelectorAll("button.ligne[data-sortie]").forEach((b) => b.onclick = () => tiroirSortie(+b.dataset.sortie));
 }
 function brancherSorties() {
   const rech = $("#recherche");
@@ -3476,12 +3962,30 @@ function brancherDepot() {
 }
 
 /* thème : celui de l'appareil par défaut, ou le choix mémorisé */
-function appliquerTheme(t) { if (t === "dark" || t === "light") document.documentElement.setAttribute("data-theme", t); }
+function appliquerTheme(t) {
+  if (t === "soleil") document.documentElement.setAttribute("data-theme", themeSoleil());
+  else if (t === "dark" || t === "light") document.documentElement.setAttribute("data-theme", t);
+  const b = $("#bouton-theme"); if (b) b.title = `Thème : ${t === "soleil" ? "selon le soleil (clair du lever au coucher)" : t === "light" ? "clair" : t === "dark" ? "sombre" : "celui de l'appareil"} — clic pour changer`;
+}
 appliquerTheme(lireStockage("thc-theme"));
+setInterval(() => { if (lireStockage("thc-theme") === "soleil") appliquerTheme("soleil"); }, 5 * 60000);
 $("#bouton-theme").onclick = () => {
-  const actuel = document.documentElement.getAttribute("data-theme") || (matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark");
-  const t = actuel === "dark" ? "light" : "dark"; appliquerTheme(t); ecrireStockage("thc-theme", t); rendreTout();
+  const m = lireStockage("thc-theme") || (matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark");
+  const t = m === "dark" ? "light" : m === "light" ? "soleil" : "dark"; ecrireStockage("thc-theme", t); appliquerTheme(t); rendreTout();
 };
+/* recherche ⌘K, tiroir */
+$("#bouton-recherche").onclick = ouvrirPalette;
+$("#voile").onclick = () => { fermerPalette(); fermerTiroir(); };
+$("#palette-saisie").oninput = () => { actifPalette = 0; rendrePalette(); };
+document.addEventListener("keydown", (e) => {
+  if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") { e.preventDefault(); $("#palette").classList.contains("ouvert") ? fermerPalette() : ouvrirPalette(); return; }
+  if (e.key === "Escape") { fermerPalette(); fermerTiroir(); return; }
+  if ($("#palette").classList.contains("ouvert")) {
+    if (e.key === "ArrowDown") { e.preventDefault(); actifPalette = Math.min(actifPalette + 1, resPalette.length - 1); rendrePalette(); }
+    if (e.key === "ArrowUp") { e.preventDefault(); actifPalette = Math.max(actifPalette - 1, 0); rendrePalette(); }
+    if (e.key === "Enter") { e.preventDefault(); choisirPalette(actifPalette); }
+  }
+});
 $("#bouton-ouvrir").onclick = () => $("#fichier").click();
 $("#fichier").onchange = (e) => { ouvrirFichier(e.target.files[0]); e.target.value = ""; };
 $("#choix-athlete").onchange = (e) => { choisirAthlete(+e.target.value); rendreTout(); };
